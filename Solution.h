@@ -35,6 +35,7 @@ class Solution {
         bool includeClient(Node *client, Route *r, Graph *g, int prevNode, int iRoute);
         
         Node* getClosestClient(Graph *g, int from); 
+        double getCost();
 
         void printSolution();
         void printRoutes();

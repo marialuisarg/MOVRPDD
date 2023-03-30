@@ -35,7 +35,7 @@ int main() {
     }
 
     Solution s(&graph);    
-    //s.plotSolution(&s, fileName);
+    s.plotSolution(&s, fileName);
     //s.printSolution();
 
     return 0;

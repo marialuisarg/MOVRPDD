@@ -15,7 +15,7 @@
 #define QT 1000 // maximum load capacity of trucks
 #define WD 25   // tare weight of drones
 #define QD 5    // maximum load capacity of drones
-#define CT 1   // travel cost of trucks per unit distance
+#define CT 1    // travel cost of trucks per unit distance
 #define CD 1    // travel cost of drones per unit distance
 #define CB 500  // basis cost of using truck equipped with drone
 #define E 0.5   // maximum endurance of empty drones
@@ -204,8 +204,6 @@ void Solution::updateCandidatesList(Node *client, Route *r, Graph *g, int iRoute
             // if delta cost is less than the current cheapest cost, updates the cost
             if (deltaCost < cheapestRouteCost) {
                 cheapestRouteCost = deltaCost;
-                //get<1>(candidatesCost[i]) = iRoute;
-                cout << "*";
                 get<2>(candidatesCost[i]) = deltaCost;
                 get<3>(candidatesCost[i]) = clientPrevNode;
                 get<4>(candidatesCost[i]) = client->getID();
@@ -223,7 +221,6 @@ void Solution::updateCandidatesList(Node *client, Route *r, Graph *g, int iRoute
             if (deltaCost < cheapestRouteCost) {
                 cheapestRouteCost = deltaCost;
                 //get<1>(candidatesCost[i]) = iRoute;
-                cout << "*";
                 get<2>(candidatesCost[i]) = deltaCost;
                 get<3>(candidatesCost[i]) = client->getID();
                 get<4>(candidatesCost[i]) = clientNextNode;
@@ -301,11 +298,18 @@ void Solution::printRoutes() {
 }
 
 void Solution::printCandidatesCost() {
-    // print candidates cost for each route
+    // print candidates list for each route
     
-    for (int i = 0; i < candidatesCost.size(); i++) {
-        cout << "Candidate " << get<0>(candidatesCost[i]) << " in route " << get<1>(candidatesCost[i]) << " has cost " << get<2>(candidatesCost[i]) << " inserting after node " << get<3>(candidatesCost[i]) << endl;
+    for (int j = 0; j < routes.size(); j++) {
+        cout << endl;
+        cout << "CANDIDATES FOR ROUTE " << j << endl;
+        for (int i = 0; i < candidatesCost.size(); i++) {
+            if (get<1>(candidatesCost[i]) == j)
+                cout << "Candidate " << get<0>(candidatesCost[i]) << " between nodes " <<  get<3>(candidatesCost[i]) << " and " << get<4>(candidatesCost[i]) <<" => delta = " << get<2>(candidatesCost[i]) << endl;
+        }
     }
+
+    cout << "------------------" << endl;
 }
 
 void Solution::plotSolution(Solution *s, string instance){
@@ -313,7 +317,7 @@ void Solution::plotSolution(Solution *s, string instance){
     ofstream output_file(filename);
 
     output_file << s->routes.size() << endl;
-    //output_file << s->getCost() << endl;
+    output_file << s->getCost() << endl;
 
     for (int i=0; i < s->routes.size(); i++) {
         string truckRoute = "";
@@ -342,6 +346,10 @@ void Solution::plotSolution(Solution *s, string instance){
     int aux = system(command.c_str());
     command = "rm " + filename;
     aux = system(command.c_str());
+}
+
+double Solution::getCost() {
+    return this->cost;
 }
 
 Solution::~Solution() {
