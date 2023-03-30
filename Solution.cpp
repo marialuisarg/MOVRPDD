@@ -348,7 +348,7 @@ void Solution::plotSolution(Solution *s, string instance){
 
         // if(!droneRoute.empty())
         //     output_file << droneRoute.substr(1);
-        // output_file << endl;
+        output_file << endl;
     }
     
     output_file.close();

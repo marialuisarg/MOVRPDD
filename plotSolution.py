@@ -23,6 +23,7 @@ if __name__ == '__main__':
     
     f.seek(0)
     f.readline()
+    id = []
     x = []
     y = []
     drone = []
@@ -30,6 +31,7 @@ if __name__ == '__main__':
     
     for i in range(numLines):
         line = f.readline().split('\t')
+        id.append(float(line[0]))
         x.append(float(line[2]))
         y.append(float(line[3]))
         request.append(line[4])
@@ -37,9 +39,6 @@ if __name__ == '__main__':
         drone.append(0)
     
     f.close()
-    
-    print(x)
-    print(y)
     
     fig = plt.figure()
     ax1 = fig.add_subplot()
@@ -77,24 +76,37 @@ if __name__ == '__main__':
                 plt.plot(x[i+1],y[i+1],'o', color='lime')
     for i in range(len(x)-1):
         ax.annotate(xy=(x[i+1],y[i+1]+0.1), size=6, horizontalalignment='center', verticalalignment='bottom', text="")
-        ax.annotate(request[i+1], xy=(x[i+1],y[i+1]-0.1), size=6, horizontalalignment='center', verticalalignment='top')
+        
+        # nomeando os clientes por request
+        # ax.annotate(request[i+1], xy=(x[i+1],y[i+1]-0.1), size=6, horizontalalignment='center', verticalalignment='top')
+        
+        # nomeando os clientes por id
+        ax.annotate(id[i+1], xy=(x[i+1],y[i+1]-0.1), size=6, horizontalalignment='center', verticalalignment='top')
+    
     f = open(solution, "r");
+    
     numLines = int(f.readline())
     cost = f.readline()
+    
     for i in range(numLines):
+        
         line = f.readline()[:-1].split("-")
-        print(line)
         for j in range(len(line)-1):
             inicio = int(line[j])
             fim = int(line[j+1])
+            
             if fim==numVertex:
                 fim=0
+                
+            if inicio==numVertex:
+                inicio=0
+            
             if(j==0 and i==0):
                 addArrow(ax1,x[inicio],y[inicio],x[fim],y[fim],'coral','Truck')
             else:
                 addArrow(ax1,x[inicio],y[inicio],x[fim],y[fim],'coral','')
+        
         line = f.readline()[:-1].split("-")
-        print(line)
         for j in range(1,len(line),3):
             inicio = int(line[j-1])
             atendido = int(line[j])
