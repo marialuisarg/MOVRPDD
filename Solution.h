@@ -36,6 +36,7 @@ class Solution {
         
         Node* getClosestClient(Graph *g, int from); 
         double getCost();
+        void updateSolutionCost();
 
         void printSolution();
         void printRoutes();

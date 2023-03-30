@@ -12,7 +12,7 @@
 // parameter settings of MOVRPDD Model //
  
 #define WT 1500 // tare weight of trucks 
-#define QT 1000 // maximum load capacity of trucks
+#define QT 25 // maximum load capacity of trucks
 #define WD 25   // tare weight of drones
 #define QD 5    // maximum load capacity of drones
 #define CT 1    // travel cost of trucks per unit distance
@@ -49,7 +49,17 @@ Solution::Solution(Graph *g) {
     }
 
     createTruckRoutes(g);
+    updateSolutionCost();
     //createDroneRoutes(g);
+}
+
+void Solution::updateSolutionCost() {
+    double c = 0.0;
+    for (int i = 0; i < routes.size(); i++) {
+        c += routes[i].getCost();
+    }
+
+    this->cost = c;
 }
 
 void Solution::createTruckRoutes(Graph *g) {
@@ -344,8 +354,8 @@ void Solution::plotSolution(Solution *s, string instance){
     output_file.close();
     string command = "python plotSolution.py " + instance + " " + filename;
     int aux = system(command.c_str());
-    command = "rm " + filename;
-    aux = system(command.c_str());
+    // command = "rm " + filename;
+    // aux = system(command.c_str());
 }
 
 double Solution::getCost() {

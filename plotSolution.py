@@ -13,25 +13,33 @@ if __name__ == '__main__':
     solution = sys.argv[2]
     
     f = open(instance, "r")
-    numLines = int(f.readline())
+    
+    # lê o número de clientes contando as linhas
+    for count, line in enumerate(f):
+        pass
+    
+    numLines = count - 1
     numVertex = numLines
-    capacity = f.readline()
+    
+    f.seek(0)
     f.readline()
     x = []
     y = []
-    initTimeWindow = []
-    endTimeWindow = []
     drone = []
     request = []
+    
     for i in range(numLines):
-        line = f.readline().split(",")
+        line = f.readline().split('\t')
         x.append(float(line[2]))
         y.append(float(line[3]))
-        request.append(line[6])
-        drone.append(int(line[9]))
-        initTimeWindow.append(float(line[4]))
-        endTimeWindow.append(float(line[5]))
+        request.append(line[4])
+        # sem drones por enquanto
+        drone.append(0)
+    
     f.close()
+    
+    print(x)
+    print(y)
     
     fig = plt.figure()
     ax1 = fig.add_subplot()
@@ -53,6 +61,7 @@ if __name__ == '__main__':
         plt.xlim([min(x)-space/2 - 5, max(x)+space/2 + 5])
     
     plt.plot(x[0], y[0], 'gs', label='Deposito')
+    
     for i in range(len(x)-1):
         if (drone[i+1]==1):
             if(firstDrone):
@@ -67,13 +76,14 @@ if __name__ == '__main__':
             else:
                 plt.plot(x[i+1],y[i+1],'o', color='lime')
     for i in range(len(x)-1):
-        ax.annotate("["+str(int(initTimeWindow[i+1]))+","+str(int(endTimeWindow[i+1]))+"]", (x[i+1],y[i+1]+0.1), size=6, horizontalalignment='center', verticalalignment='bottom')
-        ax.annotate(request[i+1], (x[i+1],y[i+1]-0.1), size=6, horizontalalignment='center', verticalalignment='top')
+        ax.annotate(xy=(x[i+1],y[i+1]+0.1), size=6, horizontalalignment='center', verticalalignment='bottom', text="")
+        ax.annotate(request[i+1], xy=(x[i+1],y[i+1]-0.1), size=6, horizontalalignment='center', verticalalignment='top')
     f = open(solution, "r");
     numLines = int(f.readline())
     cost = f.readline()
     for i in range(numLines):
         line = f.readline()[:-1].split("-")
+        print(line)
         for j in range(len(line)-1):
             inicio = int(line[j])
             fim = int(line[j+1])
@@ -84,20 +94,25 @@ if __name__ == '__main__':
             else:
                 addArrow(ax1,x[inicio],y[inicio],x[fim],y[fim],'coral','')
         line = f.readline()[:-1].split("-")
+        print(line)
         for j in range(1,len(line),3):
             inicio = int(line[j-1])
             atendido = int(line[j])
             fim = int(line[j+1])
+            
             if fim==numVertex:
                 fim=0
             if inicio==numVertex:
                 inicio=0
+            if atendido==numVertex:
+                atendido=0
+                
             if(j==1 and i==0):
                 addArrow(ax1,x[inicio],y[inicio],x[atendido],y[atendido],'red','Drone', ':')
                 addArrow(ax1,x[atendido],y[atendido],x[fim],y[fim],'red','', ':')
-            else:
+            else:                
                 addArrow(ax1,x[inicio],y[inicio],x[atendido],y[atendido],'red','',':')
                 addArrow(ax1,x[atendido],y[atendido],x[fim],y[fim],'red','', ':')
     plt.legend()
-    plt.title("Capacidade caminhão: " + str(capacity) + " Custo: " + str(cost))
+    plt.title("Custo: " + str(cost))
     plt.show()
