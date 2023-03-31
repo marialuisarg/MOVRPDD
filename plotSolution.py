@@ -18,7 +18,7 @@ if __name__ == '__main__':
     for count, line in enumerate(f):
         pass
     
-    numLines = count - 1
+    numLines = count
     numVertex = numLines
     
     f.seek(0)
@@ -35,11 +35,13 @@ if __name__ == '__main__':
         x.append(float(line[2]))
         y.append(float(line[3]))
         request.append(line[4])
+        # print(i)
+        # print(line[5])
         if (line[5] == "D/T\n"):
             drone.append(1)
         else:
             drone.append(0)
-    
+    print(id)
     f.close()
     
     print(drone)
@@ -85,6 +87,7 @@ if __name__ == '__main__':
         # ax.annotate(request[i+1], xy=(x[i+1],y[i+1]-0.1), size=6, horizontalalignment='center', verticalalignment='top')
         
         # nomeando os clientes por id
+        print(id[i+1])
         ax.annotate(id[i+1], xy=(x[i+1],y[i+1]-0.1), size=6, horizontalalignment='center', verticalalignment='top')
     
     f = open(solution, "r");
