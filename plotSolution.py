@@ -35,10 +35,14 @@ if __name__ == '__main__':
         x.append(float(line[2]))
         y.append(float(line[3]))
         request.append(line[4])
-        # sem drones por enquanto
-        drone.append(0)
+        if (line[5] == "D/T\n"):
+            drone.append(1)
+        else:
+            drone.append(0)
     
     f.close()
+    
+    print(drone)
     
     fig = plt.figure()
     ax1 = fig.add_subplot()
@@ -59,18 +63,18 @@ if __name__ == '__main__':
         plt.ylim([min(y)-5, max(y)+5])
         plt.xlim([min(x)-space/2 - 5, max(x)+space/2 + 5])
     
-    plt.plot(x[0], y[0], 'gs', label='Deposito')
+    plt.plot(x[0], y[0], 'gs', label='Depot')
     
     for i in range(len(x)-1):
         if (drone[i+1]==1):
             if(firstDrone):
-                plt.plot(x[i+1],y[i+1],'o', color='aqua', label='Clientes passiveis de drone')
+                plt.plot(x[i+1],y[i+1],'o', color='aqua', label='Truck/drone clients')
                 firstDrone = False
             else:
                 plt.plot(x[i+1],y[i+1],'o', color='aqua')
         else:
             if(firstTruck):
-                plt.plot(x[i+1],y[i+1],'o', color='lime', label='Clientes não passiveis de drone')
+                plt.plot(x[i+1],y[i+1],'o', color='lime', label='Truck clients')
                 firstTruck = False
             else:
                 plt.plot(x[i+1],y[i+1],'o', color='lime')
