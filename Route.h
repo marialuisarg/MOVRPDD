@@ -15,7 +15,7 @@ using namespace std;
 class Route {
     private:
         vector<Node*> truckRoute;
-        // vector<tuple<int, int, int>> droneRoute;    // launch node, client, retrieval node 
+        vector<tuple<int, int, int>> droneRoute;    // launch node, client, retrieval node 
         double cost;
         double currentTruckCapacity;
         double currentDroneCapacity;
@@ -33,6 +33,7 @@ class Route {
         int getNumClients();
         void updateNumClients();
         bool insertClient(Node *client, int prevNode);  // returns false if client can't be inserted
+        void insertDroneFlight(tuple<int,int,int> flight);
         Node* getNode(int position);
         Node* getPrevNode(int position);
         Node* getNextNode(int position);

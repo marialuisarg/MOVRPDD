@@ -50,7 +50,8 @@ Solution::Solution(Graph *g) {
 
     createTruckRoutes(g);
     updateSolutionCost();
-    //createDroneRoutes(g);
+    createDroneRoutes(g);
+    printRoutes();
 }
 
 void Solution::updateSolutionCost() {
@@ -78,7 +79,7 @@ void Solution::createTruckRoutes(Graph *g) {
     for (int r = 0; r < routes.size(); r++) {
         for (int i = 0; i < candidates.size(); i++) {
             double manhattanDistance = candidates[i]->manhattanDistance(g->getNode(0));
-            double cost = manhattanDistance * CT;
+            double cost = manhattanDistance * CT * 2;
             candidatesCost.push_back(make_tuple(candidates[i]->getID(), r, cost,0,0));
         }
     }
@@ -88,7 +89,9 @@ void Solution::createTruckRoutes(Graph *g) {
 
     cout << endl;
 
-    printRoutes();
+    insertRandomizedFirstClients(g);
+
+    //printRoutes();
     printCandidatesCost();
 
     // while there are unattended clients
@@ -109,6 +112,24 @@ void Solution::createTruckRoutes(Graph *g) {
         
         printCandidatesCost();
         cout << endl;
+    }
+
+    //printRoutes();
+}
+
+void Solution::insertRandomizedFirstClients(Graph *g) {
+    int n = this->routes.size();
+    int i = 0;
+    while (i < n) {
+        int randomIndex = rand() % candidatesCost.size();
+        int clientID = get<0>(candidatesCost[randomIndex]);
+        int routeIndex = i;
+        int prevNode = get<3>(candidatesCost[randomIndex]);
+        Node *client = g->getNode(clientID);
+        if (includeClient(client, &routes[routeIndex], g, prevNode, routeIndex)) {
+            cout << "Random client " << client->getID() << " inserted in route " << routeIndex << endl;
+            i++;
+        }
     }
 
     printRoutes();
@@ -243,35 +264,63 @@ void Solution::updateCandidatesList(Node *client, Route *r, Graph *g, int iRoute
     sortCandidatesByCost(g);
 }
 
-// void Solution::createDroneRoutes(Graph *g) {
-//     // int launchNode, clientNode, retrieveNode;
-//     // vector<Node*> launchNodesList, retrieveNodesList; 
-//     // tuple<int, int, int> flight;
+void Solution::createDroneRoutes(Graph *g) {
+    int launchNode, clientNode, retrieveNode;
+    vector<Node*> launchNodesList, retrieveNodesList; 
+    tuple<int, int, int> flight(0,0,0);
 
-//     // // for each client on each truck route
-//     // for (int i = 0; i < this->routes.size(); i++) { 
-//     //     for (int j = 0; j < this->routes[i].getTruckRoute().size(); j++) {
-//     //         Node* client = this->routes[i].getTruckRoute()[j];
-//     //         Node* aux;
+    // for each client on each truck route
+    for (int i = 0; i < this->routes.size(); i++) { 
+        for (int j = 0; j < this->routes[i].getTruckRoute().size(); j++) {
+            Node* client = this->routes[i].getTruckRoute()[j];
 
-//     //         // if client can be reached by drone and its demand is less than the drone's capacity
-//     //         if (client->getServiceBy() == DRONE_TRUCK && client->getDemand() <= QD) {
-//     //             if (client->getID() != this->routes[i].getTruckRoute()[0]->getID() && client->getID() != this->routes[i].getTruckRoute()[1]->getID()) {
-//     //                 clientNode = client->getID();
+            // if client can be reached by drone and its demand is less than the drone's capacity
+            if (client->getServiceBy() == DRONE_TRUCK && client->getDemand() <= QD) {
+                // verifies if node isn't depot nor first client attended in route
+                if (client->getID() != this->routes[i].getTruckRoute()[0]->getID() && client->getID() != this->routes[i].getTruckRoute()[1]->getID()) {
+                    clientNode = client->getID();
+                    get<1>(flight) = clientNode;
+
+                    // creates a launching nodes list with all nodes before client (besides depot)
+                    // chooses the closest (euclidean distance) node from the launching nodes list as the launch node
+                    double closestDistance = INF;
+                    int closestNodeId = 0, k;
+                    for (k = 1; k < j; k++) {
+                        launchNodesList.push_back(this->routes[i].getTruckRoute()[k]);
+                        if (g->getEuclideanDistance(this->routes[i].getTruckRoute()[k]->getID(), this->routes[i].getTruckRoute()[j]->getID()) < closestDistance) {
+                            closestDistance = g->getEuclideanDistance(this->routes[i].getTruckRoute()[k]->getID(), this->routes[i].getTruckRoute()[j]->getID());
+                            closestNodeId = this->routes[i].getTruckRoute()[k]->getID();
+                        }
+                    }
+
+                    get<0>(flight) = closestNodeId;
+
+                    // creates a retrieving nodes list with all nodes after client (besides depot)
+                    for (k = j+1; k < this->routes[i].getTruckRoute().size()-1; k++)
+                        retrieveNodesList.push_back(this->routes[i].getTruckRoute()[k]);
+
+                    // goes through the retrieving nodes list and chooses a node that is reachable by drone from client node (doesn't exceed flight endurance)
+                    closestDistance = INF;
+                    closestNodeId = 0;
                     
-//     //                 // creates a launching nodes list with all nodes before client (besides depot)
-//     //                 // creates a retrieving nodes list with all nodes after client (besides depot)
-//     //                 // chooses the closest (euclidean distance) node from the launching nodes list as the launch node
-//     //                 // goes through the retrieving nodes list and chooses a node that is reachable by drone from client node (doesn't exceed flight endurance)
-//     //                 // adjustes truck route mantening launching and retrieving nodes, without client node
-//     //                 // removes cost of client from truck route
+                    for (k = 0; k < retrieveNodesList.size(); k++) {
+                        if (g->getEuclideanDistance(get<1>(flight), retrieveNodesList[k]->getID()) < closestDistance) {
+                            closestDistance = g->getEuclideanDistance(get<1>(flight), retrieveNodesList[k]->getID());
+                            closestNodeId = retrieveNodesList[k]->getID();
+                        } 
+                    }
 
-//     //             }
+                    get<2>(flight) = closestNodeId;
+                    
+                    // adjustes truck route mantening launching and retrieving nodes, without client node
+                    // removes cost of client from truck route
 
-//     //         }
-//     //     }
-//     // }
-// }
+                    routes[i].insertDroneFlight(flight);
+                }
+            }
+        }
+    }
+}
 
 vector<pair<int,bool>> Solution::getAttendedClients() {
     return attendedClients;
@@ -300,16 +349,15 @@ bool Solution::allClientsAttended(Graph *g) {
 }
 
 void Solution::printRoutes() {
+    cout << endl;
     for (int i = 0; i < routes.size(); i++) {
         cout << "Route " << i << ": ";
         routes[i].printRoute();
     }
-    cout << endl;
 }
 
 void Solution::printCandidatesCost() {
     // print candidates list for each route
-    
     for (int j = 0; j < routes.size(); j++) {
         cout << endl;
         cout << "CANDIDATES FOR ROUTE " << j << endl;

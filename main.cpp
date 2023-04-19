@@ -1,5 +1,7 @@
 #include <iostream>
 #include <stdlib.h>
+#include<cstdlib>
+#include<ctime>
 
 #include <vector>
 #include <string>
@@ -33,6 +35,9 @@ int main() {
             graph.addEdge(i, j);
         }
     }
+
+    // set seed to time(0)
+    srand(time(0));
 
     Solution s(&graph);    
     s.plotSolution(&s, fileName);

@@ -1,12 +1,24 @@
 import matplotlib.pyplot as plt
 import pandas as pd
+import random as random
 import sys
 
-def addArrow(ax1, xInicio, yInicio, xFim, yFim, cor, legenda, lineStyle='-'):
+def addEuclideanArrow(ax1, xInicio, yInicio, xFim, yFim, cor, legenda, lineStyle='-'):
     if legenda == "":
         ax1.arrow(xInicio, yInicio,(xFim-xInicio) , (yFim-yInicio), width = 0.001, head_width = 0.5, head_length = 0.5, length_includes_head=True, color=cor, linestyle=lineStyle)
     else:
         ax1.arrow(xInicio, yInicio,(xFim-xInicio) , (yFim-yInicio), width = 0.001, head_width = 0.5, head_length = 0.5, length_includes_head=True, color=cor, label=legenda, linestyle=lineStyle)
+        
+def addManhattanArrow(ax1, xInicio, yInicio, xFim, yFim, cor, legenda, lineStyle='-'):
+    x0 = [xInicio, xFim]
+    y0 = [yInicio, yInicio]
+    
+    if legenda == "":
+        ax1.plot(x0, y0, color=cor, linestyle=lineStyle)
+        ax1.arrow((xFim), (yInicio), (xFim-xFim), (yFim-yInicio), width = 0.001, head_width = 0.5, head_length = 0.5, length_includes_head=True, color=cor, linestyle=lineStyle)
+    else:
+        ax1.plot(x0, y0, color=cor, linestyle=lineStyle)
+        ax1.arrow((xFim), (yInicio), (xFim-xFim), (yFim-yInicio), width = 0.001, head_width = 0.5, head_length = 0.5, length_includes_head=True, color=cor, label=legenda, linestyle=lineStyle)
 
 if __name__ == '__main__':
     instance = sys.argv[1]
@@ -41,10 +53,7 @@ if __name__ == '__main__':
             drone.append(1)
         else:
             drone.append(0)
-    print(id)
     f.close()
-    
-    print(drone)
     
     fig = plt.figure()
     ax1 = fig.add_subplot()
@@ -87,7 +96,6 @@ if __name__ == '__main__':
         # ax.annotate(request[i+1], xy=(x[i+1],y[i+1]-0.1), size=6, horizontalalignment='center', verticalalignment='top')
         
         # nomeando os clientes por id
-        print(id[i+1])
         ax.annotate(id[i+1], xy=(x[i+1],y[i+1]-0.1), size=6, horizontalalignment='center', verticalalignment='top')
     
     f = open(solution, "r");
@@ -96,8 +104,14 @@ if __name__ == '__main__':
     cost = f.readline()
     
     for i in range(numLines):
-        
         line = f.readline()[:-1].split("-")
+        
+        r = random.random()
+        g = random.random()
+        b = random.random()
+        
+        color = (r,g,b)
+        
         for j in range(len(line)-1):
             inicio = int(line[j])
             fim = int(line[j+1])
@@ -107,11 +121,11 @@ if __name__ == '__main__':
                 
             if inicio==numVertex:
                 inicio=0
-            
-            if(j==0 and i==0):
-                addArrow(ax1,x[inicio],y[inicio],x[fim],y[fim],'coral','Truck')
+                
+            if(j==0):
+                addManhattanArrow(ax1,x[inicio],y[inicio],x[fim],y[fim],color,'Truck ' + str(i))
             else:
-                addArrow(ax1,x[inicio],y[inicio],x[fim],y[fim],'coral','')
+                addManhattanArrow(ax1,x[inicio],y[inicio],x[fim],y[fim],color,'')
         
         line = f.readline()[:-1].split("-")
         for j in range(1,len(line),3):
@@ -127,11 +141,11 @@ if __name__ == '__main__':
                 atendido=0
                 
             if(j==1 and i==0):
-                addArrow(ax1,x[inicio],y[inicio],x[atendido],y[atendido],'red','Drone', ':')
-                addArrow(ax1,x[atendido],y[atendido],x[fim],y[fim],'red','', ':')
+                addEuclideanArrow(ax1,x[inicio],y[inicio],x[atendido],y[atendido],'red','Drone', ':')
+                addEuclideanArrow(ax1,x[atendido],y[atendido],x[fim],y[fim],'red','', ':')
             else:                
-                addArrow(ax1,x[inicio],y[inicio],x[atendido],y[atendido],'red','',':')
-                addArrow(ax1,x[atendido],y[atendido],x[fim],y[fim],'red','', ':')
+                addEuclideanArrow(ax1,x[inicio],y[inicio],x[atendido],y[atendido],'red','',':')
+                addEuclideanArrow(ax1,x[atendido],y[atendido],x[fim],y[fim],'red','', ':')
     plt.legend()
     plt.title("Custo: " + str(cost))
     plt.show()

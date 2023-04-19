@@ -19,6 +19,7 @@ class Solution {
         
         void sortCandidatesByCost(Graph *g);
         bool allClientsAttended(Graph *g);
+        void insertRandomizedFirstClients(Graph *g);
 
     public:
         Solution(Graph *g);
