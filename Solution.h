@@ -34,7 +34,9 @@ class Solution {
         void updateAttendedClients(int clientID);
         void updateCandidatesList(Node *client, Route *r, Graph *g, int iRoute);
         bool includeClient(Node *client, Route *r, Graph *g, int prevNode, int iRoute);
-        
+        bool isReachableByDrone(Graph *g, tuple<int, int, int> flight);
+        void updateSearchRange(vector<int> *searchRange, int rNode);
+
         Node* getClosestClient(Graph *g, int from); 
         double getCost();
         void updateSolutionCost();

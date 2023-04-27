@@ -27,13 +27,24 @@ Route::~Route() {
     //droneRoute.clear();
 }
 
-void Route::updateCost(int CT) {
-    this->cost = 0.0;
+void Route::updateCost(Graph*g, int CT, int CD, int CB) {
+    this->cost = CB;
+    double droneCost = 0.0;
+    double truckCost = 0.0;
+
     for (int i = 0; i < this->truckRoute.size() - 1; i++) {
-        //cout << this->truckRoute[i]->getID() << " => " << this->truckRoute[i + 1]->getID() << " (" << this->truckRoute[i]->manhattanDistance(this->truckRoute[i + 1]) * CT << ")" << endl;
-        this->cost += this->truckRoute[i]->manhattanDistance(this->truckRoute[i + 1]);
+        truckCost += this->truckRoute[i]->manhattanDistance(this->truckRoute[i + 1]);
     }
-    this->cost *= CT;
+    truckCost *= CT;
+
+    for (int j = 0; j < this->droneRoute.size(); j++) {
+        double ij = g->getEuclideanDistance(get<0>(this->droneRoute[j]), get<1>(this->droneRoute[j]));
+        double jk = g->getEuclideanDistance(get<1>(this->droneRoute[j]), get<2>(this->droneRoute[j]));
+        droneCost += (ij + jk);
+    }
+    droneCost *= CD;
+
+    this->cost += (truckCost + droneCost);
 }
 
 void Route::updateCapacity(double clientDemand) {
@@ -112,4 +123,16 @@ Node *Route::getNextNode(int position) {
 void Route::insertDroneFlight(tuple<int,int,int> flight) {
     //cout << "drone flight inserted!" << endl;
     this->droneRoute.push_back(flight);
+}
+
+void Route::removeClientsServedByDrone(Graph *g, int CT, int CD, int CB) {
+    for (int i = 0; i < this->droneRoute.size(); i++) {
+        for (int j = 1; j < this->truckRoute.size()-1; j++) {
+            if (this->truckRoute[j]->getID() == get<1>(this->droneRoute[i])) {
+                this->truckRoute.erase(this->truckRoute.begin() + j);
+                break;
+            }
+        }
+        updateCost(g, CT, CD, CB);
+    }
 }

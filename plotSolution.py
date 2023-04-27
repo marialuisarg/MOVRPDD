@@ -49,10 +49,10 @@ if __name__ == '__main__':
         request.append(line[4])
         # print(i)
         # print(line[5])
-        if (line[5] == "D/T\n"):
-            drone.append(1)
-        else:
+        if (line[5] == "T\n" or line[5] == "T"):
             drone.append(0)
+        else:
+            drone.append(1)
     f.close()
     
     fig = plt.figure()
@@ -127,11 +127,13 @@ if __name__ == '__main__':
             else:
                 addManhattanArrow(ax1,x[inicio],y[inicio],x[fim],y[fim],color,'')
         
-        line = f.readline()[:-1].split("-")
-        for j in range(1,len(line),3):
-            inicio = int(line[j-1])
-            atendido = int(line[j])
-            fim = int(line[j+1])
+        line = f.readline()[:-1].split("/")
+        for j in range(1,len(line)):
+            flight = line[j].split("-")
+            
+            inicio = int(flight[0])
+            atendido = int(flight[1])
+            fim = int(flight[2])
             
             if fim==numVertex:
                 fim=0
@@ -140,12 +142,12 @@ if __name__ == '__main__':
             if atendido==numVertex:
                 atendido=0
                 
-            if(j==1 and i==0):
-                addEuclideanArrow(ax1,x[inicio],y[inicio],x[atendido],y[atendido],'red','Drone', ':')
-                addEuclideanArrow(ax1,x[atendido],y[atendido],x[fim],y[fim],'red','', ':')
+            if(j==1):
+                addEuclideanArrow(ax1,x[inicio],y[inicio],x[atendido],y[atendido],color,'Drone ' + str(i), ':')
+                addEuclideanArrow(ax1,x[atendido],y[atendido],x[fim],y[fim],color,'', ':')
             else:                
-                addEuclideanArrow(ax1,x[inicio],y[inicio],x[atendido],y[atendido],'red','',':')
-                addEuclideanArrow(ax1,x[atendido],y[atendido],x[fim],y[fim],'red','', ':')
+                addEuclideanArrow(ax1,x[inicio],y[inicio],x[atendido],y[atendido],color,'',':')
+                addEuclideanArrow(ax1,x[atendido],y[atendido],x[fim],y[fim],color,'', ':')
     plt.legend()
     plt.title("Custo: " + str(cost))
     plt.show()

@@ -7,6 +7,7 @@ using namespace std;
 #include <vector>
 
 #include "Node.h"
+#include "Graph.h"
 
 #define TRUCK_DRONE 1
 #define TRUCK 2
@@ -16,6 +17,9 @@ class Route {
     private:
         vector<Node*> truckRoute;
         vector<tuple<int, int, int>> droneRoute;    // launch node, client, retrieval node 
+        
+        
+        
         double cost;
         double currentTruckCapacity;
         double currentDroneCapacity;
@@ -24,7 +28,7 @@ class Route {
     public:
         Route(double truckCapacity, double droneCapacity, Node* depot);
         ~Route();
-        void updateCost(int CT);
+        void updateCost(Graph *g, int CT, int CD, int CB);
         void updateCapacity(double capacity);
         double getCost();
         double getCurrentCapacity();
@@ -38,6 +42,7 @@ class Route {
         Node* getPrevNode(int position);
         Node* getNextNode(int position);
         void printRoute();
+        void removeClientsServedByDrone(Graph *g, int CT, int CD, int CB);
 };
 
 #endif // ROUTE_H_INCLUDED
