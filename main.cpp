@@ -40,6 +40,7 @@ int main() {
     srand(time(0));
 
     Solution s(&graph);    
+    //s.plotTruckSolution(&s, fileName);
     s.plotSolution(&s, fileName);
     //s.printSolution();
 

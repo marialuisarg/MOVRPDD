@@ -59,6 +59,14 @@ double Route::getCost() {
     return this->cost;
 }
 
+double Route::getPrevCost() {
+    return this->prevCost;
+}
+
+vector<int> Route::getPrevTruckRoute() {
+    return this->prevTruckRoute;
+}
+
 double Route::getCurrentCapacity() {
     return this->currentTruckCapacity;
 }
@@ -134,5 +142,11 @@ void Route::removeClientsServedByDrone(Graph *g, int CT, int CD, int CB) {
             }
         }
         updateCost(g, CT, CD, CB);
+    }
+}
+
+void Route::registerPrevTruckRoute() {
+    for (int i = 0; i < this->truckRoute.size(); i++) {
+        prevTruckRoute.push_back(truckRoute[i]->getID());
     }
 }

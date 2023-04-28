@@ -15,7 +15,7 @@
 #define QT 25   // maximum load capacity of trucks
 #define WD 25   // tare weight of drones
 #define QD 5    // maximum load capacity of drones
-#define CT 1    // travel cost of trucks per unit distance
+#define CT 25    // travel cost of trucks per unit distance
 #define CD 1    // travel cost of drones per unit distance
 #define CB 500  // basis cost of using truck equipped with drone
 #define E 0.5   // maximum endurance of empty drones
@@ -50,9 +50,14 @@ Solution::Solution(Graph *g) {
 
     createTruckRoutes(g);
     updateSolutionCost();
-    createDroneRoutes(g);
+    registerPrevCost();
+    createDroneRoutes(g);       // de acordo com o artigo (linearmente)
     updateSolutionCost();
     printRoutes();
+}
+
+void Solution::registerPrevCost() {
+    this->prevCost = this->cost;
 }
 
 void Solution::updateSolutionCost() {
@@ -114,6 +119,10 @@ void Solution::createTruckRoutes(Graph *g) {
         //printCandidatesCost();
         //cout << endl;
     }
+
+    // register final truck routes (before drones)
+    for (int i = 0; i < routes.size(); i++) 
+        routes[i].registerPrevTruckRoute();
 
     //printRoutes();
 }
@@ -359,6 +368,37 @@ void Solution::createDroneRoutes(Graph *g) {
     }
 }
 
+void Solution::sortTruckClientsByCost(Graph *g, vector<pair<int, double>> clientsByCost, Route *r) {
+
+    double delta, ik, kj, ij;
+    double biggestDelta = 0.0;
+
+    // calulates delta for each client (besides depots) on route
+    for (int i = 1; i < r->getTruckRoute().size()-1; i++) {
+        ik = g->getManhattanDistance(r->getTruckRoute()[i-1]->getID(), r->getTruckRoute()[i]->getID());
+        kj = g->getManhattanDistance(r->getTruckRoute()[i]->getID(), r->getTruckRoute()[i+1]->getID());
+        ij = g->getManhattanDistance(r->getTruckRoute()[i-1]->getID(), r->getTruckRoute()[i+1]->getID());
+
+        delta = ik + kj - ij;
+
+        clientsByCost[i-1].second = delta;
+    }
+
+    // sorts clients by cost
+    pair<int,double> temp;
+    int i, j, n = clientsByCost.size();
+
+    for (i = 0; i < n - 1; i++) {
+        for (j = 0; j < n - i - 1; j++) {
+            if (clientsByCost[j].second < clientsByCost[j+1].second) {
+                temp = clientsByCost[j];
+                clientsByCost[j] = clientsByCost[j+1];
+                clientsByCost[j+1] = temp;
+            }
+        }
+    }
+}
+
 bool Solution::isReachableByDrone(Graph *g, tuple<int, int, int> flight) {
 
     cout << endl << endl << "verifying flight: [" << get<0>(flight) << ", " << get<1>(flight) << ", " << get<2>(flight) << "]" << endl;
@@ -462,6 +502,28 @@ void Solution::printCandidatesCost() {
 }
 
 void Solution::plotSolution(Solution *s, string instance){
+    
+    // plot truck solution
+    string filename0 = "truckSolutionForPlot.txt";
+    ofstream output_file0(filename0);
+
+    output_file0 << s->routes.size() << endl;
+    output_file0 << s->getPrevCost() << endl;
+
+    for (int i=0; i < s->routes.size(); i++) {
+        string truckRoute = "";
+
+        for (int j=0; j < s->routes[i].getPrevTruckRoute().size(); j++){
+           truckRoute = truckRoute + "-" + to_string(s->routes[i].getPrevTruckRoute()[j]);
+        }
+
+        if(!truckRoute.empty())
+            output_file0 << truckRoute.substr(1);
+        output_file0 << endl;
+        output_file0 << endl;
+    }
+
+    // plot truck+drone solution
     string filename = "solutionForPlot.txt";
     ofstream output_file(filename);
 
@@ -491,9 +553,10 @@ void Solution::plotSolution(Solution *s, string instance){
             output_file << droneRoute.substr(1);
         output_file << endl;
     }
-    
+
+    output_file0.close();
     output_file.close();
-    string command = "python plotSolution.py " + instance + " " + filename;
+    string command = "python plotSolution.py " + instance + " " + filename0 + " " + filename;
     int aux = system(command.c_str());
     // command = "rm " + filename;
     // aux = system(command.c_str());
@@ -501,6 +564,10 @@ void Solution::plotSolution(Solution *s, string instance){
 
 double Solution::getCost() {
     return this->cost;
+}
+
+double Solution::getPrevCost() {
+    return this->prevCost;
 }
 
 Solution::~Solution() {

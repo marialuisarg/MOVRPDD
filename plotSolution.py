@@ -20,11 +20,10 @@ def addManhattanArrow(ax1, xInicio, yInicio, xFim, yFim, cor, legenda, lineStyle
         ax1.plot(x0, y0, color=cor, linestyle=lineStyle)
         ax1.arrow((xFim), (yInicio), (xFim-xFim), (yFim-yInicio), width = 0.001, head_width = 0.5, head_length = 0.5, length_includes_head=True, color=cor, label=legenda, linestyle=lineStyle)
 
-if __name__ == '__main__':
-    instance = sys.argv[1]
-    solution = sys.argv[2]
+def plotSolution(inst, sol):
     
-    f = open(instance, "r")
+    # INSTÂNCIA
+    f = open(inst, "r")
     
     # lê o número de clientes contando as linhas
     for count, line in enumerate(f):
@@ -98,17 +97,21 @@ if __name__ == '__main__':
         # nomeando os clientes por id
         ax.annotate(id[i+1], xy=(x[i+1],y[i+1]-0.1), size=6, horizontalalignment='center', verticalalignment='top')
     
-    f = open(solution, "r");
     
-    numLines = int(f.readline())
-    cost = f.readline()
+    # SOLUÇÃO
+    
+    f0 = open(sol, "r")
+    
+    # truck solution
+    numLines = int(f0.readline())
+    cost = f0.readline()
     
     for i in range(numLines):
-        line = f.readline()[:-1].split("-")
+        line = f0.readline()[:-1].split("-")
         
-        r = random.random()
-        g = random.random()
-        b = random.random()
+        r = random.random()*i%1 
+        g = random.random()*i%1
+        b = random.random()*i%1
         
         color = (r,g,b)
         
@@ -127,7 +130,7 @@ if __name__ == '__main__':
             else:
                 addManhattanArrow(ax1,x[inicio],y[inicio],x[fim],y[fim],color,'')
         
-        line = f.readline()[:-1].split("/")
+        line = f0.readline()[:-1].split("/")
         for j in range(1,len(line)):
             flight = line[j].split("-")
             
@@ -149,5 +152,16 @@ if __name__ == '__main__':
                 addEuclideanArrow(ax1,x[inicio],y[inicio],x[atendido],y[atendido],color,'',':')
                 addEuclideanArrow(ax1,x[atendido],y[atendido],x[fim],y[fim],color,'', ':')
     plt.legend()
-    plt.title("Custo: " + str(cost))
+    plt.title("Cost: " + str(cost))
+
+if __name__ == '__main__':
+    instance = sys.argv[1]
+    tSolution = sys.argv[2]
+    solution = sys.argv[3]
+    
+    # truck solution
+    plotSolution(instance, tSolution)
+    
+    # truck/drone solution
+    plotSolution(instance, solution)
     plt.show()

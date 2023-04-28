@@ -16,6 +16,7 @@ class Solution {
         vector<pair<int,bool>> attendedClients;                      // identifies by ID
         vector<tuple<int, int, double, int, int>> candidatesCost;    // (nodeID, route, delta, prevNode, nextNode)
         double cost;
+        double prevCost;
         
         void sortCandidatesByCost(Graph *g);
         bool allClientsAttended(Graph *g);
@@ -30,7 +31,9 @@ class Solution {
         void getCheapestInsertion(Graph *g, vector<Node*> candidates, Node**client);
 
         void createTruckRoutes(Graph *g);
+
         void createDroneRoutes(Graph *g);
+        void sortTruckClientsByCost(Graph *g, vector<pair<int,double>> clientsByCost, Route *r);
         void updateAttendedClients(int clientID);
         void updateCandidatesList(Node *client, Route *r, Graph *g, int iRoute);
         bool includeClient(Node *client, Route *r, Graph *g, int prevNode, int iRoute);
@@ -39,12 +42,14 @@ class Solution {
 
         Node* getClosestClient(Graph *g, int from); 
         double getCost();
+        double getPrevCost();
         void updateSolutionCost();
-
+        void registerPrevCost();
         void printSolution();
         void printRoutes();
         void printCandidatesCost();
         void plotSolution(Solution *s, string instance);
+        void plotTruckSolution(Solution *s, string instance);
 };
 
 #endif // SOLUTION_H_INCLUDED
