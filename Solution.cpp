@@ -12,10 +12,10 @@
 // parameter settings of MOVRPDD Model //
  
 #define WT 1500 // tare weight of trucks 
-#define QT 25   // maximum load capacity of trucks
+#define QT 1000 // maximum load capacity of trucks
 #define WD 25   // tare weight of drones
 #define QD 5    // maximum load capacity of drones
-#define CT 25    // travel cost of trucks per unit distance
+#define CT 25   // travel cost of trucks per unit distance
 #define CD 1    // travel cost of drones per unit distance
 #define CB 500  // basis cost of using truck equipped with drone
 #define E 0.5   // maximum endurance of empty drones
@@ -51,22 +51,11 @@ Solution::Solution(Graph *g) {
     createTruckRoutes(g);
     updateSolutionCost();
     registerPrevCost();
+    printRoutes();
     createDroneRoutes(g);       // de acordo com o artigo (linearmente)
+    //createDroneRoutes2(g); 
     updateSolutionCost();
     printRoutes();
-}
-
-void Solution::registerPrevCost() {
-    this->prevCost = this->cost;
-}
-
-void Solution::updateSolutionCost() {
-    double c = 0.0;
-    for (int i = 0; i < routes.size(); i++) {
-        c += routes[i].getCost();
-    }
-
-    this->cost = c;
 }
 
 void Solution::createTruckRoutes(Graph *g) {
@@ -114,7 +103,7 @@ void Solution::createTruckRoutes(Graph *g) {
 
         // inserts client in route ("if" logic here is just for debugging, but function must be called)
         if (includeClient(cheapestInsertion, &routes[iRoute], g, prevNode, iRoute))
-            printRoutes();
+            cout << "Client " << cheapestInsertion->getID() << " inserted in route " << iRoute << endl;
         
         //printCandidatesCost();
         //cout << endl;
@@ -125,6 +114,22 @@ void Solution::createTruckRoutes(Graph *g) {
         routes[i].registerPrevTruckRoute();
 
     //printRoutes();
+}
+
+void Solution::sortCandidatesByCost(Graph *g) {
+    int n = candidatesCost.size();
+    tuple<int, int, double, int, int> temp;
+    
+    int i, j;
+    for (i = 0; i < n - 1; i++) {
+        for (j = 0; j < n - i - 1; j++) {
+            if (get<2>(candidatesCost.at(j)) > get<2>(candidatesCost.at(j + 1))) {
+                temp = candidatesCost.at(j);
+                candidatesCost.at(j) = candidatesCost.at(j + 1);
+                candidatesCost.at(j + 1) = temp;
+            }
+        }
+    }
 }
 
 void Solution::insertRandomizedFirstClients(Graph *g) {
@@ -145,20 +150,14 @@ void Solution::insertRandomizedFirstClients(Graph *g) {
     //printRoutes();
 }
 
-void Solution::sortCandidatesByCost(Graph *g) {
-    int n = candidatesCost.size();
-    tuple<int, int, double, int, int> temp;
-    
-    int i, j;
-    for (i = 0; i < n - 1; i++) {
-        for (j = 0; j < n - i - 1; j++) {
-            if (get<2>(candidatesCost.at(j)) > get<2>(candidatesCost.at(j + 1))) {
-                temp = candidatesCost.at(j);
-                candidatesCost.at(j) = candidatesCost.at(j + 1);
-                candidatesCost.at(j + 1) = temp;
-            }
+bool Solution::allClientsAttended(Graph *g) {
+    for (int i = 0; i < g->getSize(); i++) {
+        if (!attendedClients[i].second) {
+            return false;
         }
     }
+
+    return true;
 }
 
 bool Solution::includeClient(Node *client, Route *r, Graph *g, int prevNodeIndex, int iRoute) {
@@ -185,6 +184,27 @@ bool Solution::includeClient(Node *client, Route *r, Graph *g, int prevNodeIndex
     // updates cheapest insertion candidates list
     updateCandidatesList(client, r, g, iRoute);
     return true;
+}
+
+void Solution::updateAttendedClients(int clientID) {
+    for (int i = 0; i < attendedClients.size(); i++) {
+        if (attendedClients[i].first == clientID) {
+            attendedClients[i].second = true;
+        }
+    }
+}
+
+void Solution::registerPrevCost() {
+    this->prevCost = this->cost;
+}
+
+void Solution::updateSolutionCost() {
+    double c = 0.0;
+    for (int i = 0; i < routes.size(); i++) {
+        c += routes[i].getCost();
+    }
+
+    this->cost = c;
 }
 
 bool verifyNeighbor(Route *r, int currentPrevIndex, int currentNextIndex) {
@@ -285,7 +305,7 @@ bool isInSearchRange(vector<int> searchRange, int clientID) {
     return false;
 }
 
-void Solution::createDroneRoutes(Graph *g) {
+void Solution::createDroneRoutes2(Graph *g) {
     int launchNode, clientNode, retrieveNode;
     vector<int> launchNodesList, retrieveNodesList; 
     tuple<int, int, int> flight(0,0,0);
@@ -350,7 +370,7 @@ void Solution::createDroneRoutes(Graph *g) {
                         // goes through the retrieving nodes list and chooses a node that is reachable by drone from client node (doesn't exceed flight endurance)
                         for (k = 0; k < retrieveNodesList.size(); k++) {
                             get<2>(flight) = retrieveNodesList[k];
-                            if (isReachableByDrone(g, flight)) {
+                            if (isReachableByDrone(g, flight, i)) {
                                 routes[i].insertDroneFlight(flight);
                                 updateSearchRange(&searchRange, get<2>(flight));
                                 break;
@@ -368,38 +388,156 @@ void Solution::createDroneRoutes(Graph *g) {
     }
 }
 
-void Solution::sortTruckClientsByCost(Graph *g, vector<pair<int, double>> clientsByCost, Route *r) {
+void Solution::createDroneRoutes(Graph *g) {
+    int launchNode, clientNode, retrieveNode;
+    vector<int> launchNodesList, retrieveNodesList; 
+    tuple<int, int, int> flight(0,0,0);
 
-    double delta, ik, kj, ij;
-    double biggestDelta = 0.0;
+    // for each client on each truck route
+    for (int i = 0; i < this->routes.size(); i++) { 
+        vector<Node*> tRoute = this->routes[i].getTruckRoute();
+        vector<tuple<int, int, int, double, bool>> bestFlight;  // <clientID, launchNode, retrieveNode, gain, is possible>
+        vector<int> searchRange;
 
-    // calulates delta for each client (besides depots) on route
-    for (int i = 1; i < r->getTruckRoute().size()-1; i++) {
-        ik = g->getManhattanDistance(r->getTruckRoute()[i-1]->getID(), r->getTruckRoute()[i]->getID());
-        kj = g->getManhattanDistance(r->getTruckRoute()[i]->getID(), r->getTruckRoute()[i+1]->getID());
-        ij = g->getManhattanDistance(r->getTruckRoute()[i-1]->getID(), r->getTruckRoute()[i+1]->getID());
+        // creates a list with all clients on the route (every node besides except depot)
+        for (int k = 1; k < tRoute.size()-1; k++) {
+            searchRange.push_back(tRoute[k]->getID());
+        }
 
-        delta = ik + kj - ij;
+        for (int j = 0; j < tRoute.size(); j++) {
 
-        clientsByCost[i-1].second = delta;
+            if (isInSearchRange(searchRange, tRoute[j]->getID())) {
+                Node* client = this->routes[i].getTruckRoute()[j];
+
+                // if client can be reached by drone and its demand is less than the drone's capacity
+                if (client->getServiceBy() == DRONE_TRUCK && client->getDemand() <= QD) {
+
+                    // verifies if node isn't depot or first/last node on route
+                    if ((client->getID() != tRoute[0]->getID()) && (client->getID() != tRoute[1]->getID()) && (client->getID() != tRoute[tRoute.size()-2]->getID())) {
+                        cout << endl << endl << "ROUTE: " << i << " | CLIENT: " << client->getID();
+                        clientNode = client->getID();
+                        get<1>(flight) = clientNode;
+
+                        // creates a launching nodes list with all nodes before client
+                        int k;
+                        launchNodesList.clear();
+                        for (k = 0; k < searchRange.size(); k++) {
+                            if (searchRange[k] == clientNode)
+                                break;
+
+                            launchNodesList.push_back(searchRange[k]);
+                        }
+                        // sort launching nodes list by euclidean distance to client
+                        sortListByEuclideanDistance(g, &launchNodesList, clientNode);
+
+
+                        // creates a retrieving nodes list with all nodes after client
+                        retrieveNodesList.clear();
+                        for (k = k+1; k < searchRange.size(); k++) {
+                            retrieveNodesList.push_back(searchRange[k]);
+                        }
+
+                        // goes through lauching and retrieving nodes list, choosing flights that doesn't exceed flight endurance
+                        //get<4>(flight) = false;
+                        get<1>(flight) = clientNode;
+                        tuple<int,int,int> bestClientFlight;
+                        double biggestGain = -INF;
+
+                        for (int n = 0; n < launchNodesList.size(); n++) {
+                            get<0>(flight) = launchNodesList[n];
+                            for (k = 0; k < retrieveNodesList.size(); k++) {
+                                get<2>(flight) = retrieveNodesList[k];
+
+                                if (isReachableByDrone(g, flight, i)) {
+                                    double droneFlightCost = g->getEuclideanDistance(get<0>(flight), get<1>(flight)) + g->getEuclideanDistance(get<1>(flight), get<2>(flight));
+                                    double truckRouteCost;
+                                    for (int l = 0; l < tRoute.size(); l++) {
+                                        if (tRoute[l]->getID() == get<1>(flight)) {
+                                            truckRouteCost = g->getManhattanDistance(tRoute[l-1]->getID(), get<1>(flight)) + g->getManhattanDistance(get<1>(flight), tRoute[l+1]->getID());
+                                            break;
+                                        }
+                                    }
+
+                                    double gain = truckRouteCost - droneFlightCost;
+                                    cout << "ganho: " << gain << endl;
+
+                                    if (gain > biggestGain) {
+                                        get<0>(bestClientFlight) = get<0>(flight);
+                                        get<1>(bestClientFlight) = get<1>(flight);
+                                        get<2>(bestClientFlight) = get<2>(flight);
+                                        biggestGain = gain;
+                                    }
+                                }
+                            }
+                        }
+                        
+                        // if the best flight is better than the truck route, adds it to the best flight list
+                        if (biggestGain > 0) {
+                            cout << endl << "best flight for client " << client->getID() << ": (" << get<0>(bestClientFlight) << "," << get<1>(bestClientFlight) << "," << get<2>(bestClientFlight) << ")" << endl;
+                            bestFlight.push_back(make_tuple(get<1>(bestClientFlight), get<0>(bestClientFlight), get<2>(bestClientFlight), biggestGain, false));
+                        }
+
+                    } else {
+                        cout << "Node " << client->getID() << " can't be attended by drone (is depot or first/last node after/before depot)." << endl;
+                    }
+                }
+            }
+        }
+
+        // sorts best flights by gain
+        sortListByGain(&bestFlight);
+        
+        // adds best flights to route
+        for (int j = 0; j < bestFlight.size(); j++) {
+            //tuple<int,int,int> choosenFlight(get<1>(bestFlight[j]), get<0>(bestFlight[j]), get<2>(bestFlight[j]));
+            //get<4>(bestFlight[j]) = true;
+
+            get<0>(flight) = get<1>(bestFlight[j]);
+            get<1>(flight) = get<0>(bestFlight[j]);
+            get<2>(flight) = get<2>(bestFlight[j]);
+            this->routes[i].insertDroneFlight(flight);
+        }
+
+        // corrects truck route (removes clients that were served by drone)
+        this->routes[i].removeClientsServedByDrone(g, CT, CD, CB);
+        bestFlight.clear();
+        searchRange.clear();
     }
+}
 
-    // sorts clients by cost
-    pair<int,double> temp;
-    int i, j, n = clientsByCost.size();
+void Solution::sortListByGain(vector<tuple<int, int, int, double, bool>> *list) {
+    int i, j;
+    tuple<int, int, int, double, bool> aux;
 
-    for (i = 0; i < n - 1; i++) {
-        for (j = 0; j < n - i - 1; j++) {
-            if (clientsByCost[j].second < clientsByCost[j+1].second) {
-                temp = clientsByCost[j];
-                clientsByCost[j] = clientsByCost[j+1];
-                clientsByCost[j+1] = temp;
+    for (i = 0; i < list->size(); i++) {
+        for (j = i+1; j < list->size(); j++) {
+            if (get<3>(list->at(j)) > get<3>(list->at(i))) {
+                aux = list->at(i);
+                list->at(i) = list->at(j);
+                list->at(j) = aux;
             }
         }
     }
 }
 
-bool Solution::isReachableByDrone(Graph *g, tuple<int, int, int> flight) {
+void Solution::sortListByEuclideanDistance(Graph *g, vector<int> *nodeIdList, int clientNode) {
+    int i, j, aux;
+    double cij, cik, ckj;
+
+    for (i = 0; i < nodeIdList->size(); i++) {
+        for (j = i+1; j < nodeIdList->size(); j++) {
+            cij = g->getEuclideanDistance(clientNode, nodeIdList->at(i));
+            cik = g->getEuclideanDistance(clientNode, nodeIdList->at(j));
+            if (cik < cij) {
+                aux = nodeIdList->at(i);
+                nodeIdList->at(i) = nodeIdList->at(j);
+                nodeIdList->at(j) = aux;
+            }
+        }
+    }
+}
+
+bool Solution::isReachableByDrone(Graph *g, tuple<int, int, int> flight, int routeIndex) {
 
     cout << endl << endl << "verifying flight: [" << get<0>(flight) << ", " << get<1>(flight) << ", " << get<2>(flight) << "]" << endl;
 
@@ -422,12 +560,49 @@ bool Solution::isReachableByDrone(Graph *g, tuple<int, int, int> flight) {
     double t_ij = g->getEuclideanDistance(launchNode, clientNode) / SD;
     double t_jk = g->getEuclideanDistance(clientNode, retrieveNode) / SD;
 
-    cout << "expct_max_flight_endurance: " << expct_max_flight_endurance << endl;
-    cout << "time spent: " << t_ij + t_jk << endl;
+    // cout << "expct_max_flight_endurance: " << expct_max_flight_endurance << endl;
+    // cout << "time spent: " << t_ij + t_jk << endl;
 
     if ((t_ij + t_jk) <= expct_max_flight_endurance) {
-        cout << "flight is possible" << endl;
-        return true;
+
+        // verifies if truck will be able to reach client node before or with drone
+        double droneTime = t_ij + t_jk;
+        cout << "drone time: " << droneTime << endl;
+
+        int nodeID = 0, index = 0;
+        while (nodeID != launchNode) {
+            index++;
+            nodeID = this->routes[routeIndex].getNode(index)->getID();
+        }
+
+        // launch node is in index position in route
+        // verifies nodes before retrieve node, besides client node, and calculates time spent
+        double truckTime = 0;
+        int nextNodeID = 0;
+
+        while (nextNodeID != retrieveNode) {
+            nodeID = this->routes[routeIndex].getNode(index)->getID();
+            index++;
+            nextNodeID = this->routes[routeIndex].getNode(index)->getID();
+            if (nextNodeID != clientNode) {
+                truckTime += g->getManhattanDistance(nodeID, nextNodeID) / ST;  
+                cout << "truck time between " << nodeID << " and " << nextNodeID << ": " << g->getManhattanDistance(nodeID, nextNodeID) / ST << endl;
+            }
+            else {
+                cout << nextNodeID << " is client! skipping..." << endl;
+                index++;
+                nextNodeID = this->routes[routeIndex].getNode(index)->getID();
+                truckTime += g->getManhattanDistance(nodeID, nextNodeID) / ST;
+                cout << "truck time between " << nodeID << " and " << nextNodeID << ": " << g->getManhattanDistance(nodeID, nextNodeID) / ST << endl;
+            }
+        }
+
+        cout << "total truck time: " << truckTime << endl;
+
+        if (truckTime <= droneTime) {
+            cout << "flight is possible" << endl;
+            return true;
+        }
     }
 
     cout << "flight is not possible" << endl;
@@ -451,32 +626,6 @@ void Solution::updateSearchRange(vector<int>*searchRange, int rNode) {
     }
 
     cout << endl;
-}
-
-vector<pair<int,bool>> Solution::getAttendedClients() {
-    return attendedClients;
-}
-
-vector<Route> Solution::getRoutes() {
-    return routes;
-}
-
-void Solution::updateAttendedClients(int clientID) {
-    for (int i = 0; i < attendedClients.size(); i++) {
-        if (attendedClients[i].first == clientID) {
-            attendedClients[i].second = true;
-        }
-    }
-}
-
-bool Solution::allClientsAttended(Graph *g) {
-    for (int i = 0; i < g->getSize(); i++) {
-        if (!attendedClients[i].second) {
-            return false;
-        }
-    }
-
-    return true;
 }
 
 void Solution::printRoutes() {
@@ -560,6 +709,14 @@ void Solution::plotSolution(Solution *s, string instance){
     int aux = system(command.c_str());
     // command = "rm " + filename;
     // aux = system(command.c_str());
+}
+
+vector<pair<int,bool>> Solution::getAttendedClients() {
+    return attendedClients;
+}
+
+vector<Route> Solution::getRoutes() {
+    return routes;
 }
 
 double Solution::getCost() {

@@ -60,8 +60,8 @@
       "args": [],
       "stopAtEntry": false,
       "externalConsole": true,
-      "cwd": "c:/Users/maria/OneDrive/Área de Trabalho/IC",
-      "program": "c:/Users/maria/OneDrive/Área de Trabalho/IC/build/Debug/outDebug",
+      "cwd": "c:/Users/maria/OneDrive/Área de Trabalho/IC/MOVRPDD-MariaLuisa",
+      "program": "c:/Users/maria/OneDrive/Área de Trabalho/IC/MOVRPDD-MariaLuisa/build/Debug/outDebug",
       "MIMode": "gdb",
       "miDebuggerPath": "gdb",
       "setupCommands": [

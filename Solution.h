@@ -33,12 +33,15 @@ class Solution {
         void createTruckRoutes(Graph *g);
 
         void createDroneRoutes(Graph *g);
+        void createDroneRoutes2(Graph *g);
         void sortTruckClientsByCost(Graph *g, vector<pair<int,double>> clientsByCost, Route *r);
         void updateAttendedClients(int clientID);
         void updateCandidatesList(Node *client, Route *r, Graph *g, int iRoute);
         bool includeClient(Node *client, Route *r, Graph *g, int prevNode, int iRoute);
-        bool isReachableByDrone(Graph *g, tuple<int, int, int> flight);
+        bool isReachableByDrone(Graph *g, tuple<int, int, int> flight, int routeIndex);
         void updateSearchRange(vector<int> *searchRange, int rNode);
+        void sortListByEuclideanDistance(Graph *g, vector<int> *nodeIdList, int clientNode);
+        void sortListByGain(vector<tuple<int, int, int, double, bool>> *list);
 
         Node* getClosestClient(Graph *g, int from); 
         double getCost();

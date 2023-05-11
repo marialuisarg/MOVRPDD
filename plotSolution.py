@@ -42,7 +42,7 @@ def plotSolution(inst, sol):
     
     for i in range(numLines):
         line = f.readline().split('\t')
-        id.append(float(line[0]))
+        id.append(int(line[0]))
         x.append(float(line[2]))
         y.append(float(line[3]))
         request.append(line[4])
