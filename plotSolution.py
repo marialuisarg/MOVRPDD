@@ -154,7 +154,10 @@ def plotSolution(inst, sol):
                 addEuclideanArrow(ax1,x[inicio],y[inicio],x[atendido],y[atendido],color,'',':')
                 addEuclideanArrow(ax1,x[atendido],y[atendido],x[fim],y[fim],color,'', ':')
     plt.legend()
-    plt.title("Energy C.: " + str(f1) + " | Delivery Cost: " + str(f2) + " | Delivery Time: " + str(f3))
+    sf1 = str(f1).rstrip('\n')
+    sf2 = str(f2).rstrip('\n')
+    result = "Energy C.: " + sf1 + " | Del. Cost: " + sf2 + " | Del. Time: " + str(f3)
+    plt.title(result)
 
 if __name__ == '__main__':
     instance = sys.argv[1]

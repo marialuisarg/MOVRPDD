@@ -16,6 +16,10 @@ Route::Route(double truckCapacity, double droneCapacity, Node* depot) {
     this->currentTruckCapacity = truckCapacity;
     this->deliveryCost.first = 0.0;
     this->deliveryCost.second = 0.0;
+    this->deliveryTime.first = 0.0;
+    this->deliveryTime.second = 0.0;
+    this->energyConsumption.first = 0.0;
+    this->energyConsumption.second = 0.0;
 
     // add depot at the end of the routes
     truckRoute.push_back(depot);
@@ -29,8 +33,7 @@ Route::~Route() {
 }
 
 void Route::updateDeliveryCost(Graph*g, int CT, int CD, int CB, int typeOfRoute) {
-    this->deliveryCost.first = CB;
-    this->deliveryCost.second = CB;
+    cout << "=> updating delivery cost." << endl;
 
     double droneCost = 0.0;
     double truckCost = 0.0;
@@ -48,26 +51,62 @@ void Route::updateDeliveryCost(Graph*g, int CT, int CD, int CB, int typeOfRoute)
 
     droneCost *= CD; 
 
-    if (typeOfRoute == TRUCK_DRONE)
-        this->deliveryCost.second += (truckCost + droneCost);
-    else if (typeOfRoute == TRUCK)
-        this->deliveryCost.first += truckCost;
+    cout << "truck cost: " << truckCost << endl;
+    cout << "drone cost: " << droneCost << endl;
+    cout << "truck + drone cost: " << truckCost + droneCost << endl;
+    cout << "---" << endl;
 
+    this->deliveryCost = make_pair(truckCost + CB, truckCost + droneCost + CB);
 }
 
 void Route::updateEnergyConsumption(Graph *g, int typeOfRoute, int QT) {
-    double truckWeight = QT - this->currentTruckCapacity, ec;
+    //cout << "=> updating energy consumption." << endl;	
+    
+    double path, ec, truckWeight = QT - this->currentTruckCapacity;
     this->deliveryCost = make_pair(0.0, 0.0);
+    vector<pair<int, double>> launchingNodes;       // <laNode ID, drone's package weight>
 
-    for (int i = 0; i < this->truckRoute.size() - 1; i++) {
-        ec = g->getManhattanDistance(this->truckRoute[i]->getID(), this->truckRoute[i+1]->getID() * truckWeight);
-        truckWeight -= this->truckRoute[i+1]->getDemand();
-        
-        if (typeOfRoute == TRUCK_DRONE)
-            this->deliveryCost.second += ec;
-        else if (typeOfRoute == TRUCK)
-            this->deliveryCost.first += ec;
+    // considering package weight of clients attended by drone (and its lost at the launching node)
+    for (int j = 0; j < this->droneRoute.size(); j++) {
+        int laNode = get<0>(this->droneRoute[j]);
+        double dronePackageWeight = g->getNode(get<1>(this->droneRoute[j]))->getDemand();
+        launchingNodes.push_back(make_pair(laNode, dronePackageWeight));
     }
+
+    //cout << this->truckRoute[0]->getID() << " -> " << this->truckRoute[1]->getID() << ": " << truckWeight << endl;
+
+    for (int i = 1; i < this->truckRoute.size() - 1; i++) {
+        //cout << endl;
+        double dronePackageWeight = 0.0;
+
+        for (int j = 0; j < launchingNodes.size(); j++) {
+            if (this->truckRoute[i]->getID() == launchingNodes[j].first) {
+                dronePackageWeight = launchingNodes[j].second;
+                //cout << "drone is launched at client " << this->truckRoute[i]->getID() << ". drone's client demand is " << launchingNodes[j].second << endl;
+                break;
+            }
+        }
+
+        path = g->getManhattanDistance(this->truckRoute[i]->getID(), this->truckRoute[i+1]->getID());
+
+        if (truckWeight == this->truckRoute[i]->getDemand())
+            truckWeight = 0.0;
+        else
+            truckWeight -= this->truckRoute[i]->getDemand() + dronePackageWeight;
+
+        //cout << this->truckRoute[i]->getID() << " -> " << this->truckRoute[i+1]->getID() << ": " << truckWeight << " (" << this->truckRoute[i]->getID() << "'s demand: " << this->truckRoute[i]->getDemand() << ")" << endl;
+
+        ec += path * truckWeight;
+        
+        //cout << "energy consumption: " << ec << endl;
+    }
+
+    if (typeOfRoute == TRUCK_DRONE)
+        this->energyConsumption.second = ec;
+    else if (typeOfRoute == TRUCK)
+        this->energyConsumption.first = ec;
+    
+    cout << "---" << endl;	
 }
 
 void Route::updateDeliveryTime(Graph *g, int typeOfRoute, int VT, int VD) {
@@ -218,8 +257,9 @@ void Route::removeClientsServedByDrone(Graph *g, int CT, int CD, int CB) {
                 break;
             }
         }
-        updateDeliveryCost(g, CT, CD, CB, TRUCK_DRONE);
     }
+
+    updateDeliveryCost(g, CT, CD, CB, TRUCK_DRONE);
 }
 
 void Route::registerPrevTruckRoute() {
