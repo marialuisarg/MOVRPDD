@@ -104,7 +104,9 @@ def plotSolution(inst, sol):
     
     # truck solution
     numLines = int(f0.readline())
-    cost = f0.readline()
+    f1 = f0.readline()
+    f2 = f0.readline()
+    f3 = f0.readline()
     
     for i in range(numLines):
         line = f0.readline()[:-1].split("-")
@@ -152,7 +154,7 @@ def plotSolution(inst, sol):
                 addEuclideanArrow(ax1,x[inicio],y[inicio],x[atendido],y[atendido],color,'',':')
                 addEuclideanArrow(ax1,x[atendido],y[atendido],x[fim],y[fim],color,'', ':')
     plt.legend()
-    plt.title("Cost: " + str(cost))
+    plt.title("Energy C.: " + str(f1) + " | Delivery Cost: " + str(f2) + " | Delivery Time: " + str(f3))
 
 if __name__ == '__main__':
     instance = sys.argv[1]
