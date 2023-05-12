@@ -1,0 +1,2 @@
+/home/maria/miniconda3/envs/cmake-tutorial/bin/x86_64-conda-linux-gnu-ar qc libMOVRPDD.a CMakeFiles/MOVRPDD.dir/src/Graph.cpp.o CMakeFiles/MOVRPDD.dir/src/Node.cpp.o CMakeFiles/MOVRPDD.dir/src/Route.cpp.o CMakeFiles/MOVRPDD.dir/src/Solution.cpp.o CMakeFiles/MOVRPDD.dir/src/Utils.cpp.o CMakeFiles/MOVRPDD.dir/src/main.cpp.o
+/home/maria/miniconda3/envs/cmake-tutorial/bin/x86_64-conda-linux-gnu-ranlib libMOVRPDD.a

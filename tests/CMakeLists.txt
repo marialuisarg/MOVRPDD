@@ -1,0 +1,2 @@
+add_executable(inst_pequena inst_pequena.cc)
+target_link_libraries(inst_pequena PUBLIC MOVRPDD)
