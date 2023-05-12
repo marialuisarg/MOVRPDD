@@ -39,7 +39,7 @@ int main() {
     // set seed to time(0)
     srand(time(0));
 
-    Solution s(&graph);    
+    Solution s(&graph, 25);    
     //s.plotTruckSolution(&s, fileName);
     s.plotSolution(&s, fileName);
     //s.printSolution();
