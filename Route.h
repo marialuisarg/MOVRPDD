@@ -57,6 +57,8 @@ class Route {
         void insertDroneFlight(tuple<int,int,int> flight);
 
         void printRoute();
+
+        void setDeliveryCost(double cost, int typeOfRoute);
 };
 
 #endif // ROUTE_H_INCLUDED

@@ -56,14 +56,24 @@ void Route::updateDeliveryCost(Graph*g, int CT, int CD, int CB, int typeOfRoute)
     cout << "truck + drone cost: " << truckCost + droneCost << endl;
     cout << "---" << endl;
 
-    this->deliveryCost = make_pair(truckCost + CB, truckCost + droneCost + CB);
+    if (typeOfRoute == TRUCK_DRONE)
+        setDeliveryCost(truckCost+droneCost+CB, typeOfRoute);
+    else if (typeOfRoute == TRUCK)
+        setDeliveryCost(truckCost+CB, typeOfRoute);
+}
+
+void Route::setDeliveryCost(double cost, int typeOfRoute) {
+    if (typeOfRoute == TRUCK_DRONE)
+        this->deliveryCost.second = cost;
+    else if (typeOfRoute == TRUCK)
+        this->deliveryCost.first = cost;
 }
 
 void Route::updateEnergyConsumption(Graph *g, int typeOfRoute, int QT) {
     //cout << "=> updating energy consumption." << endl;	
     
     double path, ec, truckWeight = QT - this->currentTruckCapacity;
-    this->deliveryCost = make_pair(0.0, 0.0);
+    this->energyConsumption = make_pair(0.0, 0.0);
     vector<pair<int, double>> launchingNodes;       // <laNode ID, drone's package weight>
 
     // considering package weight of clients attended by drone (and its lost at the launching node)
