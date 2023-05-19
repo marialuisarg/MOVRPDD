@@ -63,7 +63,7 @@ class Solution {
         void printRoutes();
         void printCandidatesCost();
 
-        void plotSolution(Solution *s, string instance);
+        void plotSolution(Solution *s, string instance, int i);
         void plotTruckSolution(Solution *s, string instance);
 };
 

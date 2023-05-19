@@ -200,26 +200,26 @@ bool Route::insertClient(Node *client, int prevNodeIndex) {
 }
 
 void Route::printRoute() {
-    //cout << endl;
-    //for (int i = 0; i < this->truckRoute.size(); i++) {
-    //    cout << this->truckRoute[i]->getID() << " ";
-    //}
+    cout << endl;
+    for (int i = 0; i < this->truckRoute.size(); i++) {
+       cout << this->truckRoute[i]->getID() << " ";
+    }
 
-    //if (this->droneRoute.size() > 0) {
-        //cout << "| COST: " << this->deliveryCost;
-        //cout << " | TRUCK CAPACITY: " << this->currentTruckCapacity;
-        //cout << endl;
-        //cout << "DRONE FLIGHTS: ";
-    //} else {
-        //cout << "| COST: " << this->deliveryCost;
-        //cout << " | TRUCK CAPACITY: " << this->currentTruckCapacity;
-        //cout << endl;
-    //}
+    if (this->droneRoute.size() > 0) {
+        cout << "| COST: " << this->deliveryCost;
+        cout << " | TRUCK CAPACITY: " << this->currentTruckCapacity;
+        cout << endl;
+        cout << "DRONE FLIGHTS: ";
+    } else {
+        cout << "| COST: " << this->deliveryCost;
+        cout << " | TRUCK CAPACITY: " << this->currentTruckCapacity;
+        cout << endl;
+    }
 
-    //for (int j = 0; j < this->droneRoute.size(); j++) {
-        //cout << "(" << get<0>(this->droneRoute[j]) << "," << get<1>(this->droneRoute[j]) << "," << get<2>(this->droneRoute[j]) << ") ";
-    //}
-    //cout << endl;
+    for (int j = 0; j < this->droneRoute.size(); j++) {
+        cout << "(" << get<0>(this->droneRoute[j]) << "," << get<1>(this->droneRoute[j]) << "," << get<2>(this->droneRoute[j]) << ") ";
+    }
+    cout << endl;
 }
 
 Node *Route::getPrevNode(int position) {
@@ -231,7 +231,7 @@ Node *Route::getNextNode(int position) {
 }
 
 void Route::insertDroneFlight(tuple<int,int,int> flight) {
-    cout << "drone flight inserted!" << endl;
+    //cout << "drone flight inserted!" << endl;
     this->droneRoute.push_back(flight);
 }
 

@@ -31,13 +31,14 @@ int Utils::defineServiceBy(string ServiceByString){
     }else if(strcmp(ServiceByString.c_str(), "T") == 0){
         ServiceBy = 2;
     }else{
-        ServiceBy = 3;
+        ServiceBy = 2;
     }
     return ServiceBy;
 }
 
 vector<Node> Utils::readFile(string fileName){
     int ID;
+    string stringID;
     char Type;
     double X;
     double Y;
@@ -56,18 +57,33 @@ vector<Node> Utils::readFile(string fileName){
     if(arq.is_open()){
         cout << "Arquivo aberto com sucesso!" << endl;
         getline(arq,line);
+        string delimiter = "\t\t";
+        int cont = 0;
         	
 		while(getline(arq,line)){
-            lineBroken = split(line, '\t');
-            ID = stoi(lineBroken[0]);
+            size_t pos = 0;
+            string token;
+
+            while ((pos = line.find(delimiter)) != string::npos) {
+                token = line.substr(0, pos);
+                lineBroken.push_back(token);
+                line.erase(0, pos + delimiter.length());
+            }
+            lineBroken.push_back(line);
+
+            stringID = lineBroken[0];
+            ID = cont;
+            cont++;
+            
             Type = lineBroken[1].c_str()[0];
             X = stod(lineBroken[2]);
             Y = stod(lineBroken[3]);
             Demand = stod(lineBroken[4]);
             ServiceByString = lineBroken[5];
             ServiceBy = defineServiceBy(ServiceByString);
-            Node aux = Node(ID, Type, X, Y, Demand, ServiceBy);
+            Node aux = Node(ID, stringID, Type, X, Y, Demand, ServiceBy);
             nodes.push_back(aux);
+            lineBroken.clear();
         }
 
         arq.close();

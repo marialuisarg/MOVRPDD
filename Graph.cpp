@@ -28,7 +28,7 @@ void Graph::addEdge( int from,  int to) {
 
 void Graph::printGraph() {
 
-    cout << "ID\tType\tX\tY\tDemand\tServiceBy" << endl;
+    cout << "StringID\tID\tType\tX\tY\tDemand\tServiceBy" << endl;
 
     for ( int i = 0; i < getSize(); i++) {
         Nodes[i].printNode();

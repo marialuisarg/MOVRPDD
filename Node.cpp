@@ -7,8 +7,9 @@
 
 using namespace std;
 
-Node::Node(int clientID, char type, double x, double y, double demand, int serviceBy) {
+Node::Node(int clientID, string clientStringID, char type, double x, double y, double demand, int serviceBy) {
     ID = clientID;
+    stringID = clientStringID;
     Type = type;
     X = x;
     Y = y;
@@ -21,6 +22,10 @@ Node::~Node() {
 
 int Node::getID() const {
     return ID;
+}
+
+string Node::getStringID() const {
+    return stringID;
 }
 
 char Node::getType() const {
@@ -44,6 +49,7 @@ int Node::getServiceBy() const {
 }
 
 void Node::printNode() {
+    cout << stringID << "\t\t";
     cout << ID << "\t";
     cout << Type << "\t";
     cout << X << "\t";

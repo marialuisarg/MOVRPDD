@@ -35,14 +35,16 @@ def plotSolution(inst, sol):
     f.seek(0)
     f.readline()
     id = []
+    stringID = []
     x = []
     y = []
     drone = []
     request = []
     
     for i in range(numLines):
-        line = f.readline().split('\t')
-        id.append(int(line[0]))
+        line = f.readline().split("\t\t")
+        stringID.append(line[0])
+        id.append(i)
         x.append(float(line[2]))
         y.append(float(line[3]))
         request.append(line[4])

@@ -76,7 +76,7 @@ void Solution::createTruckRoutes(Graph *g) {
     // sorts candidates by cost
     sortCandidatesByCost(g);
 
-    cout << endl;
+    //cout << endl;
 
     insertRandomizedFirstClients(g);
 
@@ -137,7 +137,7 @@ void Solution::insertRandomizedFirstClients(Graph *g) {
         int prevNode = get<3>(candidatesCost[randomIndex]);
         Node *client = g->getNode(clientID);
         if (includeClient(client, &routes[routeIndex], g, prevNode, routeIndex)) {
-            cout << "Random client " << client->getID() << " inserted in route " << routeIndex << endl;
+            //cout << "Random client " << client->getID() << " inserted in route " << routeIndex << endl;
             i++;
         }
     }
@@ -160,8 +160,8 @@ bool Solution::includeClient(Node *client, Route *r, Graph *g, int prevNodeIndex
     // inserts client in route
     if (!r->insertClient(client, prevNodeIndex)) {
         // if client can't be inserted, removes it from candidates list
-        cout << "Client " << client->getID() << " can't be inserted in route " << iRoute << endl;
-        cout << endl;
+        //cout << "Client " << client->getID() << " can't be inserted in route " << iRoute << endl;
+        //cout << endl;
         for (int i = 0; i < candidatesCost.size(); i++) {
             if (get<0>(candidatesCost[i]) == client->getID() && get<1>(candidatesCost[i]) == iRoute) {
                 candidatesCost.erase(candidatesCost.begin()+i);
@@ -297,11 +297,11 @@ void Solution::updateCandidatesList(Node *client, Route *r, Graph *g, int iRoute
 bool isInSearchRange(vector<int> searchRange, int clientID) {
     for (int i = 0; i < searchRange.size(); i++) {
         if (searchRange[i] == clientID) {
-            cout << "Client " << clientID << " is in search range" << endl;
+            //cout << "Client " << clientID << " is in search range" << endl;
             return true;
         }
     }
-    cout << "Client " << clientID << " is not in search range" << endl;
+    //cout << "Client " << clientID << " is not in search range" << endl;
     return false;
 }
 
@@ -325,12 +325,12 @@ void Solution::createDroneRoutes(Graph *g) {
 
             if (isInSearchRange(searchRange, tRoute[j]->getID())) {
                 Node* client = this->routes[i].getTruckRoute()[j];
-                cout << client->getServiceBy() << " | " << client->getDemand() << " | " << QD << endl;
+                //cout << client->getServiceBy() << " | " << client->getDemand() << " | " << QD << endl;
                 // if client can be reached by drone and its demand is less than the drone's capacity
                 if (client->getServiceBy() == DRONE_TRUCK && client->getDemand() <= QD) {
                     // verifies if node isn't depot or first/last node on route
                     if ((client->getID() != tRoute[0]->getID()) && (client->getID() != tRoute[1]->getID()) && (client->getID() != tRoute[tRoute.size()-2]->getID())) {
-                        cout << endl << endl << "ROUTE: " << i << " | CLIENT: " << client->getID();
+                        //cout << endl << endl << "ROUTE: " << i << " | CLIENT: " << client->getID();
                         clientNode = client->getID();
                         get<1>(flight) = clientNode;
 
@@ -375,7 +375,7 @@ void Solution::createDroneRoutes(Graph *g) {
                                     }
 
                                     double gain = truckRouteCost - droneFlightCost;
-                                    cout << "ganho: " << gain << endl;
+                                    //cout << "ganho: " << gain << endl;
 
                                     if (gain > biggestGain) {
                                         get<0>(bestClientFlight) = get<0>(flight);
@@ -389,13 +389,13 @@ void Solution::createDroneRoutes(Graph *g) {
                         
                         // if the best flight is better than the truck route, adds it to the best flight list
                         if (biggestGain > 0) {
-                            cout << endl << "best flight for client " << client->getID() << ": (" << get<0>(bestClientFlight) << "," << get<1>(bestClientFlight) << "," << get<2>(bestClientFlight) << ")" << endl;
+                            //cout << endl << "best flight for client " << client->getID() << ": (" << get<0>(bestClientFlight) << "," << get<1>(bestClientFlight) << "," << get<2>(bestClientFlight) << ")" << endl;
                             bestFlight.push_back(make_tuple(get<1>(bestClientFlight), get<0>(bestClientFlight), get<2>(bestClientFlight), biggestGain, false));
                         }
 
-                    } else {
-                        cout << "Node " << client->getID() << " can't be attended by drone (is depot or first/last node after/before depot)." << endl;
-                    }
+                    } //else {
+                        //cout << "Node " << client->getID() << " can't be attended by drone (is depot or first/last node after/before depot)." << endl;
+                    //}
                 }
             }
         }
@@ -506,7 +506,7 @@ bool Solution::isReachableByDrone(Graph *g, tuple<int, int, int> flight, int rou
                 //cout << "truck time between " << nodeID << " and " << nextNodeID << ": " << g->getManhattanDistance(nodeID, nextNodeID) / ST << endl;
             }
             else {
-                cout << nextNodeID << " is client! skipping..." << endl;
+                //cout << nextNodeID << " is client! skipping..." << endl;
                 index++;
                 nextNodeID = this->routes[routeIndex].getNode(index)->getID();
                 truckTime += g->getManhattanDistance(nodeID, nextNodeID) / ST;
@@ -517,17 +517,17 @@ bool Solution::isReachableByDrone(Graph *g, tuple<int, int, int> flight, int rou
         //cout << "total truck time: " << truckTime << endl;
 
         if (truckTime <= droneTime) {
-            cout << "flight is possible" << endl;
+            //cout << "flight is possible" << endl;
             return true;
         }
     }
 
-    cout << "flight is not possible" << endl;
+    //cout << "flight is not possible" << endl;
     return false;
 }
 
 void Solution::updateSearchRange(vector<int>*searchRange, int rNode) {
-    cout << endl << "updating search range" << endl;
+    //cout << endl << "updating search range" << endl;
 
     int firstNode = searchRange->front();
 
@@ -536,13 +536,13 @@ void Solution::updateSearchRange(vector<int>*searchRange, int rNode) {
         firstNode = searchRange->front();
     }
 
-    cout << "search range updated: ";
+    //cout << "search range updated: ";
 
-    for (int i = 0; i < searchRange->size(); i++) {
-        cout << searchRange->at(i) << " ";
-    }
+    // for (int i = 0; i < searchRange->size(); i++) {
+    //     cout << searchRange->at(i) << " ";
+    // }
 
-    cout << endl;
+    //cout << endl;
 }
 
 void Solution::printRoutes() {
@@ -567,15 +567,16 @@ void Solution::printCandidatesCost() {
     cout << "------------------" << endl;
 }
 
-void Solution::plotSolution(Solution *s, string instance){
+void Solution::plotSolution(Solution *s, string instance, int i){
     // plot solution
     string instanceName = instance;
     string filename;
     
     if (getDroneRouteCreated())
-        filename = "./solutions/droneSolution_" + instance.erase(0,12);
+        filename = "./solutions/droneSolution" + to_string(i) + "_" + instance.erase(0,12);
     else
-        filename = "./solutions/truckSolution_" + instance.erase(0,12);
+        filename = "./solutions/truckSolution" + to_string(i) + "_" + instance.erase(0,12);
+    
     ofstream output_file(filename);
 
     output_file << s->routes.size() << endl;
@@ -587,7 +588,7 @@ void Solution::plotSolution(Solution *s, string instance){
         string truckRoute = "";
 
         for (int j=0; j < s->routes[i].getTruckRoute().size(); j++){
-           truckRoute = truckRoute + "-" + to_string(s->routes[i].getTruckRoute()[j]->getID());
+            truckRoute = truckRoute + "-" + to_string(s->routes[i].getTruckRoute()[j]->getID());
         }
 
         if(!truckRoute.empty())
