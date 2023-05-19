@@ -154,22 +154,16 @@ def plotSolution(inst, sol):
                 addEuclideanArrow(ax1,x[inicio],y[inicio],x[atendido],y[atendido],color,'',':')
                 addEuclideanArrow(ax1,x[atendido],y[atendido],x[fim],y[fim],color,'', ':')
     plt.legend()
-    sf1 = str(f1).rstrip('\n')
-    sf2 = str(f2).rstrip('\n')
-    result = "Energy C.: " + sf1 + " | Del. Cost: " + sf2 + " | Del. Time: " + str(f3)
-    plt.title(result)
+    plt.title("Energy C.: " + str(f1) + " | Delivery Cost: " + str(f2) + " | Delivery Time: " + str(f3))
 
 if __name__ == '__main__':
     instance = sys.argv[1]
-    solution = sys.argv[2]
+    tSolution = sys.argv[2]
+    solution = sys.argv[3]
     
+    # truck solution
+    plotSolution(instance, tSolution)
+    
+    # truck/drone solution
     plotSolution(instance, solution)
-    fig = plt.gcf()
     plt.show()
-    plt.draw()
-    
-    path = solution.split("./solutions/")[1]
-    path = path.split(".txt")[0]
-    path = "./plots/" + path + ".png"
-        
-    fig.savefig(path)

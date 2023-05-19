@@ -30,8 +30,7 @@ using namespace std;
 
 Solution::Solution(Graph *g, int QT) {
     this->QT = QT;                           // maximum load capacity of trucks
-    this->totalDeliveryCost.first = 0.0;
-    this->totalDeliveryCost.second = 0.0;
+    this->totalDeliveryCost = 0.0;
 
     for (int i = 0; i < g->getSize(); i++) {
         attendedClients.push_back({g->getNode(i)->getID(), false});
@@ -49,12 +48,8 @@ Solution::Solution(Graph *g, int QT) {
         routes.push_back(r);
     }
 
+    setDroneRouteCreated(false);
     createTruckRoutes(g);
-    updateSolution(g, TRUCK);            // update costs of solution
-    printRoutes();
-    createDroneRoutes(g);
-    updateSolution(g, TRUCK_DRONE);      // update costs of solution
-    printRoutes();
 }
 
 void Solution::createTruckRoutes(Graph *g) {
@@ -113,6 +108,7 @@ void Solution::createTruckRoutes(Graph *g) {
         routes[i].registerPrevTruckRoute();
 
     //printRoutes();
+    updateSolution(g);
 }
 
 void Solution::sortCandidatesByCost(Graph *g) {
@@ -178,7 +174,7 @@ bool Solution::includeClient(Node *client, Route *r, Graph *g, int prevNodeIndex
 
     // updates attended clients
     updateAttendedClients(client->getID());
-    r->updateDeliveryCost(g, CT, CD, CB, TRUCK);
+    r->updateDeliveryCost(g, CT, CD, CB);
     
     // updates cheapest insertion candidates list
     updateCandidatesList(client, r, g, iRoute);
@@ -193,30 +189,22 @@ void Solution::updateAttendedClients(int clientID) {
     }
 }
 
-void Solution::updateSolution(Graph *g, int typeOfSolution) {
+void Solution::updateSolution(Graph *g) {
     double f1 = 0.0, f2 = 0.0, f3 = 0.0;
-    //cout << endl << "-------------------" << endl;
-    //cout << endl << "UPDATING SOLUTION" << endl << endl;
+
     for (int i = 0; i < routes.size(); i++) {
-        //cout << endl << "Route " << i << endl;
-        routes[i].updateEnergyConsumption(g, typeOfSolution, QT);
-        routes[i].updateDeliveryTime(g, typeOfSolution, ST, SD);
+        routes[i].updateEnergyConsumption(g, QT);
+        routes[i].updateDeliveryTime(g, ST, SD);
 
-        f1 += routes[i].getEnergyConsumption(typeOfSolution);
-        f2 += routes[i].getDeliveryCost(typeOfSolution);
-        if (routes[i].getDeliveryTime(typeOfSolution) > f3)
-            f3 = routes[i].getDeliveryTime(typeOfSolution);
+        f1 += routes[i].getEnergyConsumption();
+        f2 += routes[i].getDeliveryCost();
+        if (routes[i].getDeliveryTime() > f3)
+            f3 = routes[i].getDeliveryTime();
     }
 
-    if (typeOfSolution == TRUCK_DRONE) {
-        this->totalEnergyConsumption.second = f1;
-        this->totalDeliveryCost.second = f2;
-        this->totalDeliveryTime.second = f3;
-    } else if (typeOfSolution == TRUCK) {
-        this->totalEnergyConsumption.first = f1;
-        this->totalDeliveryCost.first = f2;
-        this->totalDeliveryTime.first = f3;
-    }
+    this->totalEnergyConsumption = f1;
+    this->totalDeliveryCost = f2;
+    this->totalDeliveryTime = f3;
 }
 
 bool verifyNeighbor(Route *r, int currentPrevIndex, int currentNextIndex) {
@@ -337,7 +325,7 @@ void Solution::createDroneRoutes(Graph *g) {
 
             if (isInSearchRange(searchRange, tRoute[j]->getID())) {
                 Node* client = this->routes[i].getTruckRoute()[j];
-
+                cout << client->getServiceBy() << " | " << client->getDemand() << " | " << QD << endl;
                 // if client can be reached by drone and its demand is less than the drone's capacity
                 if (client->getServiceBy() == DRONE_TRUCK && client->getDemand() <= QD) {
                     // verifies if node isn't depot or first/last node on route
@@ -424,6 +412,7 @@ void Solution::createDroneRoutes(Graph *g) {
             get<1>(flight) = get<0>(bestFlight[j]);
             get<2>(flight) = get<2>(bestFlight[j]);
             this->routes[i].insertDroneFlight(flight);
+            setDroneRouteCreated(true);
         }
 
         // corrects truck route (removes clients that were served by drone)
@@ -431,13 +420,13 @@ void Solution::createDroneRoutes(Graph *g) {
         bestFlight.clear();
         searchRange.clear();
     }
-    
+
+    updateSolution(g);
 }
 
 void Solution::sortListByGain(vector<tuple<int, int, int, double, bool>> *list) {
     int i, j;
     tuple<int, int, int, double, bool> aux;
-
     for (i = 0; i < list->size(); i++) {
         for (j = i+1; j < list->size(); j++) {
             if (get<3>(list->at(j)) > get<3>(list->at(i))) {
@@ -467,7 +456,6 @@ void Solution::sortListByEuclideanDistance(Graph *g, vector<int> *nodeIdList, in
 }
 
 bool Solution::isReachableByDrone(Graph *g, tuple<int, int, int> flight, int routeIndex) {
-
     //cout << endl << endl << "verifying flight: [" << get<0>(flight) << ", " << get<1>(flight) << ", " << get<2>(flight) << "]" << endl;
 
     int launchNode = get<0>(flight);
@@ -580,37 +568,20 @@ void Solution::printCandidatesCost() {
 }
 
 void Solution::plotSolution(Solution *s, string instance){
+    // plot solution
+    string instanceName = instance;
+    string filename;
     
-    // plot truck solution
-    string filename0 = "truckSolutionForPlot.txt";
-    ofstream output_file0(filename0);
-
-    output_file0 << s->routes.size() << endl;
-    output_file0 << s->getTotalEnergyConsumption().first << endl;
-    output_file0 << s->getTotalDeliveryCost().first << endl;
-    output_file0 << s->getTotalDeliveryTime().first << endl;
-
-    for (int i=0; i < s->routes.size(); i++) {
-        string truckRoute = "";
-
-        for (int j=0; j < s->routes[i].getPrevTruckRoute().size(); j++){
-           truckRoute = truckRoute + "-" + to_string(s->routes[i].getPrevTruckRoute()[j]);
-        }
-
-        if(!truckRoute.empty())
-            output_file0 << truckRoute.substr(1);
-        output_file0 << endl;
-        output_file0 << endl;
-    }
-
-    // plot truck+drone solution
-    string filename = "solutionForPlot.txt";
+    if (getDroneRouteCreated())
+        filename = "./solutions/droneSolution_" + instance.erase(0,12);
+    else
+        filename = "./solutions/truckSolution_" + instance.erase(0,12);
     ofstream output_file(filename);
 
     output_file << s->routes.size() << endl;
-    output_file << s->getTotalEnergyConsumption().second << endl;
-    output_file << s->getTotalDeliveryCost().second << endl;
-    output_file << s->getTotalDeliveryTime().second << endl;
+    output_file << s->getTotalEnergyConsumption() << endl;
+    output_file << s->getTotalDeliveryCost() << endl;
+    output_file << s->getTotalDeliveryTime() << endl;
 
     for (int i=0; i < s->routes.size(); i++) {
         string truckRoute = "";
@@ -636,12 +607,10 @@ void Solution::plotSolution(Solution *s, string instance){
         output_file << endl;
     }
 
-    output_file0.close();
     output_file.close();
-    string command = "cd ..";
+    
+    string command = "python plotSolution.py " + instanceName + " " + filename;
     int aux = system(command.c_str());
-    command = "python plotSolution.py " + instance + " " + filename0 + " " + filename;
-    aux = system(command.c_str());
     // command = "rm " + filename;
     // aux = system(command.c_str());
 }
@@ -654,16 +623,24 @@ vector<Route> Solution::getRoutes() {
     return routes;
 }
 
-pair<double,double> Solution::getTotalDeliveryCost() {
+double Solution::getTotalDeliveryCost() {
     return this->totalDeliveryCost;
 }
 
-pair<double,double> Solution::getTotalEnergyConsumption() {
+double Solution::getTotalEnergyConsumption() {
     return this->totalEnergyConsumption;
 }
 
-pair<double,double> Solution::getTotalDeliveryTime() {
+double Solution::getTotalDeliveryTime() {
     return this->totalDeliveryTime;
+}
+
+bool Solution::getDroneRouteCreated() {
+    return this->droneRouteCreated;
+}
+
+void Solution::setDroneRouteCreated(bool value) {
+    this->droneRouteCreated = value;
 }
 
 Solution::~Solution() {

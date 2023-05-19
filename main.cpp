@@ -13,12 +13,18 @@
 
 using namespace std;
 
-int main() {
+int main(int argc, char const *argv[]) {
+
+    if (argc != 3) {
+        cout << "ERROR: Expecting: ./<program_name> <instance_file> <QT>" << endl;
+        exit(1);
+    }
+
+    string fileName = argv[1];
+    int QT = atoi(argv[2]);
+
     Utils u;
     vector<Node> nodes;
-    string fileName;
-    cout << "Insira o nome do arquivo: ";
-    cin >> fileName;
 
     nodes = u.readFile(fileName);
     int numNodes = nodes.size();
@@ -39,10 +45,13 @@ int main() {
     // set seed to time(0)
     srand(time(0));
 
-    Solution s(&graph, 1000);    
-    //s.plotTruckSolution(&s, fileName);
-    s.plotSolution(&s, fileName);
-    //s.printSolution();
+    // truck route
+    Solution t(&graph, QT);    
+    t.plotSolution(&t, fileName);
+
+    // drone route
+    t.createDroneRoutes(&graph);
+    t.plotSolution(&t, fileName);
 
     return 0;
 }

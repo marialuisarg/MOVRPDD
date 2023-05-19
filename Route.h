@@ -19,9 +19,9 @@ class Route {
         vector<int> prevTruckRoute;                 // final truck route before drone flights
         vector<tuple<int, int, int>> droneRoute;    // launch node, client, retrieval node 
     
-        pair<double,double> energyConsumption;      // f1 (truck, truck+drone)
-        pair<double,double> deliveryCost;           // f2 (truck, truck+drone
-        pair<double,double> deliveryTime;           // f3 (truck, truck+drone)
+        double energyConsumption;      // f1
+        double deliveryCost;           // f2
+        double deliveryTime;           // f3
 
         double currentTruckCapacity;
         double currentDroneCapacity;
@@ -31,18 +31,18 @@ class Route {
         Route(double truckCapacity, double droneCapacity, Node* depot);
         ~Route();
 
-        void updateDeliveryCost(Graph *g, int CT, int CD, int CB, int typeOfRoute);
-        void updateEnergyConsumption(Graph *g, int typeOfRoute, int QT);
-        void updateDeliveryTime(Graph *g, int typeOfRoute, int VT, int VD);
+        void updateDeliveryCost(Graph *g, int CT, int CD, int CB);
+        void updateEnergyConsumption(Graph *g, int QT);
+        void updateDeliveryTime(Graph *g, int VT, int VD);
         void updateCapacity(double capacity);
         void updateNumClients();
 
         void removeClientsServedByDrone(Graph *g, int CT, int CD, int CB);
         void registerPrevTruckRoute();
 
-        double getDeliveryCost(int typeOfRoute);
-        double getEnergyConsumption(int typeOfRoute);
-        double getDeliveryTime(int typeOfRoute);
+        double getDeliveryCost();
+        double getEnergyConsumption();
+        double getDeliveryTime();
         double getPrevCost();
         double getCurrentCapacity();
         vector<Node*> getTruckRoute();
@@ -58,7 +58,7 @@ class Route {
 
         void printRoute();
 
-        void setDeliveryCost(double cost, int typeOfRoute);
+        void setDeliveryCost(double cost);
 };
 
 #endif // ROUTE_H_INCLUDED

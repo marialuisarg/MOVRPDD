@@ -17,9 +17,11 @@ class Solution {
         vector<pair<int,bool>> attendedClients;                      // identifies by ID
         vector<tuple<int, int, double, int, int>> candidatesCost;    // (nodeID, route, delta, prevNode, nextNode)
 
-        pair<double,double> totalEnergyConsumption;                  // f1 (truck, truck+drone)
-        pair<double,double> totalDeliveryCost;                       // f2 (truck, truck+drone)   
-        pair<double,double> totalDeliveryTime;                       // f3 (truck, truck+drone)
+        double totalEnergyConsumption;                  // f1 
+        double totalDeliveryCost;                       // f2    
+        double totalDeliveryTime;                       // f3 
+
+        bool droneRouteCreated;
         
         void sortCandidatesByCost(Graph *g);
         bool allClientsAttended(Graph *g);
@@ -32,10 +34,13 @@ class Solution {
         vector<Route> getRoutes();
         vector<pair<int,bool>> getAttendedClients();
         Node* getClosestClient(Graph *g, int from); 
-        pair<double,double> getTotalDeliveryCost();
-        pair<double,double> getTotalEnergyConsumption();
-        pair<double,double> getTotalDeliveryTime();
+        double getTotalDeliveryCost();
+        double getTotalEnergyConsumption();
+        double getTotalDeliveryTime();
         void getCheapestInsertion(Graph *g, vector<Node*> candidates, Node**client);
+        bool getDroneRouteCreated();
+
+        void setDroneRouteCreated(bool droneRouteCreated);
 
         void createTruckRoutes(Graph *g);
         void createDroneRoutes(Graph *g);
@@ -47,7 +52,7 @@ class Solution {
         void updateAttendedClients(int clientID);
         void updateCandidatesList(Node *client, Route *r, Graph *g, int iRoute);
         void updateSearchRange(vector<int> *searchRange, int rNode);
-        void updateSolution(Graph *g, int typeOfSolution);
+        void updateSolution(Graph *g);
 
         bool includeClient(Node *client, Route *r, Graph *g, int prevNode, int iRoute);
         bool isReachableByDrone(Graph *g, tuple<int, int, int> flight, int routeIndex);

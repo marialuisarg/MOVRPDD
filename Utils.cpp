@@ -22,6 +22,8 @@ vector<string> Utils::split(string str, char delimiter){
 int Utils::defineServiceBy(string ServiceByString){
     int ServiceBy;
 
+    ServiceByString.pop_back();
+
     if(strcmp(ServiceByString.c_str(), "-") == 0){
         ServiceBy = 0;
     }else if(strcmp(ServiceByString.c_str(), "D/T") == 0){
