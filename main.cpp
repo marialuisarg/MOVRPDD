@@ -4,6 +4,7 @@
 #include<ctime>
 
 #include <vector>
+#include <tuple>
 #include <string>
 
 #include "Graph.h"
@@ -57,45 +58,18 @@ int main(int argc, char const *argv[]) {
     // set of numSolutions solutions
     vector<Solution> solutions;
 
-    // for (int i = 0; i < numSolutions; i++) {
-    //     Solution s(&graph, QT);
-    //     s.createTruckRoutes(&graph);
-    //     s.plotSolution(&s, fileName, i);
-    //     s.createDroneRoutes(&graph);
-    //     s.plotSolution(&s, fileName, i);
-    // }
+    for (int i = 0; i < numSolutions; i++) {
+        solutions.emplace_back(&graph, QT);
+        
+        solutions[i].plotSolution(fileName, i);
+        solutions[i].createDroneRoutes(&graph);
+        solutions[i].plotSolution(fileName, i);
 
-    // truck route
-    Solution t(&graph, QT);    
-    t.plotSolution(fileName, 0);
+        // cout << "Solution " << i << ": ";
+        // printObjFunc(&solutions[i]);
+    }
 
-    //printObjFunc(&t);
-
-    // drone route
-    t.createDroneRoutes(&graph);
-    t.plotSolution(fileName, 0);
-
-    printObjFunc(&t);
-
-    // // truck route
-    // Solution v(&graph, QT);    
-    // v.plotSolution(&v, fileName, 1);
-    // printObjFunc(&v);
-
-    // // drone route
-    // v.createDroneRoutes(&graph);
-    // v.plotSolution(&v, fileName, 1);
-    // printObjFunc(&v);
-
-    // // truck route
-    // Solution w(&graph, QT);    
-    // w.plotSolution(&w, fileName, 2);
-    // printObjFunc(&w);
-
-    // // drone route
-    // w.createDroneRoutes(&graph);
-    // w.plotSolution(&w, fileName, 2);
-    // printObjFunc(&w);
+    u.printSolutionsToFile(&solutions, fileName);
 
     return 0;
 }

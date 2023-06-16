@@ -23,6 +23,7 @@ class Utils{
         static int defineServiceBy(string ServiceByString);
         static vector<Node> readFile(string fileName);
         static void printSolution(Solution *s);
+        static void printSolutionsToFile(vector<Solution> *s, string fileName);
 };
 
 #endif

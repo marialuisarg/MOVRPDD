@@ -167,7 +167,7 @@ if __name__ == '__main__':
     
     plotSolution(instance, solution)
     fig = plt.gcf()
-    plt.show()
+    # plt.show()
     plt.draw()
     
     path = solution.split("./solutions/")[1]

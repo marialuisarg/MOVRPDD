@@ -79,7 +79,7 @@ void Solution::createTruckRoutes(Graph *g) {
         for (int i = 0; i < candidates.size(); i++) {
             double manhattanDistance = candidates[i]->manhattanDistance(g->getNode(0));
             double cost = manhattanDistance * CT * 2;
-            candidatesCost.push_back(make_tuple(candidates[i]->getID(), r, cost,0,0));
+            this->candidatesCost.push_back(make_tuple(candidates[i]->getID(), r, cost,0,0));
         }
     }
 
@@ -87,7 +87,6 @@ void Solution::createTruckRoutes(Graph *g) {
     sortCandidatesByCost(g);
 
     //cout << endl;
-
     insertRandomizedFirstClients(g);
 
     //printRoutes();
@@ -106,8 +105,8 @@ void Solution::createTruckRoutes(Graph *g) {
         long int prevNode = get<3>(candidatesCost[0]);
 
         // inserts client in route ("if" logic here is just for debugging, but function must be called)
-        if (includeClient(cheapestInsertion, &routes[iRoute], g, prevNode, iRoute))
-            cout << "Client " << cheapestInsertion->getID() << " inserted in route " << iRoute << endl;
+        bool clientIn = includeClient(cheapestInsertion, &routes[iRoute], g, prevNode, iRoute);
+            //cout << "Client " << cheapestInsertion->getID() << " inserted in route " << iRoute << endl;
         
         //printCandidatesCost();
         //cout << endl;

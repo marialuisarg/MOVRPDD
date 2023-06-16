@@ -11,7 +11,7 @@ class Graph {
         vector<Node> Nodes;
         vector<vector<double>> euclideanDistances;
         vector<vector<double>> manhattanDistances;
-         int size;
+        int size;
 
     public:
         Graph(int size);
