@@ -24,7 +24,7 @@ void printObjFunc(Solution* sol) {
 int main(int argc, char const *argv[]) {
 
     if (argc != 4) {
-        cout << "ERROR: Expecting: ./<program_name> <instance_file> <QT> <number_of_solutions>" << endl;
+        cout << "ERROR: Expecting: <instance_file> <QT> <number_of_solutions>" << endl;
         exit(1);
     }
 
@@ -67,13 +67,13 @@ int main(int argc, char const *argv[]) {
 
     // truck route
     Solution t(&graph, QT);    
-    t.plotSolution(&t, fileName, 0);
+    t.plotSolution(fileName, 0);
 
-    printObjFunc(&t);
+    //printObjFunc(&t);
 
     // drone route
     t.createDroneRoutes(&graph);
-    t.plotSolution(&t, fileName, 0);
+    t.plotSolution(fileName, 0);
 
     printObjFunc(&t);
 

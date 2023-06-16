@@ -53,12 +53,13 @@ class Route {
         Node* getPrevNode(int position);
         Node* getNextNode(int position);
 
-        bool insertClient(Node *client, int prevNode);  // returns false if client can't be inserted
+        bool insertClient(Node *client, long int prevNode);  // returns false if client can't be inserted
         void insertDroneFlight(tuple<int,int,int> flight);
 
         void printRoute();
 
         void setDeliveryCost(double cost);
+        void setDeliveryTime(double time);
 };
 
 #endif // ROUTE_H_INCLUDED

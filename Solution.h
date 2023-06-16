@@ -13,6 +13,7 @@ using namespace std;
 class Solution {
     private:
         int QT;
+        int numRoutes;
         vector<Route> routes;
         vector<pair<int,bool>> attendedClients;                      // identifies by ID
         vector<tuple<int, int, double, int, int>> candidatesCost;    // (nodeID, route, delta, prevNode, nextNode)
@@ -32,6 +33,7 @@ class Solution {
         ~Solution();
 
         vector<Route> getRoutes();
+        int getNumRoutes();
         vector<pair<int,bool>> getAttendedClients();
         Node* getClosestClient(Graph *g, int from); 
         double getTotalDeliveryCost();
@@ -41,6 +43,7 @@ class Solution {
         bool getDroneRouteCreated();
 
         void setDroneRouteCreated(bool droneRouteCreated);
+        void setNumRoutes(int numRoutes);
 
         void createTruckRoutes(Graph *g);
         void createDroneRoutes(Graph *g);
@@ -63,8 +66,7 @@ class Solution {
         void printRoutes();
         void printCandidatesCost();
 
-        void plotSolution(Solution *s, string instance, int i);
-        void plotTruckSolution(Solution *s, string instance);
+        void plotSolution(string instance, int i);
 };
 
 #endif // SOLUTION_H_INCLUDED

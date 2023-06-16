@@ -63,7 +63,7 @@ void Route::setDeliveryCost(double cost) {
 void Route::updateEnergyConsumption(Graph *g, int QT) {
     //cout << "=> updating energy consumption." << endl;	
     
-    double path, ec, truckWeight = QT - this->currentTruckCapacity;
+    double path = 0.0, ec = 0.0, truckWeight = QT - this->currentTruckCapacity;
     this->energyConsumption = 0.0;
     vector<pair<int, double>> launchingNodes;       // <laNode ID, drone's package weight>
 
@@ -109,7 +109,7 @@ void Route::updateEnergyConsumption(Graph *g, int QT) {
 
 void Route::updateDeliveryTime(Graph *g, int VT, int VD) {
     double truckTime = 0.0, droneTime = 0.0;
-    this->deliveryTime = 0.0;
+    setDeliveryTime(0.0);
 
     // truck time
     for (int j = 0; j < this->truckRoute.size()-1; j++) {
@@ -121,23 +121,29 @@ void Route::updateDeliveryTime(Graph *g, int VT, int VD) {
         double ij = g->getEuclideanDistance(get<0>(this->droneRoute[i]), get<1>(this->droneRoute[i]));
         double jk = g->getEuclideanDistance(get<1>(this->droneRoute[i]), get<2>(this->droneRoute[i]));
 
-        int index=0, nodeID=0;
-        while (nodeID != get<0>(this->droneRoute[i])) {
-            index++;
-            nodeID = this->truckRoute[index]->getID();
+        int j;
+        for (j = 0; j < this->truckRoute.size(); j++) {
+            if (get<0>(this->droneRoute[i]) == this->truckRoute[j]->getID())
+                break;
         }
+
         double aux = 0.0;
-        while (nodeID != get<2>(this->droneRoute[i])) {
-            aux += g->getManhattanDistance(this->truckRoute[index]->getID(), this->truckRoute[index+1]->getID()) / VT;
-            index++;
-            nodeID = this->truckRoute[index]->getID();
+
+        for (j = j; j < this->truckRoute.size()-1; j++) {
+            if (get<2>(this->droneRoute[i]) == this->truckRoute[j]->getID())
+                break;
+            aux += g->getManhattanDistance(this->truckRoute[j]->getID(), this->truckRoute[j+1]->getID()) / VT;
         }
 
         droneTime += (ij + jk) / VD;
         truckTime -= aux;
     }
 
-    this->deliveryTime = truckTime + droneTime;
+    setDeliveryTime(truckTime + droneTime);
+}
+
+void Route::setDeliveryTime(double time) {
+    this->deliveryTime = time;
 }
 
 void Route::updateCapacity(double clientDemand) {
@@ -184,7 +190,7 @@ Node *Route::getNode(int position) {
     return this->truckRoute[position];
 }
 
-bool Route::insertClient(Node *client, int prevNodeIndex) {
+bool Route::insertClient(Node *client, long int prevNodeIndex) {
     if (client->getDemand() > this->currentTruckCapacity) {
         return false;
     }

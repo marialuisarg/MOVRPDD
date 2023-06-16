@@ -72,11 +72,11 @@ void Graph::clear() {
     return this->size;
 }
 
-double Graph::getEuclideanDistance( int from,  int to) {
+double Graph::getEuclideanDistance(int from,  int to) {
     return this->euclideanDistances[from][to];
 }
 
-double Graph::getManhattanDistance( int from,  int to) {
+double Graph::getManhattanDistance(int from,  int to) {
     return this->manhattanDistances[from][to];
 }
 

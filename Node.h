@@ -7,7 +7,7 @@ using namespace std;
 
 class Node {
     private:
-        int ID;
+        long int ID;
         string stringID;
         char Type;
         double X;
@@ -16,9 +16,9 @@ class Node {
         int ServiceBy;  // 0 - none, 1 - D/T, 2 - T
 
     public:
-        Node(int ID, string stringID, char type, double x, double y, double demand, int serviceBy);
+        Node(long int ID, string stringID, char type, double x, double y, double demand, int serviceBy);
         ~Node();
-        int getID() const;
+        long int getID();
         char getType() const;
         double getX() const;
         double getY() const;

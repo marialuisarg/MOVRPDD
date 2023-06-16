@@ -31,6 +31,8 @@ using namespace std;
 Solution::Solution(Graph *g, int QT) {
     this->QT = QT;                           // maximum load capacity of trucks
     this->totalDeliveryCost = 0.0;
+    this->totalEnergyConsumption = 0.0;
+    this->totalDeliveryTime = 0.0;
 
     for (int i = 0; i < g->getSize(); i++) {
         attendedClients.push_back({g->getNode(i)->getID(), false});
@@ -40,16 +42,24 @@ Solution::Solution(Graph *g, int QT) {
     attendedClients[0].second = true;
 
     // calculates demand and divides by max load capacity of trucks to get num of routes
-    int numRoutes = ceil(g->getTotalDemand() / QT);
+    setNumRoutes(ceil(g->getTotalDemand() / QT));
 
     // creates routes
-    for (int i = 0; i < numRoutes; i++) {
+    for (int i = 0; i < getNumRoutes(); i++) {
         Route r(QT, QD, g->getNode(0));
         routes.push_back(r);
     }
 
     setDroneRouteCreated(false);
     createTruckRoutes(g);
+}
+
+void Solution::setNumRoutes(int numRoutes) {
+    this->numRoutes = numRoutes;
+}
+
+int Solution::getNumRoutes() {
+    return this->numRoutes;
 }
 
 void Solution::createTruckRoutes(Graph *g) {
@@ -65,7 +75,7 @@ void Solution::createTruckRoutes(Graph *g) {
     }
 
     // calculates cost of each candidate
-    for (int r = 0; r < routes.size(); r++) {
+    for (int r = 0; r < getNumRoutes(); r++) {
         for (int i = 0; i < candidates.size(); i++) {
             double manhattanDistance = candidates[i]->manhattanDistance(g->getNode(0));
             double cost = manhattanDistance * CT * 2;
@@ -93,7 +103,7 @@ void Solution::createTruckRoutes(Graph *g) {
         int iRoute = get<1>(candidatesCost[0]);
 
         // gets previous node index in route
-        int prevNode = get<3>(candidatesCost[0]);
+        long int prevNode = get<3>(candidatesCost[0]);
 
         // inserts client in route ("if" logic here is just for debugging, but function must be called)
         if (includeClient(cheapestInsertion, &routes[iRoute], g, prevNode, iRoute))
@@ -104,7 +114,7 @@ void Solution::createTruckRoutes(Graph *g) {
     }
 
     // register final truck routes (before drones)
-    for (int i = 0; i < routes.size(); i++) 
+    for (int i = 0; i < getNumRoutes(); i++) 
         routes[i].registerPrevTruckRoute();
 
     //printRoutes();
@@ -128,7 +138,7 @@ void Solution::sortCandidatesByCost(Graph *g) {
 }
 
 void Solution::insertRandomizedFirstClients(Graph *g) {
-    int n = this->routes.size();
+    int n = getNumRoutes();
     int i = 0;
     while (i < n) {
         int randomIndex = rand() % candidatesCost.size();
@@ -192,7 +202,7 @@ void Solution::updateAttendedClients(int clientID) {
 void Solution::updateSolution(Graph *g) {
     double f1 = 0.0, f2 = 0.0, f3 = 0.0;
 
-    for (int i = 0; i < routes.size(); i++) {
+    for (int i = 0; i < getNumRoutes(); i++) {
         routes[i].updateEnergyConsumption(g, QT);
         routes[i].updateDeliveryTime(g, ST, SD);
 
@@ -311,7 +321,7 @@ void Solution::createDroneRoutes(Graph *g) {
     tuple<int, int, int> flight(0,0,0);
 
     // for each client on each truck route
-    for (int i = 0; i < this->routes.size(); i++) { 
+    for (int i = 0; i < getNumRoutes(); i++) { 
         vector<Node*> tRoute = this->routes[i].getTruckRoute();
         vector<tuple<int, int, int, double, bool>> bestFlight;  // <clientID, launchNode, retrieveNode, gain, is possible>
         vector<int> searchRange;
@@ -547,7 +557,7 @@ void Solution::updateSearchRange(vector<int>*searchRange, int rNode) {
 
 void Solution::printRoutes() {
     cout << endl;
-    for (int i = 0; i < routes.size(); i++) {
+    for (int i = 0; i < getNumRoutes(); i++) {
         cout << "Route " << i << ": ";
         routes[i].printRoute();
     }
@@ -555,7 +565,7 @@ void Solution::printRoutes() {
 
 void Solution::printCandidatesCost() {
     // print candidates list for each route
-    for (int j = 0; j < routes.size(); j++) {
+    for (int j = 0; j < getNumRoutes(); j++) {
         cout << endl;
         cout << "CANDIDATES FOR ROUTE " << j << endl;
         for (int i = 0; i < candidatesCost.size(); i++) {
@@ -567,7 +577,7 @@ void Solution::printCandidatesCost() {
     cout << "------------------" << endl;
 }
 
-void Solution::plotSolution(Solution *s, string instance, int i){
+void Solution::plotSolution(string instance, int i){
     // plot solution
     string instanceName = instance;
     string filename;
@@ -579,16 +589,21 @@ void Solution::plotSolution(Solution *s, string instance, int i){
     
     ofstream output_file(filename);
 
-    output_file << s->routes.size() << endl;
-    output_file << s->getTotalEnergyConsumption() << endl;
-    output_file << s->getTotalDeliveryCost() << endl;
-    output_file << s->getTotalDeliveryTime() << endl;
+    int nRoutes = getNumRoutes();
+    double totalEnergyConsumption = getTotalEnergyConsumption();
+    double totalDeliveryCost = getTotalDeliveryCost();
+    double totalDeliveryTime = getTotalDeliveryTime();
 
-    for (int i=0; i < s->routes.size(); i++) {
+    output_file << nRoutes << endl;
+    output_file << totalEnergyConsumption << endl;
+    output_file << totalDeliveryCost << endl;
+    output_file << totalDeliveryTime << endl;
+
+    for (int i=0; i < nRoutes; i++) {
         string truckRoute = "";
 
-        for (int j=0; j < s->routes[i].getTruckRoute().size(); j++){
-            truckRoute = truckRoute + "-" + to_string(s->routes[i].getTruckRoute()[j]->getID());
+        for (int j=0; j < this->routes[i].getTruckRoute().size(); j++){
+            truckRoute = truckRoute + "-" + to_string(this->routes[i].getTruckRoute()[j]->getID());
         }
 
         if(!truckRoute.empty())
@@ -597,10 +612,10 @@ void Solution::plotSolution(Solution *s, string instance, int i){
 
         string droneRoute = " ";
 
-        for (int j=0; j < s->routes[i].getDroneRoute().size(); j++){
-            droneRoute = droneRoute + "/" + to_string(get<0>(s->routes[i].getDroneRoute()[j]))
-                                    + "-" + to_string(get<1>(s->routes[i].getDroneRoute()[j]))
-                                    + "-" + to_string(get<2>(s->routes[i].getDroneRoute()[j]));
+        for (int j=0; j < this->routes[i].getDroneRoute().size(); j++){
+            droneRoute = droneRoute + "/" + to_string(get<0>(this->routes[i].getDroneRoute()[j]))
+                                    + "-" + to_string(get<1>(this->routes[i].getDroneRoute()[j]))
+                                    + "-" + to_string(get<2>(this->routes[i].getDroneRoute()[j]));
         }
 
         if(!droneRoute.empty())

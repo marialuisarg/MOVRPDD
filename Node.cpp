@@ -7,7 +7,7 @@
 
 using namespace std;
 
-Node::Node(int clientID, string clientStringID, char type, double x, double y, double demand, int serviceBy) {
+Node::Node(long int clientID, string clientStringID, char type, double x, double y, double demand, int serviceBy) {
     ID = clientID;
     stringID = clientStringID;
     Type = type;
@@ -20,7 +20,8 @@ Node::Node(int clientID, string clientStringID, char type, double x, double y, d
 Node::~Node() {
 }
 
-int Node::getID() const {
+long int Node::getID() {
+    long int ID = this->ID;
     return ID;
 }
 
