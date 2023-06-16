@@ -325,7 +325,7 @@ void Solution::createDroneRoutes(Graph *g) {
         vector<tuple<int, int, int, double, bool>> bestFlight;  // <clientID, launchNode, retrieveNode, gain, is possible>
         vector<int> searchRange;
 
-        // creates a list with all clients on the route (every node besides except depot)
+        // creates a list with all clients on the route (every node besides depot)
         for (int k = 1; k < tRoute.size()-1; k++) {
             searchRange.push_back(tRoute[k]->getID());
         }
@@ -399,7 +399,7 @@ void Solution::createDroneRoutes(Graph *g) {
                         // if the best flight is better than the truck route, adds it to the best flight list
                         if (biggestGain > 0) {
                             //cout << endl << "best flight for client " << client->getID() << ": (" << get<0>(bestClientFlight) << "," << get<1>(bestClientFlight) << "," << get<2>(bestClientFlight) << ")" << endl;
-                            bestFlight.push_back(make_tuple(get<1>(bestClientFlight), get<0>(bestClientFlight), get<2>(bestClientFlight), biggestGain, false));
+                            bestFlight.push_back(make_tuple(get<1>(bestClientFlight), get<0>(bestClientFlight), get<2>(bestClientFlight), biggestGain, true));
                         }
 
                     } //else {
@@ -412,16 +412,28 @@ void Solution::createDroneRoutes(Graph *g) {
         // sorts best flights by gain
         sortListByGain(&bestFlight);
         
-        // adds best flights to route
-        for (int j = 0; j < bestFlight.size(); j++) {
-            //tuple<int,int,int> choosenFlight(get<1>(bestFlight[j]), get<0>(bestFlight[j]), get<2>(bestFlight[j]));
-            //get<4>(bestFlight[j]) = true;
+        cout << "iniciando correção de rotas de drones" << endl;
 
-            get<0>(flight) = get<1>(bestFlight[j]);
-            get<1>(flight) = get<0>(bestFlight[j]);
-            get<2>(flight) = get<2>(bestFlight[j]);
-            this->routes[i].insertDroneFlight(flight);
-            setDroneRouteCreated(true);
+        // adds best flights to route
+        cout << "best flights size: " << bestFlight.size() << endl;
+        for (int j = 0; j < bestFlight.size(); j++) {
+            
+            // verifies if all best flights are possible
+            for (int k = j+1; k < bestFlight.size(); k++) {
+                if (get<0>(bestFlight[j]) == get<1>(bestFlight[k]) || get<1>(bestFlight[j]) == get<0>(bestFlight[k])) {
+                    cout << "encontrou erro: (" << get<1>(bestFlight[j]) << "," << get<0>(bestFlight[j]) << "," << get<2>(bestFlight[j]) << ") e (" << get<1>(bestFlight[k]) << "," << get<0>(bestFlight[k]) << "," << get<2>(bestFlight[k]) << ")" << endl;
+                    get<4>(bestFlight[k]) = false;
+                }
+            }
+
+            // if flight is possible, adds it to route
+            if (get<4>(bestFlight[j])) {
+                get<0>(flight) = get<1>(bestFlight[j]);
+                get<1>(flight) = get<0>(bestFlight[j]);
+                get<2>(flight) = get<2>(bestFlight[j]);
+                this->routes[i].insertDroneFlight(flight);
+                setDroneRouteCreated(true);
+            }
         }
 
         // corrects truck route (removes clients that were served by drone)

@@ -33,6 +33,7 @@ def printTable(inst, func):
     print("Instance: " + inst)
     print(tabulate(table, headers="firstrow", tablefmt="fancy_grid"))
     
+    
 if __name__ == '__main__':
     instance = sys.argv[1]
     functions = sys.argv[2]
