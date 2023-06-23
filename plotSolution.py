@@ -5,9 +5,9 @@ import sys
 
 def addEuclideanArrow(ax1, xInicio, yInicio, xFim, yFim, cor, legenda, lineStyle='-'):
     if legenda == "":
-        ax1.arrow(xInicio, yInicio,(xFim-xInicio) , (yFim-yInicio), width = 0.001, head_width = 0.5, head_length = 0.5, length_includes_head=True, color=cor, linestyle=lineStyle)
+        ax1.arrow(xInicio, yInicio,(xFim-xInicio) , (yFim-yInicio), width = 0.001, head_width = 0.15, head_length = 0.15, length_includes_head=True, color=cor, linestyle=lineStyle)
     else:
-        ax1.arrow(xInicio, yInicio,(xFim-xInicio) , (yFim-yInicio), width = 0.001, head_width = 0.5, head_length = 0.5, length_includes_head=True, color=cor, label=legenda, linestyle=lineStyle)
+        ax1.arrow(xInicio, yInicio,(xFim-xInicio) , (yFim-yInicio), width = 0.001, head_width = 0.15, head_length = 0.15, length_includes_head=True, color=cor, label=legenda, linestyle=lineStyle)
         
 def addManhattanArrow(ax1, xInicio, yInicio, xFim, yFim, cor, legenda, lineStyle='-'):
     x0 = [xInicio, xFim]
@@ -15,10 +15,10 @@ def addManhattanArrow(ax1, xInicio, yInicio, xFim, yFim, cor, legenda, lineStyle
     
     if legenda == "":
         ax1.plot(x0, y0, color=cor, linestyle=lineStyle)
-        ax1.arrow((xFim), (yInicio), (xFim-xFim), (yFim-yInicio), width = 0.001, head_width = 0.5, head_length = 0.5, length_includes_head=True, color=cor, linestyle=lineStyle)
+        ax1.arrow((xFim), (yInicio), (xFim-xFim), (yFim-yInicio), width = 0.001, head_width = 0.15, head_length = 0.15, length_includes_head=True, color=cor, linestyle=lineStyle)
     else:
         ax1.plot(x0, y0, color=cor, linestyle=lineStyle)
-        ax1.arrow((xFim), (yInicio), (xFim-xFim), (yFim-yInicio), width = 0.001, head_width = 0.5, head_length = 0.5, length_includes_head=True, color=cor, label=legenda, linestyle=lineStyle)
+        ax1.arrow((xFim), (yInicio), (xFim-xFim), (yFim-yInicio), width = 0.001, head_width = 0.15, head_length = 0.15, length_includes_head=True, color=cor, label=legenda, linestyle=lineStyle)
 
 def plotSolution(inst, sol):
     

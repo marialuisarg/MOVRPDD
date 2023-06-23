@@ -11,6 +11,7 @@
 #include "Node.h"
 #include "Utils.h"
 #include "Solution.h"
+#include "GreedyConstructor.h"
 
 using namespace std;
 
@@ -62,14 +63,14 @@ int main(int argc, char const *argv[]) {
         solutions.emplace_back(&graph, QT);
         
         solutions[i].plotSolution(fileName, i);
-        solutions[i].createDroneRoutes(&graph);
-        solutions[i].plotSolution(fileName, i);
+        //solutions[i].createDroneRoutes(&graph);
+        //solutions[i].plotSolution(fileName, i);
 
         // cout << "Solution " << i << ": ";
         // printObjFunc(&solutions[i]);
     }
 
-    u.printSolutionsToFile(&solutions, fileName);
+    //u.printSolutionsToFile(&solutions, fileName);
 
     return 0;
 }

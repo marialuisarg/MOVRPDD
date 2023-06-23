@@ -9,62 +9,41 @@ using namespace std;
 #include "Route.h"
 #include "Node.h"
 #include "Graph.h"
+#include "GreedyConstructor.h"
 
 class Solution {
     private:
-        int QT;
+        int QT;                                         //  maximum truck capacity      
         int numRoutes;
         vector<Route> routes;
-        vector<pair<int,bool>> attendedClients;                      // identifies by ID
-        vector<tuple<int, int, double, int, int>> candidatesCost;    // (nodeID, route, delta, prevNode, nextNode)
+        bool drone;
 
         double totalEnergyConsumption;                  // f1 
         double totalDeliveryCost;                       // f2    
         double totalDeliveryTime;                       // f3 
-
-        bool droneRouteCreated;
-        
-        void sortCandidatesByCost(Graph *g);
-        bool allClientsAttended(Graph *g);
-        void insertRandomizedFirstClients(Graph *g);
 
     public:
         Solution(Graph *g, int QT);
         ~Solution();
 
         vector<Route> getRoutes();
-        int getNumRoutes();
-        vector<pair<int,bool>> getAttendedClients();
-        Node* getClosestClient(Graph *g, int from); 
-        double getTotalDeliveryCost();
-        double getTotalEnergyConsumption();
-        double getTotalDeliveryTime();
-        void getCheapestInsertion(Graph *g, vector<Node*> candidates, Node**client);
-        bool getDroneRouteCreated();
+        Route getRoute(int i) { return this->routes[i]; };
+        int getQT() { return this->QT; };
+        int getNumRoutes() { return this->numRoutes; };
+        bool droneIsUsed() { return this->drone; };
 
-        void setDroneRouteCreated(bool droneRouteCreated);
-        void setNumRoutes(int numRoutes);
+        double getTotalDeliveryCost() { return this->totalDeliveryCost; };
+        double getTotalEnergyConsumption() { return this->totalDeliveryTime; };
+        double getTotalDeliveryTime() { return this->totalDeliveryTime; };
 
-        void createTruckRoutes(Graph *g);
-        void createDroneRoutes(Graph *g);
-        
-        void sortTruckClientsByCost(Graph *g, vector<pair<int,double>> clientsByCost, Route *r);
-        void sortListByEuclideanDistance(Graph *g, vector<int> *nodeIdList, int clientNode);
-        void sortListByGain(vector<tuple<int, int, int, double, bool>> *list);
+        void setNumRoutes(int numRoutes) { this->numRoutes = numRoutes; };
+        void setDroneRouteCreated(bool droneRouteCreated) { this->drone = droneRouteCreated; };
+        void createRoute(Route r) { this->routes.push_back(r); };
 
-        void updateAttendedClients(int clientID);
-        void updateCandidatesList(Node *client, Route *r, Graph *g, int iRoute);
-        void updateSearchRange(vector<int> *searchRange, int rNode);
         void updateSolution(Graph *g);
-
-        bool includeClient(Node *client, Route *r, Graph *g, int prevNode, int iRoute);
-        bool isReachableByDrone(Graph *g, tuple<int, int, int> flight, int routeIndex);
-
-        void registerPrevCost();
 
         void printSolution();
         void printRoutes();
-        void printCandidatesCost();
 
         void plotSolution(string instance, int i);
 };
