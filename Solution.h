@@ -9,7 +9,6 @@ using namespace std;
 #include "Route.h"
 #include "Node.h"
 #include "Graph.h"
-#include "GreedyConstructor.h"
 
 class Solution {
     private:
@@ -27,7 +26,7 @@ class Solution {
         ~Solution();
 
         vector<Route> getRoutes();
-        Route getRoute(int i) { return this->routes[i]; };
+        Route* getRoute(int i) { return &(this->routes[i]); };
         int getQT() { return this->QT; };
         int getNumRoutes() { return this->numRoutes; };
         bool droneIsUsed() { return this->drone; };

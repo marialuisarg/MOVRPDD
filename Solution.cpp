@@ -122,18 +122,6 @@ vector<Route> Solution::getRoutes() {
     return routes;
 }
 
-double Solution::getTotalDeliveryCost() {
-    return this->totalDeliveryCost;
-}
-
-double Solution::getTotalEnergyConsumption() {
-    return this->totalEnergyConsumption;
-}
-
-double Solution::getTotalDeliveryTime() {
-    return this->totalDeliveryTime;
-}
-
 Solution::~Solution() {
     routes.clear();
 }

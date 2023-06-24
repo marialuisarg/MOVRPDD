@@ -14,6 +14,7 @@
 #include "GreedyConstructor.h"
 
 using namespace std;
+using namespace ns_GreedyConstructor;
 
 void printObjFunc(Solution* sol) {
     cout << endl << "-------------------" << endl;
@@ -32,7 +33,7 @@ int main(int argc, char const *argv[]) {
 
     string fileName = argv[1];
     int QT = atoi(argv[2]);
-    int numSolutions = atoi(argv[3]);
+    int numExec = atoi(argv[3]);
 
     Utils u;
     vector<Node> nodes;
@@ -56,21 +57,26 @@ int main(int argc, char const *argv[]) {
     // set seed to time(0)
     srand(time(0));
 
-    // set of numSolutions solutions
-    vector<Solution> solutions;
+    Solution * bestSolution = nullptr;
+    bestSolution = greedyConstructor(&graph, QT);
+    bestSolution->plotSolution(fileName, 0);
 
-    for (int i = 0; i < numSolutions; i++) {
-        solutions.emplace_back(&graph, QT);
+    // // set of numSolutions solutions
+    // vector<Solution*> solutions;
+
+    // for (int i = 0; i < numExec; i++) {
+    //     solutions.emplace_back(greedyConstructor(&graph, QT));
         
-        solutions[i].plotSolution(fileName, i);
-        //solutions[i].createDroneRoutes(&graph);
-        //solutions[i].plotSolution(fileName, i);
+    //     solutions[i].plotSolution(fileName, i);
+    //     //solutions[i].createDroneRoutes(&graph);
+    //     //solutions[i].plotSolution(fileName, i);
 
-        // cout << "Solution " << i << ": ";
-        // printObjFunc(&solutions[i]);
-    }
+    //     // cout << "Solution " << i << ": ";
+    //     // printObjFunc(&solutions[i]);
+    // }
 
     //u.printSolutionsToFile(&solutions, fileName);
 
+    freeMemory();
     return 0;
 }
