@@ -39,6 +39,8 @@ class Solution {
         void setDroneRouteCreated(bool droneRouteCreated) { this->drone = droneRouteCreated; };
         void createRoute(Route r) { this->routes.push_back(r); };
 
+        bool isBetterThan(Solution *s);
+
         void updateSolution(Graph *g);
 
         void printSolution();

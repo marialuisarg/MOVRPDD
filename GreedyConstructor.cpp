@@ -1,6 +1,5 @@
-#include "GreedyConstructor.h"
-#include "Solution.h" 
-#include "Utils.h"
+#include "GreedyConstructor.h" 
+#include "Solution.h"
 #include <iostream>
 
 #include <vector>
@@ -9,6 +8,7 @@
 #include <cmath>
 #include <fstream>
 #include <tuple>
+#include <utility>
 
 // parameter settings of MOVRPDD Model //
  
@@ -28,29 +28,35 @@
 #define INF 999999999
 
 using namespace std;
-using namespace ns_GreedyConstructor;
 
-Solution * ns_GreedyConstructor::greedyConstructor(Graph *g, int QT) {
+vector<pair<int, bool>> attendedClients;
+vector<tuple<int, int, double, int, int>> candidatesCost;
+
+Solution * greedyConstructor(Graph *g, int QT) {
+    int numRoutes;
+    bool droneRouteCreated;
+
     Solution *sol = new Solution(g, QT);     // creates solution
 
     for (int i = 0; i < g->getSize(); i++) {
-        attendedClients.push_back({g->getNode(i)->getID(), false});
+        attendedClients.push_back({g->getNode(i)->getID(), false});  
     }
 
     // depot visited 
     attendedClients[0].second = true;
 
     // creates routes
-    for (int i = 0; i < getNumRoutes(sol); i++) {
+    for (int i = 0; i < sol->getNumRoutes(); i++) {
         Route r(QT, QD, g->getNode(0));
         sol->createRoute(r);
     }
 
-    createTruckRoutes(g, sol);
+    createTruckRoutes(g, sol, &numRoutes, &droneRouteCreated);
+    createDroneRoutes(g, sol);
     return sol;
 }
 
-void ns_GreedyConstructor::createTruckRoutes(Graph *g, Solution *sol) {
+void createTruckRoutes(Graph *g, Solution *sol, int *numRoutes, bool *droneRouteCreated) {
 
     // creates list of candidates
     vector<Node*> candidates;
@@ -63,7 +69,7 @@ void ns_GreedyConstructor::createTruckRoutes(Graph *g, Solution *sol) {
     }
 
     // calculates cost of each candidate
-    for (int r = 0; r < getNumRoutes(sol); r++) {
+    for (int r = 0; r < sol->getNumRoutes(); r++) {
         for (int i = 0; i < candidates.size(); i++) {
             double manhattanDistance = candidates[i]->manhattanDistance(g->getNode(0));
             double cost = manhattanDistance * CT * 2;
@@ -75,10 +81,10 @@ void ns_GreedyConstructor::createTruckRoutes(Graph *g, Solution *sol) {
     sortCandidatesByCost(g, sol);
 
     //cout << endl;
-    insertRandomizedFirstClients(g, sol);
+    insertRandomizedFirstClients(g, sol, numRoutes, droneRouteCreated);
 
     //printRoutes();
-    //printCandidatesCost();
+    //printCandidatesCost(sol);
 
     // while there are unattended clients
     while (!allClientsAttended(g, sol)) {
@@ -99,16 +105,15 @@ void ns_GreedyConstructor::createTruckRoutes(Graph *g, Solution *sol) {
         //printCandidatesCost();
         //cout << endl;
     }
-
     // register final truck routes (before drones)
-    for (int i = 0; i < getNumRoutes(sol); i++) 
+    for (int i = 0; i < sol->getNumRoutes(); i++) 
         sol->getRoute(i)->registerPrevTruckRoute();
 
     //printRoutes();
     sol->updateSolution(g);
 }
 
-void ns_GreedyConstructor::sortCandidatesByCost(Graph *g, Solution *sol) {
+void sortCandidatesByCost(Graph *g, Solution *sol) {
     int n = candidatesCost.size();
     tuple<int, int, double, int, int> temp;
     
@@ -124,8 +129,8 @@ void ns_GreedyConstructor::sortCandidatesByCost(Graph *g, Solution *sol) {
     }
 }
 
-void ns_GreedyConstructor::insertRandomizedFirstClients(Graph *g, Solution *sol) {
-    int n = getNumRoutes(sol);
+void insertRandomizedFirstClients(Graph *g, Solution *sol, int *numRoutes, bool *droneRouteCreated) {
+    int n = sol->getNumRoutes();
     int i = 0;
     while (i < n) {
         int randomIndex = rand() % candidatesCost.size();
@@ -142,7 +147,7 @@ void ns_GreedyConstructor::insertRandomizedFirstClients(Graph *g, Solution *sol)
     //printRoutes();
 }
 
-bool ns_GreedyConstructor::allClientsAttended(Graph *g, Solution *sol) {
+bool allClientsAttended(Graph *g, Solution *sol) {
     for (int i = 0; i < g->getSize(); i++) {
         if (!attendedClients[i].second) {
             return false;
@@ -152,12 +157,12 @@ bool ns_GreedyConstructor::allClientsAttended(Graph *g, Solution *sol) {
     return true;
 }
 
-bool ns_GreedyConstructor::includeClient(Node *client, Solution *sol, Route *r, Graph *g, int prevNodeIndex, int iRoute) {
+bool includeClient(Node *client, Solution *sol, Route *r, Graph *g, int prevNodeIndex, int iRoute) {
 
     // inserts client in route
     if (!r->insertClient(client, prevNodeIndex)) {
         // if client can't be inserted, removes it from candidates list
-        //cout << "Client " << client->getID() << " can't be inserted in route " << iRoute << endl;
+        cout << "Client " << client->getID() << " can't be inserted in route " << iRoute << endl;
         //cout << endl;
         for (int i = 0; i < candidatesCost.size(); i++) {
             if (get<0>(candidatesCost[i]) == client->getID() && get<1>(candidatesCost[i]) == iRoute) {
@@ -178,7 +183,7 @@ bool ns_GreedyConstructor::includeClient(Node *client, Solution *sol, Route *r, 
     return true;
 }
 
-void ns_GreedyConstructor::updateAttendedClients(int clientID) {
+void updateAttendedClients(int clientID) {
     for (int i = 0; i < attendedClients.size(); i++) {
         if (attendedClients[i].first == clientID) {
             attendedClients[i].second = true;
@@ -186,7 +191,7 @@ void ns_GreedyConstructor::updateAttendedClients(int clientID) {
     }
 }
 
-bool ns_GreedyConstructor::verifyNeighbor(Route *r, int currentPrevIndex, int currentNextIndex) {
+bool verifyNeighbor(Route *r, int currentPrevIndex, int currentNextIndex) {
     for (int j = 0; j < r->getTruckRoute().size()-1; j++)
         if (r->getTruckRoute()[j]->getID() == currentPrevIndex)
             if (r->getTruckRoute()[j+1]->getID() != currentNextIndex)
@@ -194,7 +199,7 @@ bool ns_GreedyConstructor::verifyNeighbor(Route *r, int currentPrevIndex, int cu
     return true;
 }
 
-void ns_GreedyConstructor::updateCandidatesList(Node *client, Solution *sol, Route *r, Graph *g, int iRoute) {
+void updateCandidatesList(Node *client, Solution *sol, Route *r, Graph *g, int iRoute) {
    
    int clientPrevNode, clientNextNode;
 
@@ -273,7 +278,7 @@ void ns_GreedyConstructor::updateCandidatesList(Node *client, Solution *sol, Rou
     sortCandidatesByCost(g, sol);
 }
 
-bool ns_GreedyConstructor::isInSearchRange(vector<int> searchRange, int clientID) {
+bool isInSearchRange(vector<int> searchRange, int clientID) {
     for (int i = 0; i < searchRange.size(); i++) {
         if (searchRange[i] == clientID) {
             //cout << "Client " << clientID << " is in search range" << endl;
@@ -284,7 +289,7 @@ bool ns_GreedyConstructor::isInSearchRange(vector<int> searchRange, int clientID
     return false;
 }
 
-void ns_GreedyConstructor::createDroneRoutes(Graph *g, Solution *sol) {
+void createDroneRoutes(Graph *g, Solution *sol) {
     int launchNode, clientNode, retrieveNode;
     vector<int> launchNodesList, retrieveNodesList; 
     tuple<int, int, int> flight(0,0,0);
@@ -415,7 +420,7 @@ void ns_GreedyConstructor::createDroneRoutes(Graph *g, Solution *sol) {
     sol->updateSolution(g);
 }
 
-void ns_GreedyConstructor::sortListByGain(vector<tuple<int, int, int, double, bool>> *list) {
+void sortListByGain(vector<tuple<int, int, int, double, bool>> *list) {
     int i, j;
     tuple<int, int, int, double, bool> aux;
     for (i = 0; i < list->size(); i++) {
@@ -429,7 +434,7 @@ void ns_GreedyConstructor::sortListByGain(vector<tuple<int, int, int, double, bo
     }
 }
 
-void ns_GreedyConstructor::sortListByEuclideanDistance(Graph *g, vector<int> *nodeIdList, int clientNode) {
+void sortListByEuclideanDistance(Graph *g, vector<int> *nodeIdList, int clientNode) {
     int i, j, aux;
     double cij, cik, ckj;
 
@@ -446,7 +451,7 @@ void ns_GreedyConstructor::sortListByEuclideanDistance(Graph *g, vector<int> *no
     }
 }
 
-bool ns_GreedyConstructor::isReachableByDrone(Graph *g, Solution *sol, tuple<int, int, int> flight, int routeIndex) {
+bool isReachableByDrone(Graph *g, Solution *sol, tuple<int, int, int> flight, int routeIndex) {
     //cout << endl << endl << "verifying flight: [" << get<0>(flight) << ", " << get<1>(flight) << ", " << get<2>(flight) << "]" << endl;
 
     int launchNode = get<0>(flight);
@@ -517,7 +522,7 @@ bool ns_GreedyConstructor::isReachableByDrone(Graph *g, Solution *sol, tuple<int
     return false;
 }
 
-void ns_GreedyConstructor::updateSearchRange(vector<int>*searchRange, int rNode) {
+void updateSearchRange(vector<int>*searchRange, int rNode) {
     //cout << endl << "updating search range" << endl;
 
     int firstNode = searchRange->front();
@@ -526,19 +531,11 @@ void ns_GreedyConstructor::updateSearchRange(vector<int>*searchRange, int rNode)
         searchRange->erase(searchRange->begin());
         firstNode = searchRange->front();
     }
-
-    //cout << "search range updated: ";
-
-    // for (int i = 0; i < searchRange->size(); i++) {
-    //     cout << searchRange->at(i) << " ";
-    // }
-
-    //cout << endl;
 }
 
-void ns_GreedyConstructor::printCandidatesCost(Solution *sol) {
+void printCandidatesCost(Solution *sol) {
     // print candidates list for each route
-    for (int j = 0; j < getNumRoutes(sol); j++) {
+    for (int j = 0; j < sol->getNumRoutes(); j++) {
         cout << endl;
         cout << "CANDIDATES FOR ROUTE " << j << endl;
         for (int i = 0; i < candidatesCost.size(); i++) {
@@ -548,8 +545,4 @@ void ns_GreedyConstructor::printCandidatesCost(Solution *sol) {
     }
 
     cout << "------------------" << endl;
-}
-
-void ns_GreedyConstructor::freeMemory() {
-    attendedClients.clear();
 }

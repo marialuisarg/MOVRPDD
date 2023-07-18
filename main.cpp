@@ -11,10 +11,11 @@
 #include "Node.h"
 #include "Utils.h"
 #include "Solution.h"
+
 #include "GreedyConstructor.h"
+#include "RandomConstructor.h"
 
 using namespace std;
-using namespace ns_GreedyConstructor;
 
 void printObjFunc(Solution* sol) {
     cout << endl << "-------------------" << endl;
@@ -61,22 +62,17 @@ int main(int argc, char const *argv[]) {
     bestSolution = greedyConstructor(&graph, QT);
     bestSolution->plotSolution(fileName, 0);
 
-    // // set of numSolutions solutions
-    // vector<Solution*> solutions;
+    // set of numSolutions solutions
+    vector<Solution*> solutions;
 
-    // for (int i = 0; i < numExec; i++) {
-    //     solutions.emplace_back(greedyConstructor(&graph, QT));
+    for (int i = 0; i < numExec; i++) {
+        solutions.emplace_back(greedyConstructor(&graph, QT));
+        solutions[i]->plotSolution(fileName, i);
         
-    //     solutions[i].plotSolution(fileName, i);
-    //     //solutions[i].createDroneRoutes(&graph);
-    //     //solutions[i].plotSolution(fileName, i);
+        cout << "Solution " << i << ": ";
+        //printObjFunc(solutions[i]);
+    }
 
-    //     // cout << "Solution " << i << ": ";
-    //     // printObjFunc(&solutions[i]);
-    // }
-
-    //u.printSolutionsToFile(&solutions, fileName);
-
-    freeMemory();
+    //u.printSolutionsToFile(solutions, fileName);
     return 0;
 }

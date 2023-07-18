@@ -4,6 +4,7 @@
 #include<iostream>
 
 #include<vector>
+#include<tuple>
 #include<string>
 #include<string.h>
 #include<sstream>

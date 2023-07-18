@@ -1,6 +1,5 @@
 #include "Solution.h" 
 #include "Utils.h"
-#include "GreedyConstructor.h"
 #include <iostream>
 
 #include <vector>
@@ -116,6 +115,21 @@ void Solution::plotSolution(string instance, int i){
     int aux = system(command.c_str());
     // command = "rm " + filename;
     // aux = system(command.c_str());
+}
+
+bool Solution::isBetterThan(Solution *s) {
+    if (s == nullptr)
+        return true;
+    
+    double c_f1 = this->getTotalEnergyConsumption();
+    double c_f2 = this->getTotalDeliveryCost();
+    double c_f3 = this->getTotalDeliveryTime();
+
+    double b_f1 = s->getTotalEnergyConsumption();
+    double b_f2 = s->getTotalDeliveryCost();
+    double b_f3 = s->getTotalDeliveryTime();
+
+    return false;
 }
 
 vector<Route> Solution::getRoutes() {
