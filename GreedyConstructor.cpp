@@ -116,6 +116,12 @@ void createTruckRoutes(Graph *g, Solution *sol, int *numRoutes, bool *droneRoute
     sol->updateSolution(g);
 }
 
+void aux_sortCandidatesByCost(Graph *g, Solution *sol, vector<tuple<int, int, double, int, int>> auxCandidatesCost) {
+    candidatesCost.clear();
+    candidatesCost = auxCandidatesCost;
+    sortCandidatesByCost(g, sol);
+}
+
 void sortCandidatesByCost(Graph *g, Solution *sol) {
     int n = candidatesCost.size();
     tuple<int, int, double, int, int> temp;

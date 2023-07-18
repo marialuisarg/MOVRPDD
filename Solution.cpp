@@ -33,6 +33,8 @@ Solution::Solution(Graph *g, int QT) {
     this->totalDeliveryTime = 0.0;
     this->drone = false;
 
+    
+
     // calculates demand and divides by max load capacity of trucks to get num of routes
     setNumRoutes(ceil(g->getTotalDemand() / QT));
 }
@@ -117,7 +119,7 @@ void Solution::plotSolution(string instance, int i){
     // aux = system(command.c_str());
 }
 
-bool Solution::isBetterThan(Solution *s) {
+bool Solution::dominates(Solution *s) {
     if (s == nullptr)
         return true;
     
@@ -128,6 +130,11 @@ bool Solution::isBetterThan(Solution *s) {
     double b_f1 = s->getTotalEnergyConsumption();
     double b_f2 = s->getTotalDeliveryCost();
     double b_f3 = s->getTotalDeliveryTime();
+
+    // checks if current solution dominates best solution
+    if (c_f1 <= b_f1 && c_f2 <= b_f2 && c_f3 <= b_f3)
+        if (c_f1 < b_f1 || c_f2 < b_f2 || c_f3 < b_f3)
+            return true;
 
     return false;
 }

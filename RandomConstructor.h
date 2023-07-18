@@ -5,6 +5,7 @@ using namespace std;
 
 #include <string>
 #include <vector>
+#include <set>
 
 #include "Route.h"
 #include "Node.h"
@@ -12,7 +13,7 @@ using namespace std;
 #include "Solution.h"
 
 // random constructor
-Solution * RandomConstructor(Graph *g, int QT, double alpha, int numIterations);
+set<Solution *> RandomConstructor(Graph *g, int QT, double alpha, int numIterations, int setSize);
 void createRandomTruckRoutes(Graph *g, Solution *sol, int *numRoutes, bool *droneRouteCreated, double alpha);
 
 #endif // RANDOMCONSTRUCTOR_H_INCLUDED

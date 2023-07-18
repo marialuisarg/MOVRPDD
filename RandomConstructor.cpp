@@ -8,6 +8,7 @@
 #include <cmath>
 #include <random>
 #include <tuple>
+#include <set>
 
 using namespace std;
 
@@ -31,18 +32,32 @@ using namespace std;
 vector<pair<int, bool>> aux_attendedClients;
 vector<tuple<int, int, double, int, int>> aux_candidatesCost;
 
-Solution * RandomConstructor(Graph *g, int QT, double alpha, int numIterations) {
+set<Solution*> RandomConstructor(Graph *g, int QT, double alpha, int numIterations, int setSize) {
     int numRoutes;
     bool droneRouteCreated;
 
-    Solution * bestSolution = new Solution(g, QT);
+    set<Solution*> bestSolutions;
     Solution * currentSolution = new Solution(g, QT);
 
     int n = 0;
 
+    // creates list of clients
+    vector<int> clients;
+    for (int i = 0; i < g->getSize(); i++)
+        clients.push_back(g->getNode(i)->getID());  
+
     while (n < numIterations) {
+        aux_attendedClients.clear();
+        aux_candidatesCost.clear();
+
+        // checks if best solutions set is full
+        if (bestSolutions.size() == setSize) {
+            cout << "Best solutions set is full" << endl;
+            break;
+        }
+
         for (int i = 0; i < g->getSize(); i++) {
-            aux_attendedClients.push_back({g->getNode(i)->getID(), false});  
+            aux_attendedClients.push_back({clients.at(i), false});  
         }
 
         // depot visited 
@@ -56,12 +71,24 @@ Solution * RandomConstructor(Graph *g, int QT, double alpha, int numIterations) 
 
         // creates truck routes
         createRandomTruckRoutes(g, currentSolution, &numRoutes, &droneRouteCreated, alpha);
-        if (currentSolution->isBetterThan(bestSolution))
-            bestSolution = currentSolution;
+        
+        // checks dominance in best solutions
+        bool dominated = false;
+        for (auto it = bestSolutions.begin(); it != bestSolutions.end(); it++) {
+            if ((*it)->dominates(currentSolution)) {
+                dominated = true;
+                break;
+            }
+        }
+
+        // if current solution is not dominated by any solution in best solutions
+        if (!dominated)
+            bestSolutions.insert(currentSolution);
+
         n++;
     }
 
-    return bestSolution;
+    return bestSolutions;
 }
 
 void createRandomTruckRoutes(Graph *g, Solution *sol, int *numRoutes, bool *droneRouteCreated, double alpha) {
@@ -86,7 +113,7 @@ void createRandomTruckRoutes(Graph *g, Solution *sol, int *numRoutes, bool *dron
     }
 
     // sorts candidates by cost
-    sortCandidatesByCost(g, sol);
+    sortCandidatesByCost(g, sol, aux_candidatesCost);
 
     // while there are unattended clients
     while (!allClientsAttended(g, sol)) {

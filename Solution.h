@@ -15,6 +15,8 @@ class Solution {
         int QT;                                         //  maximum truck capacity      
         int numRoutes;
         vector<Route> routes;
+        vector<pair<int, bool>> attendedClients;                    //  list of attended clients
+        vector<tuple<int, int, double, int, int>> candidatesCost;   // list of candidates costs
         bool drone;
 
         double totalEnergyConsumption;                  // f1 
@@ -24,6 +26,9 @@ class Solution {
     public:
         Solution(Graph *g, int QT);
         ~Solution();
+
+        vector<pair<int, bool>> getAttendedClients();
+        vector<tuple<int, int, double, int, int>> getCandidatesCost();
 
         vector<Route> getRoutes();
         Route* getRoute(int i) { return &(this->routes[i]); };
@@ -39,7 +44,7 @@ class Solution {
         void setDroneRouteCreated(bool droneRouteCreated) { this->drone = droneRouteCreated; };
         void createRoute(Route r) { this->routes.push_back(r); };
 
-        bool isBetterThan(Solution *s);
+        bool dominates(Solution *s);
 
         void updateSolution(Graph *g);
 

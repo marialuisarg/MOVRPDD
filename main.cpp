@@ -6,6 +6,7 @@
 #include <vector>
 #include <tuple>
 #include <string>
+#include <set>
 
 #include "Graph.h"
 #include "Node.h"
@@ -23,6 +24,16 @@ void printObjFunc(Solution* sol) {
     cout << "f2: " << sol->getTotalDeliveryCost() << endl;
     cout << "f3: " << sol->getTotalDeliveryTime() << endl;
     cout << "-------------------" << endl;
+}
+
+void printObjFunc(set<Solution*> sol) {
+    for (auto it = sol.begin(); it != sol.end(); it++) {
+        cout << endl << "-------------------" << endl;
+        cout << "f1: " << (*it)->getTotalEnergyConsumption() << endl;
+        cout << "f2: " << (*it)->getTotalDeliveryCost() << endl;
+        cout << "f3: " << (*it)->getTotalDeliveryTime() << endl;
+        cout << "-------------------" << endl;
+    }
 }
 
 int main(int argc, char const *argv[]) {
@@ -58,18 +69,14 @@ int main(int argc, char const *argv[]) {
     // set seed to time(0)
     srand(time(0));
 
-    Solution * bestSolution = nullptr;
-    bestSolution = greedyConstructor(&graph, QT);
-    bestSolution->plotSolution(fileName, 0);
-
     // set of numSolutions solutions
-    vector<Solution*> solutions;
+    vector<set<Solution*>> solutions;
 
     for (int i = 0; i < numExec; i++) {
-        solutions.emplace_back(greedyConstructor(&graph, QT));
-        solutions[i]->plotSolution(fileName, i);
+        solutions.emplace_back(RandomConstructor(&graph, QT, 0.5, 20, 5));
+        //solutions[i]->plotSolution(fileName, i);
         
-        cout << "Solution " << i << ": ";
+        cout << "SOLUTIONS SET " << i << ": ";
         printObjFunc(solutions[i]);
     }
 

@@ -96,22 +96,22 @@ vector<Node> Utils::readFile(string fileName){
     return nodes;
 }
 
-void Utils::printSolutionsToFile(vector<Solution> *s, string instanceName) {
+void Utils::printSolutionsToFile(vector<Solution*> s, string instanceName) {
     
     string filename = "./solutions/functions_" + instanceName.erase(0,12);
     
     ofstream output_file(filename);
 
-    int nSolutions = s->size();
+    int nSolutions = s.size();
 
     double f1 = 0.0, f2 = 0.0, f3 = 0.0;
 
     output_file << nSolutions << endl;
 
     for (int i = 0; i < nSolutions; i++) {
-        f1 = s->at(i).getTotalEnergyConsumption();
-        f2 = s->at(i).getTotalDeliveryCost();
-        f3 = s->at(i).getTotalDeliveryTime();
+        f1 = s.at(i)->getTotalEnergyConsumption();
+        f2 = s.at(i)->getTotalDeliveryCost();
+        f3 = s.at(i)->getTotalDeliveryTime();
 
         output_file << f1 << " " << f2 << " " << f3 << endl;
     }

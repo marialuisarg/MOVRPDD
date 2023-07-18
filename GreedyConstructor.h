@@ -14,6 +14,7 @@ using namespace std;
 // greedy constructor 
     Solution * greedyConstructor(Graph *g, int QT);
     void createTruckRoutes(Graph *g, Solution *sol, int *numRoutes, bool *droneRouteCreated);
+    void aux_sortCandidatesByCost(Graph *g, Solution *sol, vector<tuple<int, int, double, int, int>> auxCandidatesCost);
     void sortCandidatesByCost(Graph *g, Solution *sol);
     void insertRandomizedFirstClients(Graph *g, Solution *sol, int *numRoutes, bool *droneRouteCreated);
     bool allClientsAttended(Graph *g, Solution *sol);
