@@ -70,7 +70,7 @@ int main(int argc, char const *argv[]) {
         solutions[i]->plotSolution(fileName, i);
         
         cout << "Solution " << i << ": ";
-        //printObjFunc(solutions[i]);
+        printObjFunc(solutions[i]);
     }
 
     //u.printSolutionsToFile(solutions, fileName);

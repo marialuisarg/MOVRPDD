@@ -36,6 +36,9 @@ Solution * greedyConstructor(Graph *g, int QT) {
     int numRoutes;
     bool droneRouteCreated;
 
+    attendedClients.clear();
+    candidatesCost.clear();
+
     Solution *sol = new Solution(g, QT);     // creates solution
 
     for (int i = 0; i < g->getSize(); i++) {
@@ -162,7 +165,7 @@ bool includeClient(Node *client, Solution *sol, Route *r, Graph *g, int prevNode
     // inserts client in route
     if (!r->insertClient(client, prevNodeIndex)) {
         // if client can't be inserted, removes it from candidates list
-        cout << "Client " << client->getID() << " can't be inserted in route " << iRoute << endl;
+        //cout << "Client " << client->getID() << " can't be inserted in route " << iRoute << endl;
         //cout << endl;
         for (int i = 0; i < candidatesCost.size(); i++) {
             if (get<0>(candidatesCost[i]) == client->getID() && get<1>(candidatesCost[i]) == iRoute) {
