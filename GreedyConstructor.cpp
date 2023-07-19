@@ -31,13 +31,15 @@ using namespace std;
 
 Solution * greedyConstructor(Graph *g, int QT) {
     int numRoutes;
+    int numClients = g->getSize();
     bool droneRouteCreated;
 
     vector<pair<int, bool>> attendedClients;
 
     Solution *sol = new Solution(g, QT);     // creates solution
+    sol->setNumClients(numClients);          // sets number of clients in solution
 
-    for (int i = 0; i < g->getSize(); i++) {
+    for (int i = 0; i < numClients; i++) {
         attendedClients.push_back({g->getNode(i)->getID(), false});  
     }
 
@@ -64,7 +66,7 @@ void createTruckRoutes(Graph *g, Solution *sol, int *numRoutes, bool *droneRoute
     vector<tuple<int, int, double, int, int>> candidatesCost;
 
     // inserts unattended clients into the candidate list
-    for (int i = 0; i < g->getSize(); i++) {
+    for (int i = 0; i <= sol->getNumClients(); i++) {
         if (!sol->getAttendedClient(i).second) {
             candidates.push_back(g->getNode(i));
         }
@@ -80,7 +82,7 @@ void createTruckRoutes(Graph *g, Solution *sol, int *numRoutes, bool *droneRoute
     }
 
     sol->setCandidatesCost(candidatesCost);
-    printCandidatesCost(sol);
+    //printCandidatesCost(sol);
 
     // sorts candidates by cost
     sol->sortCandidatesByCost(g);
@@ -118,22 +120,6 @@ void createTruckRoutes(Graph *g, Solution *sol, int *numRoutes, bool *droneRoute
     sol->updateSolution(g);
 }
 
-// void sortCandidatesByCost(Graph *g, Solution *sol) {
-//     int n = sol->getCandidatesCost().size();
-//     tuple<int, int, double, int, int> temp;
-    
-//     int i, j;
-//     for (i = 0; i < n - 1; i++) {
-//         for (j = 0; j < n - i - 1; j++) {
-//             if (get<2>(sol->getCandidateCost(j)) > get<2>(sol->getCandidateCost(j+1))) {
-//                 temp = sol->getCandidateCost(j);
-//                 sol->setCandidateCost(j, sol->getCandidateCost(j+1));
-//                 sol->setCandidateCost(j+1, temp);
-//             }
-//         }
-//     }
-// }
-
 void insertRandomizedFirstClients(Graph *g, Solution *sol, int *numRoutes, bool *droneRouteCreated) {
     int n = sol->getNumRoutes();
     int i = 0;
@@ -151,128 +137,6 @@ void insertRandomizedFirstClients(Graph *g, Solution *sol, int *numRoutes, bool 
 
     //printRoutes();
 }
-
-// bool includeClient(Node *client, Solution *sol, Route *r, Graph *g, int prevNodeIndex, int iRoute) {
-
-//     // inserts client in route
-//     if (!r->insertClient(client, prevNodeIndex)) {
-//         for (int i = 0; i < sol->getCandidatesCost().size(); i++) {
-//             if (get<0>(sol->getCandidateCost(i)) == client->getID() && get<1>(sol->getCandidateCost(i)) == iRoute) {
-//                 sol->eraseCandidateCostAt(i);
-//                 break;
-//             }
-//         }
-
-//         return false;
-//     }
-
-//     // updates attended clients
-//     updateAttendedClients(sol, client->getID());
-//     r->updateDeliveryCost(g, CT, CD, CB);
-    
-//     // updates cheapest insertion candidates list
-//     updateCandidatesList(client, sol, r, g, iRoute);
-//     return true;
-// }
-
-// void updateAttendedClients(Solution* sol, int clientID) {
-//     for (int i = 0; i < sol->getAttendedClients().size(); i++) {
-//         if (sol->getAttendedClient(i).first == clientID) {
-//             sol->setAttendedClient(i, true);
-//         }
-//     }
-// }
-
-// bool verifyNeighbor(Route *r, int currentPrevIndex, int currentNextIndex) {
-//     for (int j = 0; j < r->getTruckRoute().size()-1; j++)
-//         if (r->getTruckRoute()[j]->getID() == currentPrevIndex)
-//             if (r->getTruckRoute()[j+1]->getID() != currentNextIndex)
-//                 return false;
-//     return true;
-// }
-
-// void updateCandidatesList(Node *client, Solution *sol, Route *r, Graph *g, int iRoute) {
-   
-//    int clientPrevNode = 0, clientNextNode = 0;
-
-//    // remove client from candidates list
-//     for (int i = 0; i < sol->getCandidatesCost().size(); i++) {
-//         if (get<0>(sol->getCandidateCost(i)) == client->getID()) {
-//             if (get<1>(sol->getCandidateCost(i)) == iRoute) {
-//                 clientPrevNode = get<3>(sol->getCandidateCost(i));
-//                 clientNextNode = get<4>(sol->getCandidateCost(i));
-//             }
-
-//             sol->eraseCandidateCostAt(i);
-//             i--;
-//         }
-//     }
-
-//     // goes through all candidates and updates costs for the route that was modified
-//     for (int i = 0; i < sol->getCandidatesCost().size(); i++) {
-
-//         // verifies if current cheapest route's previous node and next node are still "neighbors"
-//         // if not, we need to recalculate the cost of the route, because the previous cheapest insertion
-//         // is no longer valid.
-
-//         double cheapestRouteCost = get<2>(sol->getCandidateCost(i));
-//         int currentPrevIndex = get<3>(sol->getCandidateCost(i));
-//         int currentNextIndex = get<4>(sol->getCandidateCost(i));
-
-//         if (!verifyNeighbor(r, currentPrevIndex, currentNextIndex))
-//             cheapestRouteCost = INF;
-
-//         // if candidate is in the same route as the last client inserted, we will calculate
-//         // the cost (delta) of inserting the candidate between the client and the previous node of the client 
-//         // and the client and the next node of the client and compare the costs
-
-//         if (get<1>(sol->getCandidateCost(i)) == iRoute) {
-//             // delta ij (k) = cik + ckj - cij
-//             double deltaCost, cik, ckj, cij;
-
-//             // inserting candidate between previous node of client and client
-//             cij = g->getManhattanDistance(clientPrevNode, client->getID());
-//             cik = g->getManhattanDistance(clientPrevNode, get<0>(sol->getCandidateCost(i)));
-//             ckj = g->getManhattanDistance(get<0>(sol->getCandidateCost(i)), client->getID());
-
-//             deltaCost = cik + ckj - cij;
-//             deltaCost *= CT;
-
-//             // if delta cost is less than the current cheapest cost, updates the cost
-//             if (deltaCost < cheapestRouteCost) {
-//                 cheapestRouteCost = deltaCost;
-//                 tuple<int, int, double, int, int> aux = sol->getCandidateCost(i);
-//                 get<2>(aux) = deltaCost;
-//                 get<3>(aux) = clientPrevNode;
-//                 get<4>(aux) = client->getID();
-//                 sol->setCandidateCost(i, aux);
-//             }
-
-//             // inserting candidate between client and next node of client
-//             cij = g->getManhattanDistance(client->getID(), clientNextNode);
-//             cik = g->getManhattanDistance(client->getID(), get<0>(sol->getCandidateCost(i)));
-//             ckj = g->getManhattanDistance(get<0>(sol->getCandidateCost(i)), clientNextNode);
-
-//             deltaCost = cik + ckj - cij;
-//             deltaCost *= CT;
-
-//             // if delta cost is less than the current cheapest cost, updates the cost
-//             if (deltaCost < cheapestRouteCost) {
-//                 cheapestRouteCost = deltaCost;
-//                 //get<1>(sol->getCandidateCost(i)) = iRoute;
-//                 tuple<int, int, double, int, int> aux = sol->getCandidateCost(i);
-//                 get<2>(aux) = deltaCost;
-//                 get<3>(aux) = client->getID();
-//                 get<4>(aux) = clientNextNode;
-//                 sol->setCandidateCost(i, aux);
-//             }
-
-//         }
-//     }
-
-//     // sorts candidates by cost
-//     sortCandidatesByCost(g, sol);
-// }
 
 bool isInSearchRange(vector<int> searchRange, int clientID) {
     for (int i = 0; i < searchRange.size(); i++) {
@@ -531,14 +395,20 @@ void updateSearchRange(vector<int>*searchRange, int rNode) {
 
 void printCandidatesCost(Solution *sol) {
     // print candidates list for each route
-    for (int j = 0; j < sol->getNumRoutes(); j++) {
-        cout << endl;
-        cout << "CANDIDATES FOR ROUTE " << j << endl;
-        for (int i = 0; i < sol->getCandidatesCost().size(); i++) {
-            if (get<1>(sol->getCandidateCost(i)) == j)
-                cout << "Candidate " << get<0>(sol->getCandidateCost(i)) << " between nodes " <<  get<3>(sol->getCandidateCost(i)) << " and " << get<4>(sol->getCandidateCost(i)) <<" => delta = " << get<2>(sol->getCandidateCost(i)) << endl;
-        }
-    }
+    // for (int j = 0; j < sol->getNumRoutes(); j++) {
+    //     cout << endl;
+    //     cout << "CANDIDATES FOR ROUTE " << j << endl;
+    //     for (int i = 0; i < sol->getCandidatesCost().size(); i++) {
+    //         if (get<1>(sol->getCandidateCost(i)) == j)
+    //             cout << "Candidate " << get<0>(sol->getCandidateCost(i)) << " between nodes " <<  get<3>(sol->getCandidateCost(i)) << " and " << get<4>(sol->getCandidateCost(i)) <<" => delta = " << get<2>(sol->getCandidateCost(i)) << endl;
+    //     }
+    // }
 
     cout << "------------------" << endl;
+
+    // print candidates list in order
+    cout << "CANDIDATES LIST" << endl;
+    for (int j = 0; j < sol->getCandidatesCost().size(); j++) {
+        cout << "Candidate " << get<0>(sol->getCandidateCost(j)) << " (" <<  get<3>(sol->getCandidateCost(j)) << "_" << get<4>(sol->getCandidateCost(j)) <<") => route " << get<1>(sol->getCandidateCost(j)) << endl;
+    }
 }

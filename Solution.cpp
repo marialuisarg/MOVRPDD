@@ -8,6 +8,7 @@
 #include <cmath>
 #include <fstream>
 #include <tuple>
+#include <random>
 
 using namespace std;
 
@@ -135,6 +136,12 @@ void Solution::sortCandidatesByCost(Graph* g) {
 
 bool Solution::includeClient(Node* client, Graph *g, int prevNode, int routeIndex) {
     Route * r = &(this->routes[routeIndex]);
+
+    // verifies if client is already attended
+    if (this->getAttendedClient(client->getID()).second) {
+        //cout << "client " << client->getID() << " already attended" << endl;
+        return false;
+    }
     
     // inserts client in route
     if (!r->insertClient(client, prevNode)) {
@@ -257,10 +264,8 @@ void Solution::updateCandidatesList(Node *client, Graph *g, int iRoute) {
 }
 
 void Solution::eraseCandidateCostAt(int i) { 
-    cout << "erasing candidate cost at " << i << endl;
-    cout << "size before: " << this->candidatesCost.size() << endl;
+    //cout << "erasing candidate " << get<0>(this->getCandidateCost(i)) << " from route " << get<1>(this->getCandidateCost(i)) << endl << endl;
     this->candidatesCost.erase(this->candidatesCost.begin() + i); 
-    cout << "size after: " << this->candidatesCost.size() << endl;
 };
 
 bool Solution::dominates(Solution *s) {
@@ -276,9 +281,12 @@ bool Solution::dominates(Solution *s) {
     double b_f3 = s->getTotalDeliveryTime();
 
     // checks if current solution dominates best solution
-    if (c_f1 <= b_f1 && c_f2 <= b_f2 && c_f3 <= b_f3)
-        if (c_f1 < b_f1 || c_f2 < b_f2 || c_f3 < b_f3)
-            return true;
+    if (c_f1 < b_f1 && c_f2 <= b_f2 && c_f3 <= b_f3)
+        return true;
+    else if (c_f1 <= b_f1 && c_f2 < b_f2 && c_f3 <= b_f3)
+        return true;
+    else if (c_f1 <= b_f1 && c_f2 <= b_f2 && c_f3 < b_f3)
+        return true;
 
     return false;
 }
@@ -288,13 +296,22 @@ vector<Route> Solution::getRoutes() {
 }
 
 bool Solution::allClientsAttended(Graph *g) {
-    for (int i = 0; i < g->getSize(); i++) {
+    for (int i = 0; i < this->getNumClients(); i++) {
         if (!this->getAttendedClient(i).second) {
             return false;
         }
     }
 
     return true;
+}
+
+unsigned int Solution::random(int min, int max) {
+    random_device rd;
+    mt19937_64 e{rd()}; 
+    uniform_int_distribution<> dist{min, max};
+
+    unsigned int randomNumber = dist(e);
+    return randomNumber;
 }
 
 Solution::~Solution() {

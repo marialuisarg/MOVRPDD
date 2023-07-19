@@ -192,6 +192,7 @@ Node *Route::getNode(int position) {
 
 bool Route::insertClient(Node *client, long int prevNodeIndex) {
     if (client->getDemand() > this->currentTruckCapacity) {
+        //cout << "client " << client->getID() << " not inserted. demand: " << client->getDemand() << " | capacity: " << this->currentTruckCapacity << endl;
         return false;
     }
 

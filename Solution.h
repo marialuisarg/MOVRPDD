@@ -13,11 +13,12 @@ using namespace std;
 
 class Solution {
     private:
-        int QT;                                         //  maximum truck capacity      
-        int numRoutes;
-        vector<Route> routes;
-        vector<pair<int, bool>> attendedClients;                    //  list of attended clients
-        vector<tuple<int, int, double, int, int>> candidatesCost;   // list of candidates costs
+        int QT;                                                     // maximum truck capacity      
+        int numRoutes;                                              // number of routes
+        int numClients;                                             // number of clients
+        vector<Route> routes;                                       // list of routes
+        vector<pair<int, bool>> attendedClients;                    // (clientID, attended)
+        vector<tuple<int, int, double, int, int>> candidatesCost;   // (clientID, routeIndex, cost, prevNode, nextNode)
         bool drone;
 
         double totalEnergyConsumption;                  // f1 
@@ -28,6 +29,7 @@ class Solution {
         Solution(Graph *g, int QT);
         ~Solution();
 
+        void setNumClients(int numClients) { this->numClients = numClients-1; };
         vector<pair<int, bool>> getAttendedClients() { return this->attendedClients; }
         pair<int, bool> getAttendedClient(int i) { return this->attendedClients[i]; };
         void setAttendedClient(int i, bool value) { this->attendedClients[i].second = value; };
@@ -43,6 +45,7 @@ class Solution {
         Route* getRoute(int i) { return &(this->routes[i]); };
         int getQT() { return this->QT; };
         int getNumRoutes() { return this->numRoutes; };
+        int getNumClients() { return this->numClients; };
         bool droneIsUsed() { return this->drone; };
 
         bool includeClient(Node* client, Graph *g, int prevNode, int routeIndex);
@@ -59,6 +62,7 @@ class Solution {
         void createRoute(Route r) { this->routes.push_back(r); };
 
         bool dominates(Solution *s);
+        unsigned int random(int min, int max);
 
         void updateSolution(Graph *g);
         bool allClientsAttended(Graph *g);

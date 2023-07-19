@@ -15,13 +15,7 @@ using namespace std;
 // greedy constructor 
     Solution * greedyConstructor(Graph *g, int QT);
     void createTruckRoutes(Graph *g, Solution *sol, int *numRoutes, bool *droneRouteCreated);
-    void sortCandidatesByCost(Graph *g, Solution *sol);
     void insertRandomizedFirstClients(Graph *g, Solution *sol, int *numRoutes, bool *droneRouteCreated);
-    bool allClientsAttended(Graph *g, Solution *sol);
-    bool includeClient(Node *client, Solution *sol, Route *r, Graph *g, int prevNodeIndex, int iRoute);
-    void updateAttendedClients(Solution *sol, int clientID);
-    bool verifyNeighbor(Route *r, int currentPrevIndex, int currentNextIndex);
-    void updateCandidatesList(Node *client, Solution *sol, Route *r, Graph *g, int iRoute);
     bool isInSearchRange(vector<int> searchRange, int clientID);
     void createDroneRoutes(Graph *g, Solution *sol);
     void sortListByGain(vector<tuple<int, int, int, double, bool>> *list);

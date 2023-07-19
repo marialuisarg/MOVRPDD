@@ -25,6 +25,7 @@ class Utils{
         static vector<Node> readFile(string fileName);
         static void printSolution(Solution *s);
         static void printSolutionsToFile(vector<Solution*> s, string fileName);
+        static void printSolutionsToFile(vector<Solution*> s, string fileName, string setName);
 };
 
 #endif
