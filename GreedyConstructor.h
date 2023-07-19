@@ -5,6 +5,7 @@ using namespace std;
 
 #include <string>
 #include <vector>
+#include <set>
 
 #include "Route.h"
 #include "Node.h"
@@ -14,12 +15,11 @@ using namespace std;
 // greedy constructor 
     Solution * greedyConstructor(Graph *g, int QT);
     void createTruckRoutes(Graph *g, Solution *sol, int *numRoutes, bool *droneRouteCreated);
-    void aux_sortCandidatesByCost(Graph *g, Solution *sol, vector<tuple<int, int, double, int, int>> auxCandidatesCost);
     void sortCandidatesByCost(Graph *g, Solution *sol);
     void insertRandomizedFirstClients(Graph *g, Solution *sol, int *numRoutes, bool *droneRouteCreated);
     bool allClientsAttended(Graph *g, Solution *sol);
     bool includeClient(Node *client, Solution *sol, Route *r, Graph *g, int prevNodeIndex, int iRoute);
-    void updateAttendedClients(int clientID);
+    void updateAttendedClients(Solution *sol, int clientID);
     bool verifyNeighbor(Route *r, int currentPrevIndex, int currentNextIndex);
     void updateCandidatesList(Node *client, Solution *sol, Route *r, Graph *g, int iRoute);
     bool isInSearchRange(vector<int> searchRange, int clientID);

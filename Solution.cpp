@@ -33,8 +33,6 @@ Solution::Solution(Graph *g, int QT) {
     this->totalDeliveryTime = 0.0;
     this->drone = false;
 
-    
-
     // calculates demand and divides by max load capacity of trucks to get num of routes
     setNumRoutes(ceil(g->getTotalDemand() / QT));
 }
@@ -119,6 +117,152 @@ void Solution::plotSolution(string instance, int i){
     // aux = system(command.c_str());
 }
 
+void Solution::sortCandidatesByCost(Graph* g) {
+    int n = this->getCandidatesCost().size();
+    tuple<int, int, double, int, int> temp;
+    
+    int i, j;
+    for (i = 0; i < n - 1; i++) {
+        for (j = 0; j < n - i - 1; j++) {
+            if (get<2>(this->getCandidateCost(j)) > get<2>(this->getCandidateCost(j+1))) {
+                temp = this->getCandidateCost(j);
+                this->setCandidateCost(j, this->getCandidateCost(j+1));
+                this->setCandidateCost(j+1, temp);
+            }
+        }
+    }
+}
+
+bool Solution::includeClient(Node* client, Graph *g, int prevNode, int routeIndex) {
+    Route * r = &(this->routes[routeIndex]);
+    
+    // inserts client in route
+    if (!r->insertClient(client, prevNode)) {
+        for (int i = 0; i < this->getCandidatesCost().size(); i++) {
+            if (get<0>(this->getCandidateCost(i)) == client->getID() && get<1>(this->getCandidateCost(i)) == routeIndex) {
+                this->eraseCandidateCostAt(i);
+                break;
+            }
+        }
+
+        return false;
+    }
+
+    // updates attended clients
+    this->updateAttendedClients(client->getID());
+    r->updateDeliveryCost(g, CT, CD, CB);
+    
+    // updates cheapest insertion candidates list
+    this->updateCandidatesList(client, g, routeIndex);
+    return true;
+}
+
+bool verifyNeighbor(Route *r, int currentPrevIndex, int currentNextIndex) {
+    for (int j = 0; j < r->getTruckRoute().size()-1; j++)
+        if (r->getTruckRoute()[j]->getID() == currentPrevIndex)
+            if (r->getTruckRoute()[j+1]->getID() != currentNextIndex)
+                return false;
+    return true;
+}
+
+void Solution::updateAttendedClients(int clientID) {
+    for (int i = 0; i < this->getAttendedClients().size(); i++) {
+        if (this->getAttendedClient(i).first == clientID) {
+            this->setAttendedClient(i, true);
+        }
+    }
+}
+
+void Solution::updateCandidatesList(Node *client, Graph *g, int iRoute) {
+   
+   int clientPrevNode = 0, clientNextNode = 0;
+
+   // remove client from candidates list
+    for (int i = 0; i < this->getCandidatesCost().size(); i++) {
+        if (get<0>(this->getCandidateCost(i)) == client->getID()) {
+            if (get<1>(this->getCandidateCost(i)) == iRoute) {
+                clientPrevNode = get<3>(this->getCandidateCost(i));
+                clientNextNode = get<4>(this->getCandidateCost(i));
+            }
+
+            this->eraseCandidateCostAt(i);
+            i--;
+        }
+    }
+
+    // goes through all candidates and updates costs for the route that was modified
+    for (int i = 0; i < this->getCandidatesCost().size(); i++) {
+
+        // verifies if current cheapest route's previous node and next node are still "neighbors"
+        // if not, we need to recalculate the cost of the route, because the previous cheapest insertion
+        // is no longer valid.
+
+        double cheapestRouteCost = get<2>(this->getCandidateCost(i));
+        int currentPrevIndex = get<3>(this->getCandidateCost(i));
+        int currentNextIndex = get<4>(this->getCandidateCost(i));
+
+        if (!verifyNeighbor(this->getRoute(iRoute), currentPrevIndex, currentNextIndex))
+            cheapestRouteCost = INF;
+
+        // if candidate is in the same route as the last client inserted, we will calculate
+        // the cost (delta) of inserting the candidate between the client and the previous node of the client 
+        // and the client and the next node of the client and compare the costs
+
+        if (get<1>(this->getCandidateCost(i)) == iRoute) {
+            // delta ij (k) = cik + ckj - cij
+            double deltaCost, cik, ckj, cij;
+
+            // inserting candidate between previous node of client and client
+            cij = g->getManhattanDistance(clientPrevNode, client->getID());
+            cik = g->getManhattanDistance(clientPrevNode, get<0>(this->getCandidateCost(i)));
+            ckj = g->getManhattanDistance(get<0>(this->getCandidateCost(i)), client->getID());
+
+            deltaCost = cik + ckj - cij;
+            deltaCost *= CT;
+
+            // if delta cost is less than the current cheapest cost, updates the cost
+            if (deltaCost < cheapestRouteCost) {
+                cheapestRouteCost = deltaCost;
+                tuple<int, int, double, int, int> aux = this->getCandidateCost(i);
+                get<2>(aux) = deltaCost;
+                get<3>(aux) = clientPrevNode;
+                get<4>(aux) = client->getID();
+                this->setCandidateCost(i, aux);
+            }
+
+            // inserting candidate between client and next node of client
+            cij = g->getManhattanDistance(client->getID(), clientNextNode);
+            cik = g->getManhattanDistance(client->getID(), get<0>(this->getCandidateCost(i)));
+            ckj = g->getManhattanDistance(get<0>(this->getCandidateCost(i)), clientNextNode);
+
+            deltaCost = cik + ckj - cij;
+            deltaCost *= CT;
+
+            // if delta cost is less than the current cheapest cost, updates the cost
+            if (deltaCost < cheapestRouteCost) {
+                cheapestRouteCost = deltaCost;
+                //get<1>(this->getCandidateCost(i)) = iRoute;
+                tuple<int, int, double, int, int> aux = this->getCandidateCost(i);
+                get<2>(aux) = deltaCost;
+                get<3>(aux) = client->getID();
+                get<4>(aux) = clientNextNode;
+                this->setCandidateCost(i, aux);
+            }
+
+        }
+    }
+
+    // sorts candidates by cost
+    sortCandidatesByCost(g);
+}
+
+void Solution::eraseCandidateCostAt(int i) { 
+    cout << "erasing candidate cost at " << i << endl;
+    cout << "size before: " << this->candidatesCost.size() << endl;
+    this->candidatesCost.erase(this->candidatesCost.begin() + i); 
+    cout << "size after: " << this->candidatesCost.size() << endl;
+};
+
 bool Solution::dominates(Solution *s) {
     if (s == nullptr)
         return true;
@@ -141,6 +285,16 @@ bool Solution::dominates(Solution *s) {
 
 vector<Route> Solution::getRoutes() {
     return routes;
+}
+
+bool Solution::allClientsAttended(Graph *g) {
+    for (int i = 0; i < g->getSize(); i++) {
+        if (!this->getAttendedClient(i).second) {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 Solution::~Solution() {

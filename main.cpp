@@ -6,7 +6,6 @@
 #include <vector>
 #include <tuple>
 #include <string>
-#include <set>
 
 #include "Graph.h"
 #include "Node.h"
@@ -26,7 +25,7 @@ void printObjFunc(Solution* sol) {
     cout << "-------------------" << endl;
 }
 
-void printObjFunc(set<Solution*> sol) {
+void printObjFunc(vector<Solution*> sol) {
     for (auto it = sol.begin(); it != sol.end(); it++) {
         cout << endl << "-------------------" << endl;
         cout << "f1: " << (*it)->getTotalEnergyConsumption() << endl;
@@ -70,16 +69,26 @@ int main(int argc, char const *argv[]) {
     srand(time(0));
 
     // set of numSolutions solutions
-    vector<set<Solution*>> solutions;
+    vector<Solution*> solutions;
+    vector<vector<Solution*>> randomSolutions;
 
     for (int i = 0; i < numExec; i++) {
-        solutions.emplace_back(RandomConstructor(&graph, QT, 0.5, 20, 5));
-        //solutions[i]->plotSolution(fileName, i);
+        solutions.emplace_back(greedyConstructor(&graph, QT));
+        solutions[i]->plotSolution(fileName, i);
         
-        cout << "SOLUTIONS SET " << i << ": ";
+        cout << "SOLUTION " << i << ": ";
         printObjFunc(solutions[i]);
     }
 
-    //u.printSolutionsToFile(solutions, fileName);
+    u.printSolutionsToFile(solutions, fileName);
+
+    // for (int i = 0; i < numExec; i++) {
+    //     randomSolutions.emplace_back(RandomConstructor(&graph, QT, 0.5, 20, 10));
+    //     //solutions[i]->plotSolution(fileName, i);
+        
+    //     cout << "SOLUTIONS SET " << i << ": ";
+    //     printObjFunc(randomSolutions[i]);
+    // }
+
     return 0;
 }

@@ -8,7 +8,6 @@
 #include <cmath>
 #include <random>
 #include <tuple>
-#include <set>
 
 using namespace std;
 
@@ -29,14 +28,11 @@ using namespace std;
 #define TRUCK 2
 #define INF 999999999
 
-vector<pair<int, bool>> aux_attendedClients;
-vector<tuple<int, int, double, int, int>> aux_candidatesCost;
-
-set<Solution*> RandomConstructor(Graph *g, int QT, double alpha, int numIterations, int setSize) {
+vector<Solution*> RandomConstructor(Graph *g, int QT, double alpha, int numIterations, int setSize) {
     int numRoutes;
     bool droneRouteCreated;
 
-    set<Solution*> bestSolutions;
+    vector<Solution*> bestSolutions;
     Solution * currentSolution = new Solution(g, QT);
 
     int n = 0;
@@ -47,21 +43,22 @@ set<Solution*> RandomConstructor(Graph *g, int QT, double alpha, int numIteratio
         clients.push_back(g->getNode(i)->getID());  
 
     while (n < numIterations) {
-        aux_attendedClients.clear();
-        aux_candidatesCost.clear();
-
         // checks if best solutions set is full
         if (bestSolutions.size() == setSize) {
             cout << "Best solutions set is full" << endl;
             break;
         }
 
+        vector<pair<int,bool>> attendedClients;
+
         for (int i = 0; i < g->getSize(); i++) {
-            aux_attendedClients.push_back({clients.at(i), false});  
+            attendedClients.push_back({clients.at(i), false});  
         }
 
         // depot visited 
-        aux_attendedClients[0].second = true;
+        attendedClients[0].second = true;
+
+        currentSolution->setAttendedClients(attendedClients);
 
         // creates routes
         for (int i = 0; i < currentSolution->getNumRoutes(); i++) {
@@ -83,7 +80,7 @@ set<Solution*> RandomConstructor(Graph *g, int QT, double alpha, int numIteratio
 
         // if current solution is not dominated by any solution in best solutions
         if (!dominated)
-            bestSolutions.insert(currentSolution);
+            bestSolutions.push_back(currentSolution);
 
         n++;
     }
@@ -98,37 +95,44 @@ void createRandomTruckRoutes(Graph *g, Solution *sol, int *numRoutes, bool *dron
 
     // inserts unattended clients into the candidate list
     for (int i = 0; i < g->getSize(); i++) {
-        if (!aux_attendedClients[i].second) {
+        if (!sol->getAttendedClient(i).second) {
             candidates.push_back(g->getNode(i));
         }
     }
 
+    vector<tuple<int, int, double, int, int>> candidatesCost;
     // calculates cost of each candidate
     for (int r = 0; r < sol->getNumRoutes(); r++) {
         for (int i = 0; i < candidates.size(); i++) {
             double manhattanDistance = candidates[i]->manhattanDistance(g->getNode(0));
             double cost = manhattanDistance * CT * 2;
-            aux_candidatesCost.push_back(make_tuple(candidates[i]->getID(), r, cost,0,0));
+                candidatesCost.push_back(make_tuple(candidates[i]->getID(), r, cost,0,0));
         }
     }
 
+    sol->setCandidatesCost(candidatesCost);
+
     // sorts candidates by cost
-    sortCandidatesByCost(g, sol, aux_candidatesCost);
+    sol->sortCandidatesByCost(g);
+
+    //printCandidatesCost(sol);
 
     // while there are unattended clients
-    while (!allClientsAttended(g, sol)) {
-
+    while (!sol->allClientsAttended(g)) {
         // gets random index for client
-        int k = rand () % (int) (alpha * aux_candidatesCost.size()-1);
+        int k = rand () % (int) (alpha * candidatesCost.size()-1);
+        cout << "k: " << k << endl;
 
-        int clientID = get<0>(aux_candidatesCost[k]);
-        int routeIndex = get<1>(aux_candidatesCost[k]);
-        int prevNode = get<3>(aux_candidatesCost[k]);
+        int clientID = get<0>(candidatesCost[k]);
+        int routeIndex = get<1>(candidatesCost[k]);
+        int prevNode = get<3>(candidatesCost[k]);
 
         Node *client = g->getNode(clientID);
 
-        if (includeClient(client, sol, sol->getRoute(routeIndex), g, prevNode, routeIndex)) {
-            cout << "Random client " << client->getID() << " inserted in route " << routeIndex << endl;
+        // if client is not already inserted in a route
+        if (sol->includeClient(client, g, prevNode, routeIndex)) {
+            cout << "Random client " << clientID << " inserted in route " << routeIndex << endl;
+            //printCandidatesCost(sol);
         }
     }
 

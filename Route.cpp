@@ -202,6 +202,7 @@ bool Route::insertClient(Node *client, long int prevNodeIndex) {
             break;
         }
     }
+    
     return true;
 }
 
