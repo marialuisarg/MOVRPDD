@@ -72,7 +72,10 @@ vector<Solution*> RandomConstructor(Graph *g, int QT, double alpha, int numItera
 
         // creates truck routes
         createRandomTruckRoutes(g, currentSolution, &numRoutes, &droneRouteCreated, alpha);
-    
+
+        // creates drone routes
+        createDroneRoutes(g, currentSolution);
+
         // checks dominance in best solutions
         bool dominated = false;
         for (auto it = bestSolutions.begin(); it != bestSolutions.end(); it++) {

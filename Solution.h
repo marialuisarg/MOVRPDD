@@ -53,8 +53,12 @@ class Solution {
         void updateAttendedClients(int clientID);
         void updateCandidatesList(Node *client, Graph *g, int iRoute);
 
+        void setTotalEnergyConsumption(double totalEnergyConsumption) { this->totalEnergyConsumption = totalEnergyConsumption; };
+        void setTotalDeliveryCost(double totalDeliveryCost) { this->totalDeliveryCost = totalDeliveryCost; };
+        void setTotalDeliveryTime(double totalDeliveryTime) { this->totalDeliveryTime = totalDeliveryTime; };
+
         double getTotalDeliveryCost() { return this->totalDeliveryCost; };
-        double getTotalEnergyConsumption() { return this->totalDeliveryTime; };
+        double getTotalEnergyConsumption() { return this->totalEnergyConsumption; };
         double getTotalDeliveryTime() { return this->totalDeliveryTime; };
 
         void setNumRoutes(int numRoutes) { this->numRoutes = numRoutes; };

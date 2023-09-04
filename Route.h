@@ -60,6 +60,7 @@ class Route {
 
         void setDeliveryCost(double cost);
         void setDeliveryTime(double time);
+        void setEnergyConsumption(double ec) { this->energyConsumption = ec; };
 };
 
 #endif // ROUTE_H_INCLUDED

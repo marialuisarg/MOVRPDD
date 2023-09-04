@@ -51,9 +51,9 @@ void Solution::updateSolution(Graph *g) {
             f3 = routes[i].getDeliveryTime();
     }
 
-    this->totalEnergyConsumption = f1;
-    this->totalDeliveryCost = f2;
-    this->totalDeliveryTime = f3;
+    setTotalEnergyConsumption(f1);
+    setTotalDeliveryCost(f2);
+    setTotalDeliveryTime(f3);
 }
 
 void Solution::printRoutes() {

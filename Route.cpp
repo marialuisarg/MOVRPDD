@@ -64,7 +64,6 @@ void Route::updateEnergyConsumption(Graph *g, int QT) {
     //cout << "=> updating energy consumption." << endl;	
     
     double path = 0.0, ec = 0.0, truckWeight = QT - this->currentTruckCapacity;
-    this->energyConsumption = 0.0;
     vector<pair<int, double>> launchingNodes;       // <laNode ID, drone's package weight>
 
     // considering package weight of clients attended by drone (and its lost at the launching node)
@@ -102,7 +101,7 @@ void Route::updateEnergyConsumption(Graph *g, int QT) {
         //cout << "energy consumption: " << ec << endl;
     }
 
-    this->energyConsumption = ec;
+    setEnergyConsumption(ec);
     
     //cout << "---" << endl;	
 }

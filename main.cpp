@@ -67,7 +67,7 @@ int main(int argc, char const *argv[]) {
     }
 
     // set seed to time(0)
-    srand(time(0));
+    srand(10);
 
     if (argc == 4) {
         
