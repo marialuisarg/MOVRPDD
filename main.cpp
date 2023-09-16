@@ -11,6 +11,7 @@
 #include "Node.h"
 #include "Utils.h"
 #include "Solution.h"
+#include "Population.h"
 
 #include "GreedyConstructor.h"
 #include "RandomConstructor.h"
@@ -37,9 +38,9 @@ void printObjFunc(vector<Solution*> sol) {
 
 int main(int argc, char const *argv[]) {
 
-    if (!(argc == 4 || argc == 7)) {
+    if (!(argc == 4 || argc == 6)) {
         cout << "ERROR: Expecting: <instance_file> <QT> <number_of_solutions>" << endl;
-        cout << "OR <instance_file> <QT> <number_of_sets> <alpha> <number_of_iterations> <set_size>" << endl;
+        cout << "OR <instance_file> <QT> <alpha> <number_of_iterations> <number_of_solutions>" << endl;
         exit(1);
     }
 
@@ -66,8 +67,9 @@ int main(int argc, char const *argv[]) {
         }
     }
 
-    // set seed to time(0)
+    // set seed
     srand(10);
+    cout << "SEED: " << 10 << endl;
 
     if (argc == 4) {
         
@@ -83,23 +85,22 @@ int main(int argc, char const *argv[]) {
 
         u.printSolutionsToFile(solutions, fileName);
 
-    } else if (argc == 7) {
+    } else if (argc == 6) {
         
-        vector<vector<Solution*>> randomSolutions;
+        Population p(numSolutions, numNodes-1);
 
-        float alpha = atof(argv[4]);
-        int numIterations = atoi(argv[5]);
-        int setSize = atoi(argv[6]);
+        float alpha = atof(argv[3]);
+        int numIterations = atoi(argv[4]);
+        int setSize = atoi(argv[5]);
 
-        for (int i = 0; i < numSolutions; i++) {
-            randomSolutions.emplace_back(RandomConstructor(&graph, QT, alpha, numIterations, setSize));
-            //solutions[i]->plotSolution(fileName, i);
-            
-            //cout << endl << "SOLUTIONS SET " << i;
-            //printObjFunc(randomSolutions[i]);
-            string setName = "set" + to_string(i);
-            u.printSolutionsToFile(randomSolutions[i], fileName, setName);
-        }
+        vector<Solution*> randomSolutions = RandomConstructor(&graph, QT, alpha, numIterations, setSize);
+        p.include(randomSolutions);
+
+        //solutions[i]->plotSolution(fileName, i);
+        //cout << endl << "SOLUTIONS SET " << i;
+        //printObjFunc(randomSolutions[i]);
+        
+        u.printSolutionsToFile(randomSolutions, fileName, "set");
     }
 
     return 0;

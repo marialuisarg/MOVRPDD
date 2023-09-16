@@ -314,6 +314,27 @@ unsigned int Solution::random(int min, int max) {
     return randomNumber;
 }
 
+// vector<int> encodeSolution() {
+//     vector<int> encodedSolution;
+    
+//     // goes through every route, inserting back drone clients
+//     for (int i = 0; i < getNumRoutes(); i++) {
+//         Route *r = getRoutes(i);
+        
+//         // goes through every client in truck route
+//         for (int j = 0; j < r->getTruckRoute().size(); j++) {
+//             encodedSolution.push_back(r->getTruckRoute()[j]->getID());
+//         }
+
+//         // goes through every client in drone route
+//         for (int j = 0; j < r->getDroneRoute().size(); j++) {
+//             encodedSolution.push_back(get<0>(r->getDroneRoute()[j]));
+//         }
+//     }
+
+//     return encodedSolution;
+// }
+
 Solution::~Solution() {
     routes.clear();
 }

@@ -211,6 +211,12 @@ void Route::printRoute() {
     for (int i = 0; i < this->truckRoute.size(); i++) {
        cout << this->truckRoute[i]->getID() << " ";
     }
+    
+    cout << "PREV TRUCK ROUTE: ";
+    for (int i = 0; i < this->prevTruckRoute.size(); i++) {
+        cout << this->prevTruckRoute[i] << " ";
+    }
+    cout << endl << "CURRENT ROUTES:" << endl;
 
     if (this->droneRoute.size() > 0) {
         cout << "| COST: " << this->deliveryCost;

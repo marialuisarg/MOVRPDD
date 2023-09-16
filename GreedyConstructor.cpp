@@ -75,9 +75,9 @@ void createTruckRoutes(Graph *g, Solution *sol, int *numRoutes, bool *droneRoute
     // calculates cost of each candidate
     for (int r = 0; r < sol->getNumRoutes(); r++) {
         for (int i = 0; i < candidates.size(); i++) {
-            double manhattanDistance = candidates[i]->manhattanDistance(g->getNode(0));
+            double manhattanDistance = g->getManhattanDistance(0, candidates[i]->getID());
             double cost = manhattanDistance * CT * 2;
-            candidatesCost.push_back(make_tuple(candidates[i]->getID(), r, cost,0,0));
+            candidatesCost.push_back(make_tuple(candidates[i]->getID(), r, cost, 0, 0));
         }
     }
 
