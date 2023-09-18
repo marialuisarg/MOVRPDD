@@ -20,10 +20,13 @@ class Population {
 
     public:
         Population(int size, int numClients, Graph *g, int QT);
+        Population(int size, int numClients, Graph *g, int QT, double alpha, int numIterations, int constructorType);
         ~Population();
         
         void include(vector<Solution*> sol, Graph *g);
         Solution* decode(vector<int> sol, Graph *g, int QT);
+
+        vector<vector<int>> getSolutions();
 
         void printEncodedSolution(vector<int> sol);
         void printDecodedSolution(Solution *sol);

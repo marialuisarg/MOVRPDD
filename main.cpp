@@ -16,6 +16,10 @@
 #include "GreedyConstructor.h"
 #include "RandomConstructor.h"
 
+#define GREEDY          0
+#define RANDOM_GREEDY   1
+#define RANDOM          2
+
 using namespace std;
 
 void printObjFunc(Solution* sol) {
@@ -87,20 +91,18 @@ int main(int argc, char const *argv[]) {
 
     } else if (argc == 6) {
         
-        Population p(numSolutions, numNodes-1, &graph, QT);
-
         float alpha = atof(argv[3]);
         int numIterations = atoi(argv[4]);
         int setSize = atoi(argv[5]);
 
+        Population p(setSize, numNodes-1, &graph, QT);
         vector<Solution*> randomSolutions = RandomConstructor(&graph, QT, alpha, numIterations, setSize);
         p.include(randomSolutions, &graph);
 
-        randomSolutions[0]->plotSolution(fileName, 0);
-        //cout << endl << "SOLUTIONS SET " << i;
+        //randomSolutions[0]->plotSolution(fileName, 0);
         //printObjFunc(randomSolutions[i]);
         
-        u.printSolutionsToFile(randomSolutions, fileName, "set");
+        u.printSolutionsToFile(randomSolutions, fileName, "set");   // using solutions from random constructor, before encoding
     }
 
     return 0;

@@ -1,4 +1,5 @@
 #include "Population.h"
+#include "RandomConstructor.h"
 #include <iostream>
 
 #include <vector>
@@ -14,6 +15,8 @@ using namespace std;
 #define TRUCK 2
 #define INF 999999999
 
+#define RANDOM_GREEDY 1
+
 #define QT 1000
 #define QD 5
 #define CB 500  // basis cost of using truck equipped with drone
@@ -26,18 +29,32 @@ Population::Population(int size, int numClients, Graph *g, int q) {
     this->currentSize = 0;
 };
 
+// starts population with constructor
+Population::Population(int size, int numClients, Graph *g, int q, double alpha, int numIterations, int constructorType) {
+    this->size = size;
+    this->numClients = numClients;
+    this->currentSize = 0;
+
+    vector<Solution*> sol = RandomConstructor(g, q, alpha, numIterations, size);
+    include(sol, g);
+};
+
 Population::~Population() {
 
 };
 
 void Population::include(vector<Solution*> sol, Graph *g) {
-    //for (auto it = sol.begin(); it != sol.end(); it++) {
-        vector<int> encodedSol = sol[0]->encode();
-        //solutions.push_back(encodedSol);
-        //currentSize++;
-    //}
+    for (auto it = sol.begin(); it != sol.end(); it++) {
+        vector<int> encodedSol = (*it)->encode();
+        solutions.push_back(encodedSol);
+        currentSize++;
+    }
 
-    Solution *s = decode(encodedSol, g, QT);
+    //Solution *s = decode(encodedSol, g, QT);
+};
+
+vector<vector<int>> Population::getSolutions() {
+    return solutions;
 };
 
 Solution* Population::decode(vector<int> sol, Graph *g, int q) {

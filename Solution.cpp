@@ -334,7 +334,7 @@ vector<int> Solution::encode() {
 };
 
 void Solution::printEncodedSolution(vector<int> sol) {
-    cout << endl << "-------------------" << endl;
+    cout << "-------------------" << endl;
     cout << "ENCODED SOLUTION: " << endl;
     for (auto it = sol.begin(); it != sol.end(); it++)
         cout << *it << " ";
