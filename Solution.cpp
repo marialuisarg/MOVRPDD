@@ -314,26 +314,32 @@ unsigned int Solution::random(int min, int max) {
     return randomNumber;
 }
 
-// vector<int> encodeSolution() {
-//     vector<int> encodedSolution;
-    
-//     // goes through every route, inserting back drone clients
-//     for (int i = 0; i < getNumRoutes(); i++) {
-//         Route *r = getRoutes(i);
-        
-//         // goes through every client in truck route
-//         for (int j = 0; j < r->getTruckRoute().size(); j++) {
-//             encodedSolution.push_back(r->getTruckRoute()[j]->getID());
-//         }
+vector<int> Solution::encode() {
 
-//         // goes through every client in drone route
-//         for (int j = 0; j < r->getDroneRoute().size(); j++) {
-//             encodedSolution.push_back(get<0>(r->getDroneRoute()[j]));
-//         }
-//     }
+    vector<int> encodedSol;
+    int numRoutes = getNumRoutes();
 
-//     return encodedSolution;
-// }
+    for (int i = 0; i < numRoutes; i++) {
+        Route *route = getRoute(i);
+        int numNodes = route->getPrevTruckRoute().size()-1;
+
+        for (int j = 0; j < numNodes; j++) 
+            encodedSol.push_back(route->getPrevTruckRoute()[j]);
+    }
+
+    encodedSol.push_back(0);
+    printEncodedSolution(encodedSol);
+
+    return encodedSol;
+};
+
+void Solution::printEncodedSolution(vector<int> sol) {
+    cout << endl << "-------------------" << endl;
+    cout << "ENCODED SOLUTION: " << endl;
+    for (auto it = sol.begin(); it != sol.end(); it++)
+        cout << *it << " ";
+    cout << endl << "-------------------" << endl;
+};
 
 Solution::~Solution() {
     routes.clear();

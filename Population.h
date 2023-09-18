@@ -1,8 +1,11 @@
 #ifndef POPULATION_H_INCLUDED
 #define POPULATION_H_INCLUDED
 
+#include "Graph.h"
 #include "Solution.h"
 #include "Route.h"
+#include "Node.h"
+#include "GreedyConstructor.h"
 #include <string>
 #include <vector>
 
@@ -16,12 +19,12 @@ class Population {
         vector<vector<int>> solutions;
 
     public:
-        Population(int size, int numClients);
+        Population(int size, int numClients, Graph *g, int QT);
         ~Population();
         
-        void include(vector<Solution*> sol);
-        vector<int> encode(Solution *sol);
-        Solution* decode(vector<int> sol);
+        void include(vector<Solution*> sol, Graph *g);
+        Solution* decode(vector<int> sol, Graph *g, int QT);
+
         void printEncodedSolution(vector<int> sol);
         void printDecodedSolution(Solution *sol);
         void printPopulation();

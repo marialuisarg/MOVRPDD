@@ -87,16 +87,16 @@ int main(int argc, char const *argv[]) {
 
     } else if (argc == 6) {
         
-        Population p(numSolutions, numNodes-1);
+        Population p(numSolutions, numNodes-1, &graph, QT);
 
         float alpha = atof(argv[3]);
         int numIterations = atoi(argv[4]);
         int setSize = atoi(argv[5]);
 
         vector<Solution*> randomSolutions = RandomConstructor(&graph, QT, alpha, numIterations, setSize);
-        p.include(randomSolutions);
+        p.include(randomSolutions, &graph);
 
-        //solutions[i]->plotSolution(fileName, i);
+        randomSolutions[0]->plotSolution(fileName, 0);
         //cout << endl << "SOLUTIONS SET " << i;
         //printObjFunc(randomSolutions[i]);
         

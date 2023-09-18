@@ -53,6 +53,7 @@ class Route {
         Node* getPrevNode(int position);
         Node* getNextNode(int position);
 
+        void insertClient(Node *client);
         bool insertClient(Node *client, long int prevNode);  // returns false if client can't be inserted
         void insertDroneFlight(tuple<int,int,int> flight);
 

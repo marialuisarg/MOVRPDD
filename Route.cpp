@@ -206,17 +206,22 @@ bool Route::insertClient(Node *client, long int prevNodeIndex) {
     return true;
 }
 
+void Route::insertClient(Node *client) {
+    this->truckRoute.insert(this->truckRoute.end() - 1, client);
+    this->updateCapacity(client->getDemand());
+}
+
 void Route::printRoute() {
-    cout << endl;
-    for (int i = 0; i < this->truckRoute.size(); i++) {
-       cout << this->truckRoute[i]->getID() << " ";
-    }
-    
+
     cout << "PREV TRUCK ROUTE: ";
     for (int i = 0; i < this->prevTruckRoute.size(); i++) {
         cout << this->prevTruckRoute[i] << " ";
     }
+
     cout << endl << "CURRENT ROUTES:" << endl;
+    for (int i = 0; i < this->truckRoute.size(); i++) {
+       cout << this->truckRoute[i]->getID() << " ";
+    }
 
     if (this->droneRoute.size() > 0) {
         cout << "| COST: " << this->deliveryCost;

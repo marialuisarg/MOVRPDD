@@ -73,10 +73,11 @@ class Solution {
 
         void printSolution();
         void printRoutes();
+        void printEncodedSolution(vector<int> sol);
 
         void plotSolution(string instance, int i);
 
-        vector<int> encodeSolution();
+        vector<int> encode();
 };
 
 #endif // SOLUTION_H_INCLUDED
