@@ -280,7 +280,7 @@ bool Solution::dominates(Solution *s) {
     double b_f2 = s->getTotalDeliveryCost();
     double b_f3 = s->getTotalDeliveryTime();
 
-    // checks if current solution dominates best solution
+    // checks if current solution dominates the other solution
     if (c_f1 < b_f1 && c_f2 <= b_f2 && c_f3 <= b_f3)
         return true;
     else if (c_f1 <= b_f1 && c_f2 < b_f2 && c_f3 <= b_f3)

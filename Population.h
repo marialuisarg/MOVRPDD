@@ -17,6 +17,7 @@ class Population {
         int currentSize;
         int numClients;
         vector<vector<int>> solutions;
+        vector<vector<vector<int>>> fronts;
 
     public:
         Population(int size, int numClients, Graph *g, int QT);
@@ -27,6 +28,7 @@ class Population {
         Solution* decode(vector<int> sol, Graph *g, int QT);
 
         vector<vector<int>> getSolutions();
+        void FNDS(Graph *g);                            // Fast Non-Dominated Sort
 
         void printEncodedSolution(vector<int> sol);
         void printDecodedSolution(Solution *sol);

@@ -20,6 +20,8 @@ class Solution {
         vector<pair<int, bool>> attendedClients;                    // (clientID, attended)
         vector<tuple<int, int, double, int, int>> candidatesCost;   // (clientID, routeIndex, cost, prevNode, nextNode)
         bool drone;
+        
+        int rank;
 
         double totalEnergyConsumption;                  // f1 
         double totalDeliveryCost;                       // f2    
@@ -35,6 +37,9 @@ class Solution {
         void setAttendedClient(int i, bool value) { this->attendedClients[i].second = value; };
         void setAttendedClients(vector<pair<int, bool>> attendedClients) { this->attendedClients = attendedClients; };
         
+        void setRank(int rank) { this->rank = rank; };
+        int getRank() { return this->rank; };
+
         vector<tuple<int, int, double, int, int>> getCandidatesCost() { return this->candidatesCost; };
         tuple<int, int, double, int, int> getCandidateCost(int i) { return this->candidatesCost[i]; };
         void setCandidateCost(int i, tuple<int, int, double, int, int> value) { this->candidatesCost[i] = value; };

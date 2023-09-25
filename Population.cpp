@@ -121,6 +121,34 @@ Solution* Population::decode(vector<int> sol, Graph *g, int q) {
     return decodedSol;
 };
 
+void Population::FNDS(Graph *g) {
+    // fast non-dominated sort (Deb, 2002)
+
+    for (const auto& solution : solutions) {
+        Solution *sol = decode(solution, g, QT);
+        int np = 0;                                 // number of solutions that dominate p
+        vector<vector<int>> sp;                     // set of solutions that p dominates
+
+        for (const auto& solution2 : solutions) {
+            Solution *sol2 = decode(solution2, g, QT);
+
+            if (sol->dominates(sol2)) 
+                sp.push_back(solution2);
+            else if (sol2->dominates(sol))
+                np++;
+        }
+
+        if (np == 0) {
+            sol->setRank(1);
+            fronts[0].push_back(solution);
+        }
+    }
+
+    int i = 1;                  // front counter
+    int n = solutions.size();   // number of solutions
+
+}
+
 void Population::printDecodedSolution(Solution *sol) {
     cout << "DECODED SOLUTION FUNCTIONS: " << endl;
     cout << "f1: " << sol->getTotalEnergyConsumption();
