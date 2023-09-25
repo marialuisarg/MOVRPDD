@@ -102,7 +102,7 @@ int main(int argc, char const *argv[]) {
         //randomSolutions[0]->plotSolution(fileName, 0);
         //printObjFunc(randomSolutions[i]);
         
-        u.printSolutionsToFile(randomSolutions, fileName, "set");   // using solutions from random constructor, before encoding
+        u.printSolutionsToFile(randomSolutions, fileName, "set", true);  
     }
 
     return 0;

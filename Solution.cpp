@@ -328,7 +328,7 @@ vector<int> Solution::encode() {
     }
 
     encodedSol.push_back(0);
-    printEncodedSolution(encodedSol);
+    //printEncodedSolution(encodedSol);
 
     return encodedSol;
 };

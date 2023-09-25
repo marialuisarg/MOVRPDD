@@ -122,7 +122,7 @@ void Utils::printSolutionsToFile(vector<Solution*> s, string instanceName) {
     int aux = system(command.c_str());
 }
 
-void Utils::printSolutionsToFile(vector<Solution*> s, string instanceName, string setName) {
+void Utils::printSolutionsToFile(vector<Solution*> s, string instanceName, string setName, bool normalized) {
     
     string filename = "./solutions/functions_" + setName + "_" + instanceName.erase(0,12);
     
@@ -131,6 +131,7 @@ void Utils::printSolutionsToFile(vector<Solution*> s, string instanceName, strin
     int nSolutions = s.size();
 
     double f1 = 0.0, f2 = 0.0, f3 = 0.0;
+    double max_f1 = 0.0, max_f2 = 0.0, max_f3 = 0.0;
 
     output_file << nSolutions << endl;
 
@@ -144,6 +145,6 @@ void Utils::printSolutionsToFile(vector<Solution*> s, string instanceName, strin
 
     output_file.close();
     
-    string command = "python printFuncToTable.py " + instanceName + " " + filename;
+    string command = "python printFuncToTable.py " + instanceName + " " + filename + " " + (normalized ? "True" : "False");
     int aux = system(command.c_str());
 }

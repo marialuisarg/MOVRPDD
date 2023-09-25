@@ -40,7 +40,6 @@ Population::Population(int size, int numClients, Graph *g, int q, double alpha, 
 };
 
 Population::~Population() {
-
 };
 
 void Population::include(vector<Solution*> sol, Graph *g) {
@@ -49,8 +48,6 @@ void Population::include(vector<Solution*> sol, Graph *g) {
         solutions.push_back(encodedSol);
         currentSize++;
     }
-
-    //Solution *s = decode(encodedSol, g, QT);
 };
 
 vector<vector<int>> Population::getSolutions() {
@@ -58,8 +55,6 @@ vector<vector<int>> Population::getSolutions() {
 };
 
 Solution* Population::decode(vector<int> sol, Graph *g, int q) {
-
-    cout << endl << "DECODED SOLUTION " << endl << "-------------------" << endl;
 
     Solution *decodedSol = new Solution(g, QT);
     int numRoutes = decodedSol->getNumRoutes();
@@ -86,18 +81,22 @@ Solution* Population::decode(vector<int> sol, Graph *g, int q) {
     // PASSING ROUTES TO SOLUTION
     double f1 = 0.0, f2 = 0.0, f3 = 0.0;
 
-    for (const auto& route : routes) {
-        Route *r = new Route(QT, QD, g->getNode(0));
-        Node *currentNode;
+    // creates routes
+    for (int i = 0; i < routes.size(); i++) {
+        Route r(QT, QD, g->getNode(0));
+        decodedSol->createRoute(r);
+    }
 
-        decodedSol->createRoute(*r);
+    int index = 0;
+
+    for (const auto& route : routes) {
+        Node *currentNode;
+        Route *r = decodedSol->getRoute(index);
 
         for (int num : route) {
             currentNode = g->getNode(num);
             r->insertClient(currentNode);
         }
-
-        cout << endl;
 
         r->updateEnergyConsumption(g, QT);
         r->updateDeliveryTime(g, ST, SD);
@@ -109,24 +108,22 @@ Solution* Population::decode(vector<int> sol, Graph *g, int q) {
             f3 = r->getDeliveryTime();
 
         r->registerPrevTruckRoute();
-        r->printRoute();
+        index++;
     }
 
     decodedSol->setTotalEnergyConsumption(f1);
     decodedSol->setTotalDeliveryCost(f2);
     decodedSol->setTotalDeliveryTime(f3);
 
-    // TODO: CREATE DRONE ROUTES
-    //createDroneRoutes(g, decodedSol);
-    decodedSol->printRoutes();
+    // CREATE DRONE ROUTES
+    createDroneRoutes(g, decodedSol);
 
     return decodedSol;
 };
 
 void Population::printDecodedSolution(Solution *sol) {
-
-};
-
-void Population::printPopulation() {
-
+    cout << "DECODED SOLUTION FUNCTIONS: " << endl;
+    cout << "f1: " << sol->getTotalEnergyConsumption();
+    cout << " | f2: " << sol->getTotalDeliveryCost();
+    cout << " | f3: " << sol->getTotalDeliveryTime() << endl;
 };
