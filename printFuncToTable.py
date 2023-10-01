@@ -61,15 +61,15 @@ def printNormalizedTable(inst, func):
         
             
     for i in range(numSol):
-        norm_f1 = (f1_set[i] - min(f1_set)) / (max(f1_set) - min(f1_set))
+        norm_f1 = (f1_set[i] - min(f1_set)) / (max(f1_set) - min(f1_set)) * (100 - 1) + 1
         smF1[0] = float(norm_f1)
         smF1[1] = i
         
-        norm_f2 = (f2_set[i] - min(f2_set)) / (max(f2_set) - min(f2_set))
+        norm_f2 = (f2_set[i] - min(f2_set)) / (max(f2_set) - min(f2_set)) * (100 - 1) + 1
         smF2[0] = float(norm_f2)
         smF2[1] = i
 
-        norm_f3 = (f3_set[i] - min(f3_set)) / (max(f3_set) - min(f3_set))
+        norm_f3 = (f3_set[i] - min(f3_set)) / (max(f3_set) - min(f3_set)) * (100 - 1) + 1
         smF3[0] = float(f3)
         smF3[1] = i
         

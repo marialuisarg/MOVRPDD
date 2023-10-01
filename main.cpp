@@ -100,7 +100,7 @@ int main(int argc, char const *argv[]) {
         p.include(randomSolutions);
         p.FNDS();
 
-        //randomSolutions[0]->plotSolution(fileName, 0);
+        randomSolutions[0]->plotSolution(fileName, 0);
         //printObjFunc(randomSolutions[i]);
         
         u.printSolutionsToFile(randomSolutions, fileName, "set", true);  
