@@ -16,23 +16,25 @@ class Population {
         int size;
         int currentSize;
         int numClients;
-        vector<vector<int>> solutions;
-        vector<vector<vector<int>>> fronts;
+        vector<Solution*> solutions;
+        vector<vector<Solution*>> fronts;
+        Graph *g;
 
     public:
         Population(int size, int numClients, Graph *g, int QT);
         Population(int size, int numClients, Graph *g, int QT, double alpha, int numIterations, int constructorType);
         ~Population();
         
-        void include(vector<Solution*> sol, Graph *g);
-        Solution* decode(vector<int> sol, Graph *g, int QT);
+        void include(vector<Solution*> sol);
+        Solution* decode(vector<int> sol, int QT);
 
-        vector<vector<int>> getSolutions();
-        void FNDS(Graph *g);                            // Fast Non-Dominated Sort
+        vector<Solution*> getSolutions();
+        void FNDS();                            // Fast Non-Dominated Sort
 
         void printEncodedSolution(vector<int> sol);
         void printDecodedSolution(Solution *sol);
         void printPopulation();
+        void printFronts();
 
 };
 

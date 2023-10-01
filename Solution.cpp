@@ -33,6 +33,7 @@ Solution::Solution(Graph *g, int QT) {
     this->totalEnergyConsumption = 0.0;
     this->totalDeliveryTime = 0.0;
     this->drone = false;
+    this->dominatedBy = 0;
 
     // calculates demand and divides by max load capacity of trucks to get num of routes
     setNumRoutes(ceil(g->getTotalDemand() / QT));

@@ -97,12 +97,14 @@ int main(int argc, char const *argv[]) {
 
         Population p(setSize, numNodes-1, &graph, QT);
         vector<Solution*> randomSolutions = RandomConstructor(&graph, QT, alpha, numIterations, setSize);
-        p.include(randomSolutions, &graph);
+        p.include(randomSolutions);
+        p.FNDS();
 
         //randomSolutions[0]->plotSolution(fileName, 0);
         //printObjFunc(randomSolutions[i]);
         
         u.printSolutionsToFile(randomSolutions, fileName, "set", true);  
+        p.printFronts();
     }
 
     return 0;

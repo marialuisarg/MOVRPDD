@@ -23,38 +23,40 @@ using namespace std;
 #define ST 60   // average travel speed of trucks
 #define SD 65   // average travel speed of drones
 
+// starts population without routes constructor
 Population::Population(int size, int numClients, Graph *g, int q) {
     this->size = size;
     this->numClients = numClients;
     this->currentSize = 0;
+    this->g = g;
 };
 
-// starts population with constructor
+// starts population with routes constructor
 Population::Population(int size, int numClients, Graph *g, int q, double alpha, int numIterations, int constructorType) {
     this->size = size;
     this->numClients = numClients;
     this->currentSize = 0;
+    this->g = g;
 
     vector<Solution*> sol = RandomConstructor(g, q, alpha, numIterations, size);
-    include(sol, g);
+    include(sol);
 };
 
 Population::~Population() {
 };
 
-void Population::include(vector<Solution*> sol, Graph *g) {
+void Population::include(vector<Solution*> sol) {
     for (auto it = sol.begin(); it != sol.end(); it++) {
-        vector<int> encodedSol = (*it)->encode();
-        solutions.push_back(encodedSol);
+        solutions.push_back((*it));
         currentSize++;
     }
 };
 
-vector<vector<int>> Population::getSolutions() {
+vector<Solution*> Population::getSolutions() {
     return solutions;
 };
 
-Solution* Population::decode(vector<int> sol, Graph *g, int q) {
+Solution* Population::decode(vector<int> sol, int q) {
 
     Solution *decodedSol = new Solution(g, QT);
     int numRoutes = decodedSol->getNumRoutes();
@@ -121,32 +123,59 @@ Solution* Population::decode(vector<int> sol, Graph *g, int q) {
     return decodedSol;
 };
 
-void Population::FNDS(Graph *g) {
+void Population::FNDS() {
+
     // fast non-dominated sort (Deb, 2002)
+    vector<Solution*> Fi; 
 
-    for (const auto& solution : solutions) {
-        Solution *sol = decode(solution, g, QT);
+    for (const auto& solution : solutions) {        // for each solution p in population
+        vector<int> sp;                             // index of solutions that p dominates
+        int index = 0;
         int np = 0;                                 // number of solutions that dominate p
-        vector<vector<int>> sp;                     // set of solutions that p dominates
 
-        for (const auto& solution2 : solutions) {
-            Solution *sol2 = decode(solution2, g, QT);
-
-            if (sol->dominates(sol2)) 
-                sp.push_back(solution2);
-            else if (sol2->dominates(sol))
+        for (const auto& solution2 : solutions) {   // for each solution q in population
+            if (solution->dominates(solution2))     
+                sp.push_back(index);                
+            else if (solution2->dominates(solution))
                 np++;
+            
+            index++;
         }
 
         if (np == 0) {
-            sol->setRank(1);
-            fronts[0].push_back(solution);
+            solution->setRank(1);
+            Fi.push_back(solution);
         }
+
+        solution->setDominatedSolutions(sp);
+        solution->setDominatedBy(np);
     }
 
     int i = 1;                  // front counter
-    int n = solutions.size();   // number of solutions
 
+    while (Fi.size() != 0) {
+        fronts.push_back(Fi);
+
+        vector<Solution*> Q;    // set of solutions that will be included in front i+1
+
+        for (const auto& p : Fi) {   
+            vector<int> sp = p->getDominatedSolutions();
+
+            for (const auto& q : sp) {  
+                Solution *sol = solutions[q];
+                sol->setDominatedBy(sol->getDominatedBy()-1);
+
+                // if solution is not dominated by any other solution, it belongs to the next front
+                if (sol->getDominatedBy() == 0) {
+                    sol->setRank(i+1);
+                    Q.push_back(sol);
+                }
+            }
+        }
+
+        i++;
+        Fi = Q;
+    };
 }
 
 void Population::printDecodedSolution(Solution *sol) {
@@ -154,4 +183,22 @@ void Population::printDecodedSolution(Solution *sol) {
     cout << "f1: " << sol->getTotalEnergyConsumption();
     cout << " | f2: " << sol->getTotalDeliveryCost();
     cout << " | f3: " << sol->getTotalDeliveryTime() << endl;
+};
+
+void Population::printFronts() {
+    int i = 1;
+    cout << "-----------------------" << endl;
+    cout << "PARETO FRONTS" << endl;
+    cout << "-----------------------" << endl;
+
+    for (const auto& front : fronts) {
+        cout << "Front " << i << endl;
+        for (const auto& solution : front) {
+            cout << "f1: " << solution->getTotalEnergyConsumption();
+            cout << " | f2: " << solution->getTotalDeliveryCost();
+            cout << " | f3: " << solution->getTotalDeliveryTime() << endl;
+        }
+        i++;
+        cout << endl;
+    }
 };

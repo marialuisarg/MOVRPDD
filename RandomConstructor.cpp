@@ -49,7 +49,6 @@ vector<Solution*> RandomConstructor(Graph *g, int QT, double alpha, int numItera
 
         // checks if best solutions set is full
         if (bestSolutions.size() == setSize) {
-            cout << "Best solutions set is full" << endl;
             break;
         }
 
