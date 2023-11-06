@@ -13,28 +13,33 @@ using namespace std;
 
 class Population {
     private:
-        int size;
-        int currentSize;
-        int numClients;
-        vector<Solution*> solutions;
-        vector<vector<Solution*>> fronts;
-        Graph *g;
+        int                         size;
+        int                         currentSize;
+        int                         numClients;
+        vector<Solution*>           solutions;
+        vector<vector<Solution*>>   fronts;
+        Graph*                      g;
 
     public:
         Population(int size, int numClients, Graph *g, int QT);
         Population(int size, int numClients, Graph *g, int QT, double alpha, int numIterations, int constructorType);
         ~Population();
         
-        void include(vector<Solution*> sol);
-        Solution* decode(vector<int> sol, int QT);
+        void                include(vector<Solution*> sol);
+        Solution*           decode(vector<int> sol, int QT);
 
-        vector<Solution*> getSolutions();
-        void FNDS();                            // Fast Non-Dominated Sort
+        vector<Solution*>   getSolutions();
+        int                 getSize() { return this->size; };
 
-        void printEncodedSolution(vector<int> sol);
-        void printDecodedSolution(Solution *sol);
-        void printPopulation();
-        void printFronts();
+        void                FNDS();                                                 // Fast Non-Dominated Sort
+        void                crowdingDistance(vector<Solution*> &ndSet);             // Crowding Distance Assignment
+        void                sortByObjective(int obj, vector<Solution*> &ndSet);     // Sort population by objective 
+        void                cdPopulation();
+
+        void                printEncodedSolution(vector<int> sol);
+        void                printDecodedSolution(Solution *sol);
+        void                printPopulation();
+        void                printFronts();
 
 };
 

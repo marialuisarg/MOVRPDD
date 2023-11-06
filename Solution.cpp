@@ -334,6 +334,16 @@ vector<int> Solution::encode() {
     return encodedSol;
 };
 
+double Solution::getObjective(int obj) {
+    if (obj == 0)
+        return getTotalEnergyConsumption();
+
+    if (obj == 1)
+        return getTotalDeliveryCost();
+    
+    return getTotalDeliveryTime();
+}
+
 void Solution::printEncodedSolution(vector<int> sol) {
     cout << "-------------------" << endl;
     cout << "ENCODED SOLUTION: " << endl;
@@ -344,4 +354,4 @@ void Solution::printEncodedSolution(vector<int> sol) {
 
 Solution::~Solution() {
     routes.clear();
-}
+};

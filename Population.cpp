@@ -7,6 +7,7 @@
 #include <cmath>
 #include <random>
 #include <tuple>
+#include <algorithm>
 
 using namespace std;
 
@@ -124,7 +125,6 @@ Solution* Population::decode(vector<int> sol, int q) {
 };
 
 void Population::FNDS() {
-
     // fast non-dominated sort (Deb, 2002)
     vector<Solution*> Fi; 
 
@@ -178,6 +178,68 @@ void Population::FNDS() {
     };
 }
 
+void Population::sortByObjective(int objective, vector<Solution*> &ndSet) {
+    switch (objective) {
+    case 0:
+        sort(ndSet.begin(), ndSet.end(), [](Solution *a, Solution *b) {
+            return a->getTotalEnergyConsumption() < b->getTotalEnergyConsumption();
+        });
+
+        break;
+
+    case 1:
+        sort(ndSet.begin(), ndSet.end(), [](Solution *a, Solution *b) {
+            return a->getTotalDeliveryCost() < b->getTotalDeliveryCost();
+        });
+
+        break;
+    
+    case 2:
+        sort(ndSet.begin(), ndSet.end(), [](Solution *a, Solution *b) {
+            return a->getTotalDeliveryTime() < b->getTotalDeliveryTime();
+        });
+
+        break;
+
+    default:
+        break;
+    }
+}
+
+void Population::crowdingDistance(vector<Solution*> &ndSet) {
+    // Crowding Distance (Deb, 2002)
+    // given a set of non-dominated solutions, this function calculates the crowding distance of each solution
+
+    int numSolutions = ndSet.size();
+
+    for (const auto &solution : ndSet)
+        solution->setCrDistance(0);
+
+    for (int i = 0; i < 3; i++) {
+        sortByObjective(i, ndSet);
+
+        ndSet[0]->setCrDistance(INF);
+        ndSet[numSolutions-1]->setCrDistance(INF);
+        
+        double fmin = ndSet[0]->getObjective(i);
+        double fmax = ndSet[numSolutions-1]->getObjective(i);
+
+        for (int j = 1; j < numSolutions-1; j++) {
+            double distance = ndSet[j+1]->getObjective(i) - ndSet[j-1]->getObjective(i);
+            distance /= fmax - fmin;
+            distance += ndSet[j]->getCrDistance();
+            ndSet[j]->setCrDistance(distance);
+        }
+    }
+
+}
+
+void Population::cdPopulation() {
+    for (auto &front : fronts) {
+        crowdingDistance(front);
+    }
+}
+
 void Population::printDecodedSolution(Solution *sol) {
     cout << "DECODED SOLUTION FUNCTIONS: " << endl;
     cout << "f1: " << sol->getTotalEnergyConsumption();
@@ -189,15 +251,19 @@ void Population::printFronts() {
     int i = 1;
     cout << "-----------------------" << endl;
     cout << "PARETO FRONTS" << endl;
-    cout << "-----------------------" << endl;
+    cout << "----------------------- " << endl;
+
+    cdPopulation();
 
     for (const auto& front : fronts) {
         cout << "Front " << i << endl;
         for (const auto& solution : front) {
             cout << "f1: " << solution->getTotalEnergyConsumption();
             cout << " | f2: " << solution->getTotalDeliveryCost();
-            cout << " | f3: " << solution->getTotalDeliveryTime() << endl;
+            cout << " | f3: " << solution->getTotalDeliveryTime();
+            cout << " [C.D. = " << solution->getCrDistance() << "]" << endl;
         }
+
         i++;
         cout << endl;
     }

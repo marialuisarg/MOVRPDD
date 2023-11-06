@@ -21,8 +21,9 @@ class Solution {
         vector<tuple<int, int, double, int, int>> candidatesCost;   // (clientID, routeIndex, cost, prevNode, nextNode)
         bool drone;
         
-        int rank;                                                   // ranking for fast non-dominated sort
-        int dominatedBy;                                            // number of solutions that dominate this solution
+        int         rank;                                           // ranking for fast non-dominated sort
+        int         dominatedBy;                                    // number of solutions that dominate this solution
+        double      crDistance;                                     // crowding distance
         vector<int> dominatedSolutions;                             // list of dominated solutions indexes
 
         double totalEnergyConsumption;                  // f1 
@@ -40,18 +41,20 @@ class Solution {
         void setAttendedClients(vector<pair<int, bool>> attendedClients) { this->attendedClients = attendedClients; };
         
         void setRank(int rank) { this->rank = rank; };
+        void setCrDistance(double dist) { this->crDistance = dist; };
         int getRank() { return this->rank; };
         void setDominatedSolutions(vector<int> dominatedSolutions) { this->dominatedSolutions = dominatedSolutions; };
         vector<int> getDominatedSolutions() { return this->dominatedSolutions; };
         void setDominatedBy(int dominatedBy) { this->dominatedBy = dominatedBy; };
         int getDominatedBy() { return this->dominatedBy; };
-
         vector<tuple<int, int, double, int, int>> getCandidatesCost() { return this->candidatesCost; };
         tuple<int, int, double, int, int> getCandidateCost(int i) { return this->candidatesCost[i]; };
         void setCandidateCost(int i, tuple<int, int, double, int, int> value) { this->candidatesCost[i] = value; };
         void setCandidatesCost(vector<tuple<int, int, double, int, int>> candidatesCost) { this->candidatesCost = candidatesCost; };
         void eraseCandidateCostAt(int i);
 
+        double getObjective(int i);
+        double getCrDistance() { return this->crDistance; };
         vector<Route> getRoutes();
         Route* getRoute(int i) { return &(this->routes[i]); };
         int getQT() { return this->QT; };
