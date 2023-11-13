@@ -99,6 +99,7 @@ int main(int argc, char const *argv[]) {
         vector<Solution*> randomSolutions = RandomConstructor(&graph, QT, alpha, numIterations, setSize);
         p.include(randomSolutions);
         p.FNDS();
+        vector<int> c = p.PMX(randomSolutions[0], randomSolutions[1]);
 
         //randomSolutions[0]->plotSolution(fileName, 0);
         //printObjFunc(randomSolutions[i]);

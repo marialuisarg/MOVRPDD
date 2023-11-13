@@ -240,6 +240,134 @@ void Population::cdPopulation() {
     }
 }
 
+void printCrossover(vector<int> parent1, vector<int> parent2, vector<int> child) {
+    cout << "P1: ";
+    for (int i = 0; i < parent1.size(); i++) {
+        cout << parent1[i] << " ";
+    }
+
+    cout << endl;
+
+    cout << "P2: ";
+    for (int i = 0; i < parent2.size(); i++) {
+        cout << parent2[i] << " ";
+    }
+
+    cout << endl;
+
+    cout << "CH: ";
+    for (int i = 0; i < child.size(); i++) {
+        cout << child[i] << " ";
+    }
+
+    cout << endl;
+}
+
+vector<int> Population::PMX(Solution *p1, Solution *p2) {
+    cout << "----------------" << endl;
+    cout << "Executing PMX" << endl;
+    cout << "----------------" << endl;
+
+    // encode parents
+    vector<int> parent1 = p1->encode();
+    vector<int> parent2 = p2->encode();
+
+    // remove depots from parents
+    parent1.erase(parent1.begin());
+    parent1.erase(parent1.end()-1);
+    parent2.erase(parent2.begin());
+    parent2.erase(parent2.end()-1);
+
+    // generate random crossover points
+    random_device rd;
+    mt19937 gen(rd());
+    uniform_int_distribution<> dis(0, parent1.size()-1);
+
+    int cp1, cp2 = 0;
+
+    while (parent1[cp1] == 0) 
+        cp1 = dis(gen);
+    
+    while (parent1[cp2] == 0 || cp2 == cp1)
+        cp2 = dis(gen);
+
+    if (cp1 > cp2) {
+        int aux = cp1;
+        cp1 = cp2;
+        cp2 = aux;
+    }
+
+    cout << "CP1: [" << cp1 << "] " << parent1[cp1] << endl;
+    cout << "CP2: [" << cp2 << "] " << parent1[cp2] << endl;
+
+    vector<int> child(parent1.size(), -1);
+
+    // the segment between the two crossover points is copied from parent 1 to child
+    for (int i = cp1; i < cp2; i++) {
+        child[i] = parent1[i];
+    }
+
+    printCrossover(parent1, parent2, child);
+    cout << endl;
+
+    // Looking in the same segment positions in parent 2, select each value that hasn't already been copied to the child. For each value:
+    for (int i = cp1; i < cp2; i++) {
+
+        int num = parent2[i];
+
+        // if the number has already been copied to child, skip
+        if (find(child.begin(), child.end(), num) != child.end()) {
+            cout << num << " já está no filho." << endl;
+            continue;
+        }
+
+        int indexP1 = i, indexP2 = i;
+        bool inserted = false;
+
+        while (!inserted) {
+            int valueP1 = parent1[indexP1];
+            int valueP2 = parent2[indexP2];
+
+            // Locate V in parent 2.
+            auto it = find(parent2.begin(), parent2.end(), valueP1);
+            int indexP2 = distance(parent2.begin(), it);
+
+            // If the index of this value in Parent 2 is part of the original swath, go to step i. using this value.
+            if (indexP2 >= cp1 && indexP2 < cp2) {
+                cout << valueP1 << " está na posição " << indexP2 << " no P2 e já está no swatch original."<< endl;
+                indexP1 = indexP2;
+                continue;
+            }
+
+            // If the position isn't part of the original swath, insert Step A's value into the child in this position.
+            if (child[indexP2] == -1) {
+                cout << valueP1<< " está na posição " << indexP2 << " no P2, vazia no filho. Inserindo " << num << endl;
+                child[indexP2] = num;
+                printCrossover(parent1, parent2, child);
+                inserted = true;
+            }
+        }
+    }
+
+    // copy the remaining genes from parent 2 to child
+    for (int i = 0; i < parent2.size(); i++) {
+        if (child[i] == -1)
+            child[i] = parent2[i];
+    }
+
+    // inserting back depots
+    child.insert(child.begin(), 0);
+    child.insert(child.end(), 0);
+    parent1.insert(parent1.begin(), 0);
+    parent1.insert(parent1.end(), 0);
+    parent2.insert(parent2.begin(), 0);
+    parent2.insert(parent2.end(), 0);
+
+    printCrossover(parent1, parent2, child);
+
+    return child;
+}
+
 void Population::printDecodedSolution(Solution *sol) {
     cout << "DECODED SOLUTION FUNCTIONS: " << endl;
     cout << "f1: " << sol->getTotalEnergyConsumption();

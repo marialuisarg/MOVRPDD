@@ -8,6 +8,7 @@
 #include "GreedyConstructor.h"
 #include <string>
 #include <vector>
+#include <map>
 
 using namespace std;
 
@@ -34,7 +35,9 @@ class Population {
         void                FNDS();                                                 // Fast Non-Dominated Sort
         void                crowdingDistance(vector<Solution*> &ndSet);             // Crowding Distance Assignment
         void                sortByObjective(int obj, vector<Solution*> &ndSet);     // Sort population by objective 
-        void                cdPopulation();
+        void                cdPopulation();                                         // aux method to calculate crowding distance for all solutions in population
+
+        vector<int>         PMX(Solution *p1, Solution *p2);
 
         void                printEncodedSolution(vector<int> sol);
         void                printDecodedSolution(Solution *sol);
