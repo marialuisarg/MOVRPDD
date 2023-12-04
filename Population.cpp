@@ -272,24 +272,15 @@ vector<int> Population::PMX(Solution *p1, Solution *p2) {
     vector<int> parent1 = p1->encode();
     vector<int> parent2 = p2->encode();
 
-    // remove depots from parents
-    parent1.erase(parent1.begin());
-    parent1.erase(parent1.end()-1);
-    parent2.erase(parent2.begin());
-    parent2.erase(parent2.end()-1);
+
+    int cromossomeSize = parent1.size();
 
     // generate random crossover points
-    random_device rd;
-    mt19937 gen(rd());
-    uniform_int_distribution<> dis(0, parent1.size()-1);
-
-    int cp1, cp2 = 0;
-
-    while (parent1[cp1] == 0) 
-        cp1 = dis(gen);
+    int cp2 = 0, cp1 = rand() % (cromossomeSize-1);
     
-    while (parent1[cp2] == 0 || cp2 == cp1)
-        cp2 = dis(gen);
+    while (cp2 == cp1 || cp2 == 0) {
+        cp2 = rand() % (cromossomeSize-1);
+    }
 
     if (cp1 > cp2) {
         int aux = cp1;
@@ -297,73 +288,62 @@ vector<int> Population::PMX(Solution *p1, Solution *p2) {
         cp2 = aux;
     }
 
-    cout << "CP1: [" << cp1 << "] " << parent1[cp1] << endl;
-    cout << "CP2: [" << cp2 << "] " << parent1[cp2] << endl;
+    vector<int> child = parent2;
+    vector is_direct(cromossomeSize, false);
 
-    vector<int> child(parent1.size(), -1);
-
-    // the segment between the two crossover points is copied from parent 1 to child
-    for (int i = cp1; i < cp2; i++) {
-        child[i] = parent1[i];
-    }
-
+    cout << "CH before crossover:" << endl;
     printCrossover(parent1, parent2, child);
     cout << endl;
 
-    // Looking in the same segment positions in parent 2, select each value that hasn't already been copied to the child. For each value:
-    for (int i = cp1; i < cp2; i++) {
-
-        int num = parent2[i];
-
-        // if the number has already been copied to child, skip
-        if (find(child.begin(), child.end(), num) != child.end()) {
-            cout << num << " já está no filho." << endl;
-            continue;
-        }
-
-        int indexP1 = i, indexP2 = i;
-        bool inserted = false;
-
-        while (!inserted) {
-            int valueP1 = parent1[indexP1];
-            int valueP2 = parent2[indexP2];
-
-            // Locate V in parent 2.
-            auto it = find(parent2.begin(), parent2.end(), valueP1);
-            int indexP2 = distance(parent2.begin(), it);
-
-            // If the index of this value in Parent 2 is part of the original swath, go to step i. using this value.
-            if (indexP2 >= cp1 && indexP2 < cp2) {
-                cout << valueP1 << " está na posição " << indexP2 << " no P2 e já está no swatch original."<< endl;
-                indexP1 = indexP2;
-                continue;
-            }
-
-            // If the position isn't part of the original swath, insert Step A's value into the child in this position.
-            if (child[indexP2] == -1) {
-                cout << valueP1<< " está na posição " << indexP2 << " no P2, vazia no filho. Inserindo " << num << endl;
-                child[indexP2] = num;
-                printCrossover(parent1, parent2, child);
-                inserted = true;
-            }
-        }
+    for (size_t i = cp1; i < cp2; i++) {
+        child[i] = parent1[i];
+        is_direct[parent1[i]] = true;
     }
 
-    // copy the remaining genes from parent 2 to child
-    for (int i = 0; i < parent2.size(); i++) {
-        if (child[i] == -1)
-            child[i] = parent2[i];
-    }
-
-    // inserting back depots
-    child.insert(child.begin(), 0);
-    child.insert(child.end(), 0);
-    parent1.insert(parent1.begin(), 0);
-    parent1.insert(parent1.end(), 0);
-    parent2.insert(parent2.begin(), 0);
-    parent2.insert(parent2.end(), 0);
-
+    cout << "Copying offspring from parent 1 to child (between [" << cp1 << "] = " << parent1[cp1] << " and [" << cp2 << "] = " << parent1[cp2] << "):" << endl;
     printCrossover(parent1, parent2, child);
+
+    vector index_lookup(cromossomeSize, 0);
+
+    for (size_t i = 0; i < cromossomeSize; i++) {
+        index_lookup[parent2[i]] = i;
+    }
+
+    for (size_t i = cp1; i < cp2; i++) {
+        if (!is_direct[parent2[i]]) {
+            size_t pos = i;
+            while (cp1 <= pos && pos < cp2) {
+                pos = index_lookup[parent1[pos]];
+            }
+            
+            child[pos] = parent2[i];
+        }
+    }
+
+    cout << endl;
+    cout << "After crossover:" << endl;
+    printCrossover(parent1, parent2, child);
+
+    //check if some client is missing or duplicated
+    map<int, int> clients;
+
+    for (int i = 0; i < cromossomeSize; i++) {
+        if (clients.find(child[i]) == clients.end()) {
+            clients[child[i]] = 1;
+        } else {
+            clients[child[i]]++;
+        }
+    }
+
+    if (clients.size() == cromossomeSize) {
+        cout << endl <<  "No client is missing or duplicated!" << endl;
+    }
+
+    for (const auto& client : clients) {
+        if (client.second > 1) {
+            cout << "Client " << client.first << " appears " << client.second << " times" << endl;
+        }
+    }
 
     return child;
 }

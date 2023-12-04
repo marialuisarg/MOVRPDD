@@ -316,20 +316,32 @@ unsigned int Solution::random(int min, int max) {
 }
 
 vector<int> Solution::encode() {
+    // first marker = 0
+    // other markers = numClients + 1, numClients + 2, ...
 
     vector<int> encodedSol;
+    int marker = this->getNumClients() + 1;
     int numRoutes = getNumRoutes();
-
+    
     for (int i = 0; i < numRoutes; i++) {
         Route *route = getRoute(i);
         int numNodes = route->getPrevTruckRoute().size()-1;
 
-        for (int j = 0; j < numNodes; j++) 
+        for (int j = 1; j < numNodes; j++) 
             encodedSol.push_back(route->getPrevTruckRoute()[j]);
+
+        if (i == numRoutes-1) break;
+
+        if (i != 0) {
+            encodedSol.push_back(marker);
+            cout << "inserindo marcador " << marker << " na posicao " << encodedSol.size()-1 << endl;
+            marker++;
+        } else {
+            encodedSol.push_back(0);
+        }
     }
 
-    encodedSol.push_back(0);
-    //printEncodedSolution(encodedSol);
+    printEncodedSolution(encodedSol);
 
     return encodedSol;
 };
