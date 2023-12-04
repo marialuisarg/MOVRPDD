@@ -67,7 +67,7 @@ Solution* Population::decode(vector<int> sol, int q) {
     vector<vector<int>> routes;
     
     for (int num : sol) {
-        if (num == 0) {
+        if (num == 0 || num > numClients) {
             if (!currentRoute.empty()) {
                 routes.push_back(currentRoute);
                 currentRoute.clear();
@@ -345,11 +345,24 @@ vector<int> Population::PMX(Solution *p1, Solution *p2) {
         }
     }
 
+    cout << endl << "DECODED CHILD: " << endl;
+    printDecodedSolution(decode(child, QT));
+
     return child;
 }
 
 void Population::printDecodedSolution(Solution *sol) {
+    for (int i = 0; i < sol->getNumRoutes(); i++) {
+        Route *r = sol->getRoute(i);
+        cout << "Route " << i << ": ";
+        for (int j = 0; j < r->getTruckRoute().size(); j++) {
+            cout << r->getTruckRoute()[j]->getID() << " ";
+        }
+        cout << endl;
+    }
+    
     cout << "DECODED SOLUTION FUNCTIONS: " << endl;
+
     cout << "f1: " << sol->getTotalEnergyConsumption();
     cout << " | f2: " << sol->getTotalDeliveryCost();
     cout << " | f3: " << sol->getTotalDeliveryTime() << endl;
