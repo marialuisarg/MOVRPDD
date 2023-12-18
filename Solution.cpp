@@ -334,7 +334,7 @@ vector<int> Solution::encode() {
 
         if (i != 0) {
             encodedSol.push_back(marker);
-            cout << "inserindo marcador " << marker << " na posicao " << encodedSol.size()-1 << endl;
+            cout << "Inserting marker " << marker << " at position " << encodedSol.size()-1 << endl;
             marker++;
         } else {
             encodedSol.push_back(0);

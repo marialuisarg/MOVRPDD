@@ -27,16 +27,18 @@ class Population {
         ~Population();
         
         void                include(vector<Solution*> sol);
+        void                include(Solution* sol);
         Solution*           decode(vector<int> sol, int QT);
 
         vector<Solution*>   getSolutions();
+        vector<Solution*>   getFront(int i) { return this->fronts[i]; };
         int                 getSize() { return this->size; };
+        int                 getCurrentSize() { return this->currentSize; };
 
         void                FNDS();                                                 // Fast Non-Dominated Sort
         void                crowdingDistance(vector<Solution*> &ndSet);             // Crowding Distance Assignment
         void                sortByObjective(int obj, vector<Solution*> &ndSet);     // Sort population by objective 
         void                cdPopulation();                                         // aux method to calculate crowding distance for all solutions in population
-
         vector<int>         PMX(Solution *p1, Solution *p2);
 
         void                printEncodedSolution(vector<int> sol);

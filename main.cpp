@@ -13,6 +13,7 @@
 #include "Solution.h"
 #include "Population.h"
 
+#include "ENSGA2.hpp"
 #include "GreedyConstructor.h"
 #include "RandomConstructor.h"
 
@@ -95,17 +96,9 @@ int main(int argc, char const *argv[]) {
         int numIterations = atoi(argv[4]);
         int setSize = atoi(argv[5]);
 
-        Population p(setSize, numNodes-1, &graph, QT);
-        vector<Solution*> randomSolutions = RandomConstructor(&graph, QT, alpha, numIterations, setSize);
-        p.include(randomSolutions);
-        p.FNDS();
-        vector<int> c = p.PMX(randomSolutions[0], randomSolutions[1]);
-
-        //randomSolutions[0]->plotSolution(fileName, 0);
-        //printObjFunc(randomSolutions[i]);
-        
-        u.printSolutionsToFile(randomSolutions, fileName, "set", true);  
-        p.printFronts();
+        // ENSGA2
+        ENSGA2::run(setSize, numNodes, &graph, QT, alpha, numIterations);
+        //u.printSolutionsToFile(randomSolutions, fileName, "set", true);  
     }
 
     return 0;

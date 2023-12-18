@@ -53,6 +53,11 @@ void Population::include(vector<Solution*> sol) {
     }
 };
 
+void Population::include(Solution* sol) {
+    solutions.push_back(sol);
+    currentSize++;
+};
+
 vector<Solution*> Population::getSolutions() {
     return solutions;
 };
@@ -234,12 +239,6 @@ void Population::crowdingDistance(vector<Solution*> &ndSet) {
 
 }
 
-void Population::cdPopulation() {
-    for (auto &front : fronts) {
-        crowdingDistance(front);
-    }
-}
-
 void printCrossover(vector<int> parent1, vector<int> parent2, vector<int> child) {
     cout << "P1: ";
     for (int i = 0; i < parent1.size(); i++) {
@@ -264,9 +263,9 @@ void printCrossover(vector<int> parent1, vector<int> parent2, vector<int> child)
 }
 
 vector<int> Population::PMX(Solution *p1, Solution *p2) {
-    cout << "----------------" << endl;
-    cout << "Executing PMX" << endl;
-    cout << "----------------" << endl;
+    std::cout << "----------------" << std::endl;
+    std::cout << "Executing PMX" << std::endl;
+    std::cout << "----------------" << std::endl;
 
     // encode parents
     vector<int> parent1 = p1->encode();
@@ -291,16 +290,16 @@ vector<int> Population::PMX(Solution *p1, Solution *p2) {
     vector<int> child = parent2;
     vector is_direct(cromossomeSize, false);
 
-    cout << "CH before crossover:" << endl;
+    std::cout << "CH before crossover:" << std::endl;
     printCrossover(parent1, parent2, child);
-    cout << endl;
+    std::cout << std::endl;
 
     for (size_t i = cp1; i < cp2; i++) {
         child[i] = parent1[i];
         is_direct[parent1[i]] = true;
     }
 
-    cout << "Copying offspring from parent 1 to child (between [" << cp1 << "] = " << parent1[cp1] << " and [" << cp2 << "] = " << parent1[cp2] << "):" << endl;
+    std::cout << "Copying offspring from parent 1 to child (between [" << cp1 << "] = " << parent1[cp1] << " and [" << cp2 << "] = " << parent1[cp2] << "):" << std::endl;
     printCrossover(parent1, parent2, child);
 
     vector index_lookup(cromossomeSize, 0);
@@ -320,53 +319,42 @@ vector<int> Population::PMX(Solution *p1, Solution *p2) {
         }
     }
 
-    cout << endl;
-    cout << "After crossover:" << endl;
+    std::cout << std::endl;
+    std::cout << "After crossover:" << std::endl;
     printCrossover(parent1, parent2, child);
 
     //check if some client is missing or duplicated
-    map<int, int> clients;
+    // map<int, int> clients;
 
-    for (int i = 0; i < cromossomeSize; i++) {
-        if (clients.find(child[i]) == clients.end()) {
-            clients[child[i]] = 1;
-        } else {
-            clients[child[i]]++;
-        }
-    }
+    // for (int i = 0; i < cromossomeSize; i++) {
+    //     if (clients.find(child[i]) == clients.end()) {
+    //         clients[child[i]] = 1;
+    //     } else {
+    //         clients[child[i]]++;
+    //     }
+    // }
 
-    if (clients.size() == cromossomeSize) {
-        cout << endl <<  "No client is missing or duplicated!" << endl;
-    }
+    // if (clients.size() == cromossomeSize) {
+    //     std::cout << std::endl <<  "No client is missing or duplicated!" << std::endl;
+    // }
 
-    for (const auto& client : clients) {
-        if (client.second > 1) {
-            cout << "Client " << client.first << " appears " << client.second << " times" << endl;
-        }
-    }
+    // for (const auto& client : clients) {
+    //     if (client.second > 1) {
+    //         std::cout << "Client " << client.first << " appears " << client.second << " times" << std::endl;
+    //     }
+    // }
 
-    cout << endl << "DECODED CHILD: " << endl;
-    printDecodedSolution(decode(child, QT));
+    //std::cout << std::endl << "DECODED CHILD: " << std::endl;
+    //printDecodedSolution(decode(child, QT));
 
     return child;
 }
 
-void Population::printDecodedSolution(Solution *sol) {
-    for (int i = 0; i < sol->getNumRoutes(); i++) {
-        Route *r = sol->getRoute(i);
-        cout << "Route " << i << ": ";
-        for (int j = 0; j < r->getTruckRoute().size(); j++) {
-            cout << r->getTruckRoute()[j]->getID() << " ";
-        }
-        cout << endl;
+void Population::cdPopulation() {
+    for (auto &front : fronts) {
+        crowdingDistance(front);
     }
-    
-    cout << "DECODED SOLUTION FUNCTIONS: " << endl;
-
-    cout << "f1: " << sol->getTotalEnergyConsumption();
-    cout << " | f2: " << sol->getTotalDeliveryCost();
-    cout << " | f3: " << sol->getTotalDeliveryTime() << endl;
-};
+}
 
 void Population::printFronts() {
     int i = 1;
