@@ -288,7 +288,7 @@ vector<int> Population::PMX(Solution *p1, Solution *p2) {
     }
 
     vector<int> child = parent2;
-    vector is_direct(cromossomeSize, false);
+    vector<bool> is_direct(cromossomeSize, false);
 
     std::cout << "CH before crossover:" << std::endl;
     printCrossover(parent1, parent2, child);
@@ -302,7 +302,7 @@ vector<int> Population::PMX(Solution *p1, Solution *p2) {
     std::cout << "Copying offspring from parent 1 to child (between [" << cp1 << "] = " << parent1[cp1] << " and [" << cp2 << "] = " << parent1[cp2] << "):" << std::endl;
     printCrossover(parent1, parent2, child);
 
-    vector index_lookup(cromossomeSize, 0);
+    vector<int> index_lookup(cromossomeSize, 0);
 
     for (size_t i = 0; i < cromossomeSize; i++) {
         index_lookup[parent2[i]] = i;
