@@ -89,7 +89,7 @@ class Solution {
         void printRoutes();
         void printEncodedSolution(vector<int> sol);
 
-        void plotSolution(string instance, int i);
+        void plotSolution(string instance, int i, string fileName);
 
         vector<int> encode();
 };

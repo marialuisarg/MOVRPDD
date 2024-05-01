@@ -249,7 +249,8 @@ Node *Route::getNextNode(int position) {
 }
 
 void Route::insertDroneFlight(tuple<int,int,int> flight) {
-    //cout << "drone flight inserted!" << endl;
+    // marks client attended by drone
+    get<1>(flight) *= -1;
     this->droneRoute.push_back(flight);
 }
 

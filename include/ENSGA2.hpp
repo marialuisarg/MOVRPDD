@@ -1,15 +1,12 @@
-#ifndef ENSGA2_HPP_
-#define ENSGA2_HPP_
+#ifndef ENSGA2_H_
+#define ENSGA2_H_
 
 #include <iostream>
 #include <vector>
 #include <map>
 #include <queue>
+#include <random>
 
-#include "Solution.h"
-#include "Population.h"
-#include "Graph.hpp"
-#include "RandomConstructor.h"
 
 typedef pair<Solution*, int> competitor;
 typedef pair<Solution*, Solution*> parents;
@@ -26,78 +23,96 @@ struct comp {
 
 namespace ENSGA2 {
 
-    void            run(int setSize, int numNodes, Graph *g, int q, double alpha, int numIterations);
+    void            run(int popSize, int numNodes, Graph *g, int q, double alpha, int itConstructor, int itGA, string instanceName);
     Solution*       getRandomSolution(Population *p);
     parents         tournamentSelection(Population *p, int tournamentSize);
     bool            isFeasible(vector<int> solution, Graph *g, int QT);
 
     
-    void run(int setSize, int numNodes, Graph *g, int q, double alpha, int numIterations) {
+    void run(int popSize, int numNodes, Graph *g, int q, double alpha, int itConstructor, int itGA, string instanceName) {
         
-        // generate first population
-        std::cout << "GENERATING FIRST POPULATION" << std::endl;
-        Population p(setSize, numNodes-1, g, q);
-        vector<Solution*> randomSolutions = RandomConstructor(g, q, alpha, numIterations, setSize);
-        p.include(randomSolutions);
-        p.FNDS();
-        p.printFronts();
+        // outside loop to control number of generations
+        int generation = 0;
 
-        std::cout << "-----------------------" << std::endl;
-        std::cout << "GENERATING OFFSPRING" << std::endl;
-        std::cout << "-----------------------" << std::endl;
+        while (generation < itGA) {
+            generation++;
+            std::cout << "*****************************************************" << std::endl;
+            std::cout << "GENERATION " << generation << std::endl;
+            std::cout << "*****************************************************" << std::endl;
+        
+            Population p(popSize, numNodes-1, g, q);
+            vector<Solution*> randomSolutions = RandomConstructor(g, q, alpha, itConstructor, popSize);
+            p.include(randomSolutions);
+            p.FNDS();
+            p.printFronts();
 
-        // generate set of offspring solutions with crossover and mutation
-        Population offspring(setSize, numNodes-1, g, q);
-        while (offspring.getCurrentSize() < setSize) {
+            std::cout << "-----------------------" << std::endl;
+            std::cout << "GENERATING OFFSPRING" << std::endl;
+            std::cout << "-----------------------" << std::endl;
 
-            parents prnt = tournamentSelection(&p, 5);
-            vector<int> child = offspring.PMX(prnt.first, prnt.second);
+            // generate set of offspring solutions with crossover and mutation
+            Population offspring(popSize, numNodes-1, g, q);
+            while (offspring.getCurrentSize() < popSize) {
 
-            if (isFeasible(child, g, q)) {
-                std::cout << "New solution is feasible! Including child in offspring" << std::endl;
-                offspring.include(offspring.decode(child, q));
+                parents prnt = tournamentSelection(&p, 5);
+                vector<int> child;
+
+                // chooses crossover operator (80%) or mutation operator (20%) to generate offspring
+                if (rand() % 100 < 80) {
+                    std::cout << std::endl << "USING CROSSOVER OPERATOR - ";
+                    child = offspring.crossover(prnt.first, prnt.second);
+                } else {
+                    std::cout << std::endl << "USING MUTATION OPERATOR - ";
+                    child = Mutation::mutation(prnt.first);
+                }
+
+                if (isFeasible(child, g, q)) {
+                    std::cout << "New solution is feasible! Including child in offspring" << std::endl;
+                    offspring.include(offspring.decode(child, q));
+                }
+
+                std::cout << std::endl;            
             }
 
-            std::cout << std::endl;            
+            // merge parent and offspring populations
+            std::cout << offspring.getCurrentSize() << " offspring solutions generated" << std::endl;
+            Population newPop(popSize*2, numNodes-1, g, q);
+            newPop.include(p.getSolutions());
+            newPop.include(offspring.getSolutions());
+            newPop.FNDS();
+            newPop.printFronts();
+
+            // select new population
+            std::cout << "-----------------------" << std::endl;
+            std::cout << "SELECTING NEW POPULATION" << std::endl;
+            std::cout << "-----------------------" << std::endl;
+
+            p = Population(popSize, numNodes-1, g, q);
+
+            int i = 0;
+
+            while (p.getCurrentSize() < popSize) {
+                vector<Solution*> currentFront = newPop.getFront(i);
+
+                // if the current front fits in the new population, include it
+                if (currentFront.size() + p.getCurrentSize() <= popSize) {
+                    p.include(newPop.getFront(i));
+                    i++;
+                    continue;
+                }
+
+                // if not, sort the current front by crowding distance
+                newPop.crowdingDistance(currentFront);
+                while (p.getCurrentSize() < popSize) {
+                    p.include(currentFront.back());
+                    currentFront.pop_back();
+                }
+            }
+
+            p.FNDS();
+            p.printFronts();
+            p.saveGeneration(generation, instanceName);
         }
-
-        // merge parent and offspring populations
-        std::cout << offspring.getCurrentSize() << " offspring solutions generated" << std::endl;
-        Population newPop(setSize*2, numNodes-1, g, q);
-        newPop.include(p.getSolutions());
-        newPop.include(offspring.getSolutions());
-        newPop.FNDS();
-        newPop.printFronts();
-
-        // select new population
-        std::cout << "-----------------------" << std::endl;
-        std::cout << "SELECTING NEW POPULATION" << std::endl;
-        std::cout << "-----------------------" << std::endl;
-
-        p = Population(setSize, numNodes-1, g, q);
-
-        int i = 0;
-
-        while (p.getCurrentSize() < setSize) {
-            vector<Solution*> currentFront = newPop.getFront(i);
-
-            // if the current front fits in the new population, include it
-            if (currentFront.size() + p.getCurrentSize() <= setSize) {
-                p.include(newPop.getFront(i));
-                i++;
-                continue;
-            }
-
-            // if not, sort the current front by crowding distance
-            newPop.crowdingDistance(currentFront);
-            while (p.getCurrentSize() < setSize) {
-                p.include(currentFront.back());
-                currentFront.pop_back();
-            }
-        }
-
-        p.FNDS();
-        p.printFronts();
     }
 
     Solution* getRandomSolution(Population *p) {
@@ -148,4 +163,4 @@ namespace ENSGA2 {
 
 }
 
-#endif /* ENSGA2_HPP_ */
+#endif /* CROSSOVER_HPP_ */

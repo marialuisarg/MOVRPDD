@@ -148,3 +148,38 @@ void Utils::printSolutionsToFile(vector<Solution*> s, string instanceName, strin
     string command = "python printFuncToTable.py " + instanceName + " " + filename + " " + (normalized ? "True" : "False");
     int aux = system(command.c_str());
 }
+
+void Utils::printGenerationToFile(vector<vector<Solution*>> s, string instanceName, string setName, bool normalized) {
+    
+    string filename = "./solutions/generations/" + setName + "_" + instanceName.erase(0,12);
+    
+    ofstream output_file(filename);
+
+    int nFronts = s.size();
+
+    double f1 = 0.0, f2 = 0.0, f3 = 0.0;
+    double max_f1 = 0.0, max_f2 = 0.0, max_f3 = 0.0;
+
+    output_file << nFronts << endl;
+
+    for (int i = 0; i < nFronts; i++) {
+        output_file << "Front " << i << endl;
+        for (int j = 0; j < s.at(i).size(); j++) {
+            f1 = s.at(i).at(j)->getTotalEnergyConsumption();
+            f2 = s.at(i).at(j)->getTotalDeliveryCost();
+            f3 = s.at(i).at(j)->getTotalDeliveryTime();
+
+            output_file << f1 << " " << f2 << " " << f3 << endl;
+            
+            // string plotFile = "./solutions/generations/plots/" + setName + "_" + instanceName.erase(0,12);
+            // s.at(i).at(j)->plotSolution(instanceName, j, plotFile);
+        }
+        output_file << endl;
+    }
+
+    std::cout << "File " << filename << " created." << std::endl;
+    output_file.close();
+    
+    // string command = "python printFuncToTable.py " + instanceName + " " + filename + " " + (normalized ? "True" : "False");
+    // int aux = system(command.c_str());
+}

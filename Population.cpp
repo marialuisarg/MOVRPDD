@@ -8,6 +8,7 @@
 #include <random>
 #include <tuple>
 #include <algorithm>
+#include <unordered_set>
 
 // starts population without routes constructor
 Population::Population(int size, int numClients, Graph *g, int q) {
@@ -247,11 +248,34 @@ void printCrossover(vector<int> parent1, vector<int> parent2, vector<int> child)
     cout << endl;
 }
 
-vector<int> Population::PMX(Solution *p1, Solution *p2) {
-    std::cout << "----------------" << std::endl;
-    std::cout << "Executing PMX" << std::endl;
-    std::cout << "----------------" << std::endl;
+template<typename T>
+bool contains(const std::unordered_set<T>& set, const T& value) {
+    return set.find(value) != set.end();
+}
 
+void checkMissingOrDuplicatedClients(int chromossomeSize, vector<int> child) {
+    map<int, int> clients;
+
+    for (int i = 0; i < chromossomeSize; i++) {
+        if (clients.find(child[i]) == clients.end()) {
+            clients[child[i]] = 1;
+        } else {
+            clients[child[i]]++;
+        }
+    }
+
+    if (clients.size() == chromossomeSize) {
+        std::cout << std::endl <<  "No client is missing or duplicated!" << std::endl;
+    }
+
+    for (const auto& client : clients) {
+        if (client.second > 1) {
+            std::cout << "Client " << client.first << " appears " << client.second << " times" << std::endl;
+        }
+    }
+}
+
+vector<int> Population::PMX(Solution *p1, Solution *p2) {
     // encode parents
     vector<int> parent1 = p1->encode();
     vector<int> parent2 = p2->encode();
@@ -309,36 +333,79 @@ vector<int> Population::PMX(Solution *p1, Solution *p2) {
     printCrossover(parent1, parent2, child);
 
     //check if some client is missing or duplicated
-    // map<int, int> clients;
-
-    // for (int i = 0; i < cromossomeSize; i++) {
-    //     if (clients.find(child[i]) == clients.end()) {
-    //         clients[child[i]] = 1;
-    //     } else {
-    //         clients[child[i]]++;
-    //     }
-    // }
-
-    // if (clients.size() == cromossomeSize) {
-    //     std::cout << std::endl <<  "No client is missing or duplicated!" << std::endl;
-    // }
-
-    // for (const auto& client : clients) {
-    //     if (client.second > 1) {
-    //         std::cout << "Client " << client.first << " appears " << client.second << " times" << std::endl;
-    //     }
-    // }
-
-    //std::cout << std::endl << "DECODED CHILD: " << std::endl;
-    //printDecodedSolution(decode(child, QT));
+    checkMissingOrDuplicatedClients(cromossomeSize, child);
 
     return child;
+}
+
+vector<int> Population::OX(Solution *p1, Solution *p2) {
+    // encode parents
+    vector<int> parent1 = p1->encode();
+    vector<int> parent2 = p2->encode();
+
+    int chromossomeSize = parent1.size();
+
+    // generate random crossover points
+    int cp2 = 0, cp1 = rand() % (chromossomeSize-1);
+    
+    while (cp2 == cp1 || cp2 == 0) {
+        cp2 = rand() % (chromossomeSize-1);
+    }
+
+    if (cp1 > cp2) {
+        int aux = cp1;
+        cp1 = cp2;
+        cp2 = aux;
+    }
+
+    std::cout << "CP1: " << cp1 << " [" << parent1[cp1] << "]" << " | CP2: " << cp2 << " [" << parent1[cp2] << "]" << std::endl;
+
+    std::vector<bool> is_direct(chromossomeSize, false);
+    for (size_t idx = cp1; idx != cp2; idx++) {
+        is_direct[parent1[idx]] = true;
+    }
+
+    vector<int> child = parent1;
+
+    size_t child_pos = 0;
+    for (size_t idx = 0; idx < chromossomeSize; idx++) {
+        const int gene = parent2[idx];
+        if (!is_direct[gene]) {
+            if (child_pos == cp1) {
+                child_pos = cp2; // skip [cp1, cp2)
+            }
+            child[child_pos++] = gene;
+        }
+    }
+
+    std::cout << "After crossover:" << std::endl;
+    printCrossover(parent1, parent2, child);
+    checkMissingOrDuplicatedClients(chromossomeSize, child);
+
+    return child;
+}
+
+vector<int> Population::crossover(Solution *p1, Solution *p2) {
+    // choose crossover operator
+    if (rand() % 100 < 50) {
+        std::cout << "PMX" << std::endl;
+        return PMX(p1, p2);
+    } else {
+        std::cout << "OX" << std::endl;
+        return OX(p1, p2);
+    }
 }
 
 void Population::cdPopulation() {
     for (auto &front : fronts) {
         crowdingDistance(front);
     }
+}
+
+void Population::saveGeneration(int generation, string instanceName) {
+    Utils u;
+    string genName = "gen" + to_string(generation);
+    u.printGenerationToFile(fronts, instanceName, genName, false);
 }
 
 void Population::printFronts() {

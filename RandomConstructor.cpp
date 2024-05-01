@@ -58,24 +58,6 @@ vector<Solution*> RandomConstructor(Graph *g, int QT, double alpha, int numItera
         // creates drone routes
         createDroneRoutes(g, currentSolution);
 
-        //currentSolution->printRoutes();
-
-        // checks dominance in best solutions
-        // bool dominated = false;
-        // for (auto it = bestSolutions.begin(); it != bestSolutions.end(); it++) {
-        //     if ((*it)->dominates(currentSolution)) {
-        //         dominated = true;
-        //         break;
-        //     }
-
-        //     if (currentSolution->dominates(*it)) {
-        //         bestSolutions.erase(it);
-        //         it--;
-        //     }
-        // }
-
-        // // if current solution is not dominated by any solution in best solutions
-        // if (!dominated)
         bestSolutions.push_back(currentSolution);
             
         n++;

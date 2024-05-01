@@ -39,7 +39,7 @@ int main(int argc, char const *argv[]) {
 
     if (!(argc == 4 || argc == 6)) {
         cout << "ERROR: Expecting: <instance_file> <QT> <number_of_solutions>" << endl;
-        cout << "OR <instance_file> <QT> <alpha> <number_of_iterations> <number_of_solutions>" << endl;
+        cout << "OR <instance_file> <QT> <alpha> <population_size> <number_of_iterations>" << endl;
         exit(1);
     }
 
@@ -76,7 +76,7 @@ int main(int argc, char const *argv[]) {
 
         for (int i = 0; i < numSolutions; i++) {
             solutions.emplace_back(greedyConstructor(&graph, QT));
-            solutions[i]->plotSolution(fileName, i);
+            //solutions[i]->plotSolution(fileName, i);
             
             //cout << "SOLUTION " << i << ": ";
             //printObjFunc(solutions[i]);
@@ -86,12 +86,17 @@ int main(int argc, char const *argv[]) {
 
     } else if (argc == 6) {
         
-        float alpha = atof(argv[3]);
-        int numIterations = atoi(argv[4]);
-        int setSize = atoi(argv[5]);
+        // arguments for random truck route constructor
+        float const_alpha = atof(argv[3]);
+        int const_numIterations = 100;
+
+        // arguments for ENSGA2
+        int populationSize = atoi(argv[4]);
+        int numIterations = atoi(argv[5]);
 
         // ENSGA2
-        ENSGA2::run(setSize, numNodes, &graph, QT, alpha, numIterations);
+        ENSGA2::run(populationSize, numNodes, &graph, QT, const_alpha, const_numIterations, numIterations, fileName);
+
         //u.printSolutionsToFile(randomSolutions, fileName, "set", true);  
     }
 

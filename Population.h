@@ -6,6 +6,7 @@
 #include "Route.h"
 #include "Node.h"
 #include "GreedyConstructor.h"
+#include "Utils.h"
 #include <string>
 #include <vector>
 #include <map>
@@ -39,12 +40,16 @@ class Population {
         void                crowdingDistance(vector<Solution*> &ndSet);             // Crowding Distance Assignment
         void                sortByObjective(int obj, vector<Solution*> &ndSet);     // Sort population by objective 
         void                cdPopulation();                                         // aux method to calculate crowding distance for all solutions in population
+        vector<int>         crossover(Solution *p1, Solution *p2);                  // Choose crossover operator
         vector<int>         PMX(Solution *p1, Solution *p2);
+        vector<int>         OX(Solution *p1, Solution *p2);
 
         void                printEncodedSolution(vector<int> sol);
         void                printDecodedSolution(Solution *sol);
         void                printPopulation();
         void                printFronts();
+
+        void                saveGeneration(int generation, string instanceName);     // Save current population to file
 
 };
 
