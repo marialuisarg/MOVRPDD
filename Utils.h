@@ -26,6 +26,7 @@ class Utils{
         static void printSolution(Solution *s);
         static void printSolutionsToFile(vector<Solution*> s, string fileName);
         static void printSolutionsToFile(vector<Solution*> s, string fileName, string setName, bool normalized);
+        static void printGenerationToFile(vector<vector<Solution*>> s, string fileName, string setName, bool normalized);
 };
 
 #endif

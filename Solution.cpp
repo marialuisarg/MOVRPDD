@@ -65,15 +65,14 @@ void Solution::printRoutes() {
     }
 }
 
-void Solution::plotSolution(string instance, int i){
+void Solution::plotSolution(string instance, int i, string filename) {
     // plot solution
     string instanceName = instance;
-    string filename;
     
-    if (droneIsUsed())
-        filename = "./solutions/droneSolution" + to_string(i) + "_" + instance.erase(0,12);
-    else
-        filename = "./solutions/truckSolution" + to_string(i) + "_" + instance.erase(0,12);
+    // if (droneIsUsed())
+    //     filename = "./solutions/droneSolution" + to_string(i) + "_" + instance.erase(0,12);
+    // else
+    //     filename = "./solutions/truckSolution" + to_string(i) + "_" + instance.erase(0,12);
     
     ofstream output_file(filename);
 
