@@ -7,11 +7,7 @@ using namespace std;
 #include <vector>
 
 #include "Node.h"
-#include "Graph.h"
-
-#define TRUCK_DRONE 1
-#define TRUCK 2
-#define DRONE 3
+#include "Graph.hpp"
 
 class Route {
     private:

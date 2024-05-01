@@ -1,27 +1,21 @@
+#include "../include/Graph.hpp"
+#include "../include/Types.hpp"
+#include "../include/Utils.hpp"
+#include "../include/ENSGA2.hpp"
+
 #include <iostream>
 #include <stdlib.h>
-#include<cstdlib>
-#include<ctime>
-
+#include <cstdlib>
+#include <ctime>
 #include <vector>
 #include <tuple>
 #include <string>
 
-#include "Graph.h"
 #include "Node.h"
-#include "Utils.h"
 #include "Solution.h"
 #include "Population.h"
-
-#include "ENSGA2.hpp"
 #include "GreedyConstructor.h"
 #include "RandomConstructor.h"
-
-#define GREEDY          0
-#define RANDOM_GREEDY   1
-#define RANDOM          2
-
-using namespace std;
 
 void printObjFunc(Solution* sol) {
     cout << endl << "-------------------" << endl;
@@ -58,7 +52,7 @@ int main(int argc, char const *argv[]) {
 
     nodes = u.readFile(fileName);
     int numNodes = nodes.size();
-    Graph graph(numNodes);
+    ClientsGraph::Graph graph(numNodes);
     
     for (int i = 0; i < numNodes; i++) {
         graph.addNode(nodes[i]);

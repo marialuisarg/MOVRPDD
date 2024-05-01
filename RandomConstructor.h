@@ -8,7 +8,7 @@ using namespace std;
 
 #include "Route.h"
 #include "Node.h"
-#include "Graph.h"
+#include "Graph.hpp"
 #include "Solution.h"
 
 // random constructor

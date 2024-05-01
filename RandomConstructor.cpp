@@ -11,23 +11,6 @@
 
 using namespace std;
 
-// parameter settings of MOVRPDD Model //
- 
-#define WT 1500 // tare weight of trucks
-#define WD 25   // tare weight of drones
-#define QD 5    // maximum load capacity of drones
-#define CT 25   // travel cost of trucks per unit distance
-#define CD 1    // travel cost of drones per unit distance
-#define CB 500  // basis cost of using truck equipped with drone
-#define E 0.5   // maximum endurance of empty drones
-#define ST 60   // average travel speed of trucks
-#define SD 65   // average travel speed of drones
-
-#define DEPOT 0
-#define DRONE_TRUCK 1
-#define TRUCK 2
-#define INF 999999999
-
 vector<Solution*> RandomConstructor(Graph *g, int QT, double alpha, int numIterations, int setSize) {
     int numRoutes;
     bool droneRouteCreated;

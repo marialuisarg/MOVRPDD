@@ -9,21 +9,6 @@
 #include <tuple>
 #include <algorithm>
 
-using namespace std;
-
-#define DEPOT 0
-#define DRONE_TRUCK 1
-#define TRUCK 2
-#define INF 999999999
-
-#define RANDOM_GREEDY 1
-
-#define QT 1000
-#define QD 5
-#define CB 500  // basis cost of using truck equipped with drone
-#define ST 60   // average travel speed of trucks
-#define SD 65   // average travel speed of drones
-
 // starts population without routes constructor
 Population::Population(int size, int numClients, Graph *g, int q) {
     this->size = size;

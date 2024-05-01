@@ -1,5 +1,5 @@
-#ifndef UTILS_H_INCLUDED
-#define UTILS_H_INCLUDED
+#ifndef UTILS_HPP_
+#define UTILS_HPP_
 
 #include<iostream>
 
@@ -28,4 +28,4 @@ class Utils{
         static void printSolutionsToFile(vector<Solution*> s, string fileName, string setName, bool normalized);
 };
 
-#endif
+#endif /* UTILS_HPP_ */
