@@ -19,18 +19,16 @@ enum nodeType {
 
 // parameter settings of MOVRPDD Model //
 
-struct parameters {
-    int WT = 1500;      // tare weight of trucks
-    int WD = 25;        // tare weight of drones
-    int QD = 5;         // maximum load capacity of drones
-    int QT = 1000;      // maximum load capacity of trucks
-    int CT = 25;        // travel cost of trucks per unit distance
-    int CD = 1;         // travel cost of drones per unit distance
-    int CB = 500;       // basis cost of using truck equipped with drone
-    float E = 0.5;      // maximum endurance of empty drones
-    int ST = 60;        // average travel speed of trucks
-    int SD = 65;        // average travel speed of drones
-};
+const int   WT = 1500,      // tare weight of trucks
+            WD = 25,        // tare weight of drones
+            QD = 5,         // maximum load capacity of drones
+            QT = 1000,      // maximum load capacity of trucks
+            CT = 25,        // travel cost of trucks per unit distance
+            CD = 1,         // travel cost of drones per unit distance
+            CB = 500,       // basis cost of using truck equipped with drone
+            E = 0.5,        // maximum endurance of empty drones
+            ST = 60,        // average travel speed of trucks
+            SD = 65;        // average travel speed of drones
 
 static const unsigned int INF = 99999;
 

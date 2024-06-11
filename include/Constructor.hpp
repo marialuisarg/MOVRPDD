@@ -1,0 +1,35 @@
+#ifndef CONSTRUCTOR_HPP_
+#define CONSTRUCTOR_HPP_
+
+#include <iostream>
+#include <vector>
+#include <random>
+#include <algorithm>
+#include <cmath>
+
+#include "Graph.hpp"
+#include "Solution.hpp"
+#include "Types.hpp"
+
+namespace Constructor {
+    void insertRandomizedFirstClients(Graph *g, Solution *sol, int *numRoutes, bool *droneRouteCreated);
+    bool isInSearchRange(vector<int> searchRange, int clientID);
+    void sortListByEuclideanDistance(Graph *g, vector<int> *nodeIdList, int clientNode);
+    void sortListByGain(vector<tuple<int, int, int, double, bool>> *list);
+    bool isReachableByDrone(Graph *g, Solution *sol, tuple<int, int, int> flight, int routeIndex);
+    void updateSearchRange(vector<int>*searchRange, int rNode);
+    void printCandidatesCost(Solution *sol);
+    void createDroneRoutes(Graph *g, Solution *sol);
+}
+
+namespace GreedyConstructor {
+    void createTruckRoutes(Graph *g, Solution *sol, int *numRoutes, bool *droneRouteCreated);
+    Solution* run(Graph *g, int QT);
+}
+
+namespace RandomConstructor {   
+    void createRandomTruckRoutes(Graph *g, Solution *sol, int *numRoutes, bool *droneRouteCreated, double alpha);
+    vector<Solution*> run(Graph *g, int QT, double alpha, int numIterations, int setSize);
+}
+
+#endif // CONSTRUCTOR_HPP_

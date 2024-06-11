@@ -57,15 +57,15 @@ This project has been developed as part of my undergraduate research project at 
    ```
 2. Compile files
    ```sh
-   g++ -g *.c* -o <project_name>
+   make
    ```
 3. For greedy constructor, run 
    ```sh
-   ./<project_name> <instance_file> <QT> <number_of_solutions>
+   ./MOVRPDD <instance_file> <QT> <number_of_solutions>
    ```
 4. For random constructor, run
    ```sh
-   ./<project_name> <instance_file> <QT> <alpha> <number_of_iterations> <number_of_solutions> 
+   ./MOVRPDD <instance_file> <QT> <alpha> <number_of_iterations> <number_of_solutions> 
    ```
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
@@ -82,8 +82,8 @@ This project has been developed as part of my undergraduate research project at 
 - [x] Fast Non-Dominated Sorting Algorithm
 - [x] Crowding Distance Calculation
 - [x] PMX Crossover
-- [ ] OX Crossover
-- [ ] Mutation Operators (swap, insert and reverse)
+- [x] OX Crossover
+- [x] Mutation Operators (swap, insert and reverse)
 - [ ] Multi-dimension Local Search
 - [ ] NSGA-II Procedure
 
