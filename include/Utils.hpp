@@ -61,7 +61,7 @@ namespace Util{
         vector<Node> nodes;
 
         if(arq.is_open()){
-            cout << "Arquivo aberto com sucesso!" << endl;
+            cout << "Arquivo aberto com sucesso!" << std::endl;
             getline(arq,line);
             string delimiter = "\t\t";
             int cont = 0;
@@ -94,7 +94,7 @@ namespace Util{
 
             arq.close();
         }else{
-            cout << "Erro ao abrir o arquivo!" << endl;
+            cout << "Erro ao abrir o arquivo!" << std::endl;
             exit(0);
         }
 
@@ -124,7 +124,7 @@ namespace Util{
             f2 = s.at(i)->getTotalDeliveryCost();
             f3 = s.at(i)->getTotalDeliveryTime();
 
-            output_file << f1 << " " << f2 << " " << f3 << endl;
+            output_file << f1 << " " << f2 << " " << f3 << std::endl;
         }
 
         output_file.close();
@@ -150,7 +150,7 @@ namespace Util{
             f2 = s.at(i)->getTotalDeliveryCost();
             f3 = s.at(i)->getTotalDeliveryTime();
 
-            output_file << f1 << " " << f2 << " " << f3 << endl;
+            output_file << f1 << " " << f2 << " " << f3 << std::endl;
         }
 
         output_file.close();
@@ -159,31 +159,73 @@ namespace Util{
         int aux = system(command.c_str());
     };
     
+    static void printFunctionsByGenerationToFile(vector<vector<Solution*>> s, string instanceName, string setName, bool normalized) {
+        string filename = "./solutions/generations/" + setName + "_" + instanceName.erase(0,12);
+    
+        ofstream output_file(filename);
+
+        int nFronts = s.size();
+        
+        double f1 = 0.0, f2 = 0.0, f3 = 0.0;
+
+        for (int i = 0; i < nFronts; i++) {
+            for (int j = 0; j < s.at(i).size(); j++) {
+                f1 = s.at(i).at(j)->getTotalEnergyConsumption();
+                f2 = s.at(i).at(j)->getTotalDeliveryCost();
+                f3 = s.at(i).at(j)->getTotalDeliveryTime();
+
+                output_file << s.at(i).at(j)->getNumRoutes();
+                output_file << f1 << " " << f2 << " " << f3 << std::endl;
+                
+                // print route to plot later
+                //s.at(i).at(j)->saveRouteToPlot(output_file);
+                //output_file << std::endl;
+                
+                // string plotFile = "./solutions/generations/plots/" + setName + "_" + instanceName.erase(0,12);
+                // s.at(i).at(j)->plotSolution(instanceName, j, plotFile);
+            }
+            //output_file << std::endl;
+        }
+
+        std::cout << "File " << filename << " created." << std::endl;
+        output_file.close();
+
+        //string command = "python ./include/scripts/plotParetoFrontier.py " + filename;
+        //int aux = system(command.c_str());
+    }
+
     static void printGenerationToFile(vector<vector<Solution*>> s, string instanceName, string setName, bool normalized) {
         string filename = "./solutions/generations/" + setName + "_" + instanceName.erase(0,12);
     
         ofstream output_file(filename);
 
         int nFronts = s.size();
-
+        
         double f1 = 0.0, f2 = 0.0, f3 = 0.0;
         double max_f1 = 0.0, max_f2 = 0.0, max_f3 = 0.0;
 
-        output_file << nFronts << endl;
+        output_file << nFronts << std::endl << std::endl;
 
         for (int i = 0; i < nFronts; i++) {
-            output_file << "Front " << i << endl;
+            output_file << "Front " << i << std::endl;
+            output_file << s.at(i).size() << std::endl;
             for (int j = 0; j < s.at(i).size(); j++) {
+
                 f1 = s.at(i).at(j)->getTotalEnergyConsumption();
                 f2 = s.at(i).at(j)->getTotalDeliveryCost();
                 f3 = s.at(i).at(j)->getTotalDeliveryTime();
 
-                output_file << f1 << " " << f2 << " " << f3 << endl;
+                output_file << s.at(i).at(j)->getNumRoutes();
+                output_file << f1 << " " << f2 << " " << f3 << std::endl;
+                
+                // print route to plot later
+                s.at(i).at(j)->saveRouteToPlot(output_file);
+                output_file << std::endl;
                 
                 // string plotFile = "./solutions/generations/plots/" + setName + "_" + instanceName.erase(0,12);
                 // s.at(i).at(j)->plotSolution(instanceName, j, plotFile);
             }
-            output_file << endl;
+            output_file << std::endl;
         }
 
         std::cout << "File " << filename << " created." << std::endl;
@@ -192,6 +234,12 @@ namespace Util{
         // string command = "python printFuncToTable.py " + instanceName + " " + filename + " " + (normalized ? "True" : "False");
         // int aux = system(command.c_str());
     };
+
+    static void plotParetoFrontiers() {
+        std::cout << "Plotting Pareto Frontiers" << std::endl;
+        string command = "python ./scripts/plotParetoFrontiers.py";
+        int aux = system(command.c_str());
+    }; 
 };
 
 #endif /* UTILS_HPP_ */

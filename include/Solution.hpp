@@ -13,6 +13,7 @@ using namespace std;
 
 class Solution {
     private:
+        
         int QT;                                                     // maximum truck capacity      
         int numRoutes;                                              // number of routes
         int numClients;                                             // number of clients
@@ -35,33 +36,32 @@ class Solution {
         ~Solution();
 
         void setNumClients(int numClients) { this->numClients = numClients-1; };
-        vector<pair<int, bool>> getAttendedClients() { return this->attendedClients; }
-        pair<int, bool> getAttendedClient(int i) { return this->attendedClients[i]; };
         void setAttendedClient(int i, bool value) { this->attendedClients[i].second = value; };
-        void setAttendedClients(vector<pair<int, bool>> attendedClients) { this->attendedClients = attendedClients; };
-        
+        void setAttendedClients(vector<pair<int, bool>> attendedClients) { this->attendedClients = attendedClients; }; 
         void setRank(int rank) { this->rank = rank; };
         void setCrDistance(double dist) { this->crDistance = dist; };
-        int getRank() { return this->rank; };
         void setDominatedSolutions(vector<int> dominatedSolutions) { this->dominatedSolutions = dominatedSolutions; };
-        vector<int> getDominatedSolutions() { return this->dominatedSolutions; };
         void setDominatedBy(int dominatedBy) { this->dominatedBy = dominatedBy; };
-        int getDominatedBy() { return this->dominatedBy; };
-        vector<tuple<int, int, double, int, int>> getCandidatesCost() { return this->candidatesCost; };
-        tuple<int, int, double, int, int> getCandidateCost(int i) { return this->candidatesCost[i]; };
         void setCandidateCost(int i, tuple<int, int, double, int, int> value) { this->candidatesCost[i] = value; };
         void setCandidatesCost(vector<tuple<int, int, double, int, int>> candidatesCost) { this->candidatesCost = candidatesCost; };
+        
+        int                                         getRank() { return this->rank; };
+        vector<pair<int, bool>>                     getAttendedClients() { return this->attendedClients; }
+        pair<int, bool>                             getAttendedClient(int i) { return this->attendedClients[i]; };
+        vector<int>                                 getDominatedSolutions() { return this->dominatedSolutions; };
+        int                                         getDominatedBy() { return this->dominatedBy; };
+        vector<tuple<int, int, double, int, int>>   getCandidatesCost() { return this->candidatesCost; };
+        tuple<int, int, double, int, int>           getCandidateCost(int i) { return this->candidatesCost[i]; };
+        double                                      getObjective(int i);
+        double                                      getCrDistance() { return this->crDistance; };
+        vector<Route>                               getRoutes();
+        Route*                                      getRoute(int i) { return &(this->routes[i]); };
+        int                                         getQT() { return this->QT; };
+        int                                         getNumRoutes() { return this->numRoutes; };
+        int                                         getNumClients() { return this->numClients; };
+        bool                                        droneIsUsed() { return this->drone; };
+
         void eraseCandidateCostAt(int i);
-
-        double getObjective(int i);
-        double getCrDistance() { return this->crDistance; };
-        vector<Route> getRoutes();
-        Route* getRoute(int i) { return &(this->routes[i]); };
-        int getQT() { return this->QT; };
-        int getNumRoutes() { return this->numRoutes; };
-        int getNumClients() { return this->numClients; };
-        bool droneIsUsed() { return this->drone; };
-
         bool includeClient(Node* client, Graph *g, int prevNode, int routeIndex);
         void sortCandidatesByCost(Graph *g);
         void updateAttendedClients(int clientID);
@@ -88,6 +88,7 @@ class Solution {
         void printSolution();
         void printRoutes();
         void printEncodedSolution(vector<int> sol);
+        void saveRouteToPlot(ofstream &output_file);
 
         void plotSolution(string instance, int i, string fileName);
 

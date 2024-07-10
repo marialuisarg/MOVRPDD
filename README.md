@@ -59,13 +59,9 @@ This project has been developed as part of my undergraduate research project at 
    ```sh
    make
    ```
-3. For greedy constructor, run 
+3. For random constructor, run 
    ```sh
-   ./MOVRPDD <instance_file> <QT> <number_of_solutions>
-   ```
-4. For random constructor, run
-   ```sh
-   ./MOVRPDD <instance_file> <QT> <alpha> <number_of_iterations> <number_of_solutions> 
+   ./MOVRPDD <instance_file> <alpha> <population_size> <number_of_iterations> <tournament_size>
    ```
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
@@ -84,8 +80,8 @@ This project has been developed as part of my undergraduate research project at 
 - [x] PMX Crossover
 - [x] OX Crossover
 - [x] Mutation Operators (swap, insert and reverse)
-- [ ] Multi-dimension Local Search
-- [ ] NSGA-II Procedure
+- [x] Multi-dimension Local Search
+- [x] NSGA-II Procedure
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 

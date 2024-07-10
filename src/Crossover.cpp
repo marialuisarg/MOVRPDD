@@ -69,7 +69,6 @@ std::vector<int> Crossover::PMX(Solution *p1, Solution *p2) {
     std::vector<int> parent1 = p1->encode();
     std::vector<int> parent2 = p2->encode();
 
-
     int cromossomeSize = parent1.size();
 
     // generate random crossover points
@@ -88,17 +87,17 @@ std::vector<int> Crossover::PMX(Solution *p1, Solution *p2) {
     vector<int> child = parent2;
     vector<bool> is_direct(cromossomeSize, false);
 
-    std::cout << "CH before crossover:" << std::endl;
-    printCrossover(parent1, parent2, child);
-    std::cout << std::endl;
+    //std::cout << "CH before crossover:" << std::endl;
+    //printCrossover(parent1, parent2, child);
+    //std::cout << std::endl;
 
     for (size_t i = cp1; i < cp2; i++) {
         child[i] = parent1[i];
         is_direct[parent1[i]] = true;
     }
 
-    std::cout << "Copying offspring from parent 1 to child (between [" << cp1 << "] = " << parent1[cp1] << " and [" << cp2 << "] = " << parent1[cp2] << "):" << std::endl;
-    printCrossover(parent1, parent2, child);
+    //std::cout << "Copying offspring from parent 1 to child (between [" << cp1 << "] = " << parent1[cp1] << " and [" << cp2 << "] = " << parent1[cp2] << "):" << std::endl;
+    //printCrossover(parent1, parent2, child);
 
     vector<int> index_lookup(cromossomeSize, 0);
 
@@ -117,8 +116,8 @@ std::vector<int> Crossover::PMX(Solution *p1, Solution *p2) {
         }
     }
 
-    std::cout << std::endl;
-    std::cout << "After crossover:" << std::endl;
+    //std::cout << std::endl;
+    //std::cout << "After crossover:" << std::endl;
     printCrossover(parent1, parent2, child);
 
     //check if some client is missing or duplicated
@@ -147,7 +146,7 @@ std::vector<int> Crossover::OX(Solution *p1, Solution *p2) {
         cp2 = aux;
     }
 
-    std::cout << "CP1: " << cp1 << " [" << parent1[cp1] << "]" << " | CP2: " << cp2 << " [" << parent1[cp2] << "]" << std::endl;
+    //std::cout << "CP1: " << cp1 << " [" << parent1[cp1] << "]" << " | CP2: " << cp2 << " [" << parent1[cp2] << "]" << std::endl;
 
     std::vector<bool> is_direct(chromossomeSize, false);
     for (size_t idx = cp1; idx != cp2; idx++) {
@@ -167,7 +166,7 @@ std::vector<int> Crossover::OX(Solution *p1, Solution *p2) {
         }
     }
 
-    std::cout << "After crossover:" << std::endl;
+    //std::cout << "After crossover:" << std::endl;
     printCrossover(parent1, parent2, child);
     checkMissingOrDuplicatedClients(chromossomeSize, child);
 

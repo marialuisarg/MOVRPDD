@@ -26,10 +26,11 @@ const int   WT = 1500,      // tare weight of trucks
             CT = 25,        // travel cost of trucks per unit distance
             CD = 1,         // travel cost of drones per unit distance
             CB = 500,       // basis cost of using truck equipped with drone
-            E = 0.5,        // maximum endurance of empty drones
             ST = 60,        // average travel speed of trucks
             SD = 65;        // average travel speed of drones
 
-static const unsigned int INF = 99999;
+const float E = 0.5;        // maximum endurance of empty drones
+
+static const int INF = 99999;
 
 #endif // TYPES_H_

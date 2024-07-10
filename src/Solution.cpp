@@ -101,6 +101,36 @@ void Solution::plotSolution(string instance, int i, string filename) {
     // aux = system(command.c_str());
 }
 
+void Solution::saveRouteToPlot(std::ofstream &output_file) {
+    int nRoutes = getNumRoutes();
+
+    //std::cout << "Saving route to plot" << std::endl;
+
+    for (int i=0; i < nRoutes; i++) {
+        string truckRoute = "";
+
+        for (int j=0; j < this->routes[i].getTruckRoute().size(); j++){
+            truckRoute = truckRoute + "-" + to_string(this->routes[i].getTruckRoute()[j]->getID());
+        }
+
+        if(!truckRoute.empty())
+            output_file << truckRoute.substr(1);
+        output_file << std::endl;
+
+        string droneRoute = " ";
+
+        for (int j=0; j < this->routes[i].getDroneRoute().size(); j++){
+            droneRoute = droneRoute + "/" + to_string(get<0>(this->routes[i].getDroneRoute()[j]))
+                                    + "-" + to_string(get<1>(this->routes[i].getDroneRoute()[j]))
+                                    + "-" + to_string(get<2>(this->routes[i].getDroneRoute()[j]));
+        }
+
+        if(!droneRoute.empty())
+            output_file << droneRoute.substr(1);
+        output_file << endl;
+    }
+}
+
 void Solution::sortCandidatesByCost(Graph* g) {
     int n = this->getCandidatesCost().size();
     tuple<int, int, double, int, int> temp;
@@ -122,7 +152,6 @@ bool Solution::includeClient(Node* client, Graph *g, int prevNode, int routeInde
 
     // verifies if client is already attended
     if (this->getAttendedClient(client->getID()).second) {
-        //cout << "client " << client->getID() << " already attended" << endl;
         return false;
     }
     
@@ -279,7 +308,7 @@ vector<Route> Solution::getRoutes() {
 }
 
 bool Solution::allClientsAttended(Graph *g) {
-    for (int i = 0; i < this->getNumClients(); i++) {
+    for (int i = 0; i <= this->getNumClients(); i++) {
         if (!this->getAttendedClient(i).second) {
             return false;
         }
@@ -298,32 +327,33 @@ unsigned int Solution::random(int min, int max) {
 }
 
 vector<int> Solution::encode() {
+    
     // first marker = 0
     // other markers = numClients + 1, numClients + 2, ...
 
-    vector<int> encodedSol;
-    int marker = this->getNumClients() + 1;
-    int numRoutes = getNumRoutes();
+    int  marker = this->getNumClients() + 1;
+    int  numRoutes = getNumRoutes();
+    vector<int> encodedSol;  // encoded solution size = numClients + markers for each route di
     
     for (int i = 0; i < numRoutes; i++) {
         Route *route = getRoute(i);
-        int numNodes = route->getPrevTruckRoute().size()-1;
-
-        for (int j = 1; j < numNodes; j++) 
+        
+        for (int j = 1; j < route->getPrevTruckRoute().size()-1; j++) {
             encodedSol.push_back(route->getPrevTruckRoute()[j]);
+        }
 
         if (i == numRoutes-1) break;
 
         if (i != 0) {
             encodedSol.push_back(marker);
-            cout << "Inserting marker " << marker << " at position " << encodedSol.size()-1 << endl;
+            //cout << "Inserting marker " << marker << " at position " << encodedSol.size()-1 << endl;
             marker++;
         } else {
             encodedSol.push_back(0);
         }
     }
 
-    printEncodedSolution(encodedSol);
+    //printEncodedSolution(encodedSol);
 
     return encodedSol;
 };
@@ -343,7 +373,30 @@ void Solution::printEncodedSolution(vector<int> sol) {
     cout << "ENCODED SOLUTION: " << endl;
     for (auto it = sol.begin(); it != sol.end(); it++)
         cout << *it << " ";
+
+    cout << " | Number of nodes: " << sol.size() << endl; 
     cout << endl << "-------------------" << endl;
+};
+
+void Solution::printSolution() {
+    cout << "-------------------" << endl;
+    cout << "SOLUTION: " << endl;
+    cout << "Number of routes: " << getNumRoutes() << endl;
+    cout << "Total energy consumption: " << getTotalEnergyConsumption() << endl;
+    cout << "Total delivery cost: " << getTotalDeliveryCost() << endl;
+    cout << "Total delivery time: " << getTotalDeliveryTime() << endl;
+    cout << "Number of clients: " << getNumClients() << endl;
+    cout << "Attended clients: " << endl;
+    int count = 0;
+    for (int i = 0; i <= getNumClients(); i++) {
+        if (getAttendedClient(i).second) {
+            cout << getAttendedClient(i).first << " ";
+            count++;
+        }
+    }
+    cout << endl;
+    cout << "Number of attended clients: " << count << endl;
+    cout << "-------------------" << endl;
 };
 
 Solution::~Solution() {

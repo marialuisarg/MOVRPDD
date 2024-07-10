@@ -17,7 +17,7 @@ namespace Mutation
     std::vector<int> insert(Solution *s);           // insert mutation
     std::vector<int> reverse(Solution *s);          // reverse mutation
 
-    std::vector<int> mutation(Solution *s);         // run mutation (swap, insert or reverse)
+    std::vector<int> run(Solution *s);         // run mutation (swap, insert or reverse)
     
     void             printSolution(std::vector<int> solution);
     

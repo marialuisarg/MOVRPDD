@@ -51,6 +51,7 @@ Solution* Population::decode(vector<int> sol, int q) {
 
     Solution *decodedSol = new Solution(g, QT);
     int numRoutes = decodedSol->getNumRoutes();
+    decodedSol->setNumClients(numClients+1);
 
     // SPLITTING ENCODED SOLUTION INTO ROUTES
     vector<int> currentRoute;
@@ -114,8 +115,8 @@ Solution* Population::decode(vector<int> sol, int q) {
     return decodedSol;
 };
 
+// fast non-dominated sort (Deb, 2002)
 void Population::FNDS() {
-    // fast non-dominated sort (Deb, 2002)
     vector<Solution*> Fi; 
 
     for (const auto& solution : solutions) {        // for each solution p in population
@@ -232,7 +233,8 @@ void Population::cdPopulation() {
 
 void Population::saveGeneration(int generation, string instanceName) {
     string genName = "gen" + to_string(generation);
-    Util::printGenerationToFile(fronts, instanceName, genName, false);
+    //Util::printGenerationToFile(fronts, instanceName, genName, false);
+    Util::printFunctionsByGenerationToFile(fronts, instanceName, genName, false);
 }
 
 void Population::printFronts() {

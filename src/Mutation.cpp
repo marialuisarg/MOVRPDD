@@ -2,7 +2,7 @@
 
 namespace Mutation {
 
-    std::vector<int> mutation(Solution *s) {
+    std::vector<int> run(Solution *s) {
         int mutationType = getRandomPosition(0, 2);
 
         if (mutationType == 0) {
@@ -37,20 +37,18 @@ namespace Mutation {
     // swaps clients in positions 1 and 2 (randomly chosen)
     std::vector<int> swap(Solution *s) {
         std::vector<int> solution = s->encode();
-
         int numClients = s->getNumClients();
 
-        int pos1 = getRandomPosition(0, solution.size()-1);
-        
-        while (solution[pos1] == 0 || solution[pos1] > numClients) {
-            pos1 = getRandomPosition(0, solution.size()-1);
-        }
-        
-        int pos2 = getRandomPosition(0, solution.size()-1);
+        int pos1 = getRandomPosition(0, solution.size() - 1);
+        int pos2 = 0;
 
-        while (pos1 == pos2 || solution[pos2] == 0 || solution[pos2] > numClients) {
-            pos2 = getRandomPosition(0, solution.size()-1);
+        while (pos1 < 0 || pos1 >= solution.size() || solution[pos1] == 0 || solution[pos1] > numClients) {
+            pos1 = getRandomPosition(0, solution.size() - 1);
         }
+
+        do {
+            pos2 = getRandomPosition(0, solution.size() - 1);
+        } while (pos1 == pos2 || pos2 < 0 || pos2 >= solution.size() || solution[pos2] == 0 || solution[pos2] > numClients);
 
         std::swap(solution[pos1], solution[pos2]);
         
@@ -60,20 +58,23 @@ namespace Mutation {
 
     // inserts client originally in position 1 before client in position 2
     std::vector<int> insert(Solution *s) {
-        std::vector<int> solution = s->encode();
 
+        std::vector<int> solution = s->encode();
         int numClients = s->getNumClients();
 
-        int pos1 = getRandomPosition(0, solution.size()-1);
+        int pos1 = getRandomPosition(0, solution.size() - 1);
+        int pos2 = 0;
 
-        while (solution[pos1] == 0 || solution[pos1] > numClients) {
-            pos1 = getRandomPosition(0, solution.size()-1);
+        while (pos1 < 0 || pos1 >= solution.size() || solution[pos1] == 0 || solution[pos1] > numClients) {
+            pos1 = getRandomPosition(0, solution.size() - 1);
         }
 
-        int pos2 = getRandomPosition(0, solution.size()-1);
+        do {
+            pos2 = getRandomPosition(0, solution.size() - 1);
+        } while (pos1 == pos2 || pos2 < 0 || pos2 >= solution.size() || solution[pos2] == 0 || solution[pos2] > numClients);
 
-        while (pos1 == pos2 || solution[pos2] == 0 || solution[pos2] > numClients) {
-            pos2 = getRandomPosition(0, solution.size()-1);
+        if (pos1 > pos2) {
+            std::swap(pos1, pos2);
         }
 
         int client = solution[pos1];
@@ -87,20 +88,20 @@ namespace Mutation {
     // reverses the order of clients between positions 1 and 2, inclusive 
     std::vector<int> reverse(Solution *s) {
         std::vector<int> solution = s->encode();
-
         int numClients = s->getNumClients();
 
-        int pos1 = getRandomPosition(0, solution.size()-1);
+        int pos1 = getRandomPosition(0, solution.size() - 1);
+        int pos2 = 0;
 
-        while (solution[pos1] == 0 || solution[pos1] > numClients) {
-            pos1 = getRandomPosition(0, solution.size()-1);
+        while (pos1 < 0 || pos1 >= solution.size() || solution[pos1] == 0 || solution[pos1] > numClients) {
+            pos1 = getRandomPosition(0, solution.size() - 1);
         }
 
-        int pos2 = getRandomPosition(0, solution.size()-1);
+        char a;
 
-        while (pos1 == pos2 || solution[pos2] == 0 || solution[pos2] > numClients) {
-            pos2 = getRandomPosition(0, solution.size()-1);
-        }
+        do {
+            pos2 = getRandomPosition(0, solution.size() - 1);
+        } while (pos1 == pos2 || pos2 < 0 || pos2 >= solution.size() || solution[pos2] == 0 || solution[pos2] > numClients);
 
         if (pos1 > pos2) {
             std::swap(pos1, pos2);

@@ -33,7 +33,7 @@ void printObjFunc(vector<Solution*> sol) {
 
 int main(int argc, char const *argv[]) {
 
-    if (!(argc == 5)) {
+    if (!(argc == 6)) {
         cout << "ERROR: Expecting <instance_file> <alpha> <population_size> <number_of_iterations>" << endl;
         exit(1);
     }
@@ -60,20 +60,21 @@ int main(int argc, char const *argv[]) {
 
     // set seed
     srand(10);
-    cout << "SEED: " << 10 << endl;
+    cout << "SEED: " << 15 << endl;
     
-    if (argc == 5) {
+    if (argc == 6) {
         
         // arguments for random truck route constructor
-        float const_alpha = atof(argv[2]);
-        int const_numIterations = 100;
+        float alpha_constructor = atof(argv[2]);         // alpha for random truck route constructor
+        int it_constructor = 100;                        // number of iterations for random truck route constructor
 
         // arguments for ENSGA2
-        int populationSize = atoi(argv[3]);
-        int numIterations = atoi(argv[4]);
+        int population = atoi(argv[3]);                 // population size
+        int it_GA = atoi(argv[4]);                      // number of iterations for ENSGA2
+        int tournament = atoi(argv[5]);                 // tournament size
 
         // ENSGA2
-        ENSGA2::run(populationSize, numNodes, &graph, const_alpha, const_numIterations, numIterations, fileName);
+        ENSGA2::run(population, numNodes, &graph, alpha_constructor, it_constructor, it_GA, fileName, tournament);
     }
     
     return 0;

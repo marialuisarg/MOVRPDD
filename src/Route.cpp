@@ -248,10 +248,14 @@ Node *Route::getNextNode(int position) {
     return this->truckRoute[position + 1];
 }
 
-void Route::insertDroneFlight(tuple<int,int,int> flight) {
+void Route::insertDroneFlight(std::tuple<int,int,int> flight) {
     // marks client attended by drone
-    get<1>(flight) *= -1;
+    //get<1>(flight) *= -1;
+    //cout << "inserting drone flight: " << get<0>(flight) << " -> " << get<1>(flight) << " -> " << get<2>(flight) << endl;
     this->droneRoute.push_back(flight);
+
+    // update service type
+    serviceType[get<1>(flight)] = 1;
 }
 
 void Route::removeClientsServedByDrone(Graph *g, int CT, int CD, int CB) {
@@ -270,5 +274,10 @@ void Route::removeClientsServedByDrone(Graph *g, int CT, int CD, int CB) {
 void Route::registerPrevTruckRoute() {
     for (int i = 0; i < this->truckRoute.size(); i++) {
         prevTruckRoute.push_back(truckRoute[i]->getID());
+        serviceType[truckRoute[i]->getID()] = 0;
     }
+}
+
+bool Route::isClientServedByDrone(int clientID) {
+    return serviceType[clientID];
 }

@@ -83,8 +83,8 @@ namespace Constructor {
         double t_ij = g->getEuclideanDistance(launchNode, clientNode) / SD;
         double t_jk = g->getEuclideanDistance(clientNode, retrieveNode) / SD;
 
-        // cout << "expct_max_flight_endurance: " << expct_max_flight_endurance << endl;
-        // cout << "time spent: " << t_ij + t_jk << endl;
+        //cout << "expct_max_flight_endurance: " << expct_max_flight_endurance << endl;
+        //cout << "time spent: " << t_ij + t_jk << endl;
 
         if ((t_ij + t_jk) <= expct_max_flight_endurance) {
 
@@ -183,7 +183,7 @@ namespace Constructor {
 
                 if (isInSearchRange(searchRange, tRoute[j]->getID())) {
                     Node* client = sol->getRoute(i)->getTruckRoute()[j];
-                    //cout << client->getServiceBy() << " | " << client->getDemand() << " | " << QD << endl;
+                    
                     // if client can be reached by drone and its demand is less than the drone's capacity
                     if (client->getServiceBy() == TRUCK_DRONE && client->getDemand() <= QD) {
                         // verifies if node isn't depot or first/last node on route
@@ -201,9 +201,9 @@ namespace Constructor {
 
                                 launchNodesList.push_back(searchRange[k]);
                             }
+
                             // sort launching nodes list by euclidean distance to client
                             sortListByEuclideanDistance(g, &launchNodesList, clientNode);
-
 
                             // creates a retrieving nodes list with all nodes after client
                             retrieveNodesList.clear();
@@ -212,9 +212,8 @@ namespace Constructor {
                             }
 
                             // goes through lauching and retrieving nodes list, choosing flights that doesn't exceed flight endurance
-                            //get<4>(flight) = false;
                             get<1>(flight) = clientNode;
-                            tuple<int,int,int> bestClientFlight;
+                            std::tuple<int,int,int> bestClientFlight;
                             double biggestGain = -INF;
 
                             for (int n = 0; n < launchNodesList.size(); n++) {
@@ -233,12 +232,15 @@ namespace Constructor {
                                         }
 
                                         double gain = truckRouteCost - droneFlightCost;
-                                        //cout << "ganho: " << gain << endl;
 
                                         if (gain > biggestGain) {
                                             get<0>(bestClientFlight) = get<0>(flight);
                                             get<1>(bestClientFlight) = get<1>(flight);
                                             get<2>(bestClientFlight) = get<2>(flight);
+
+                                            //cout << "best: " << get<0>(bestClientFlight) << " " << get<1>(bestClientFlight) << " " << get<2>(bestClientFlight) << endl;
+                                            //cout << "current: " << get<0>(flight) << " " << get<1>(flight) << " " << get<2>(flight) << endl;
+
                                             biggestGain = gain;
                                         }
                                     }
@@ -405,12 +407,14 @@ namespace RandomConstructor {
         }
 
         vector<tuple<int, int, double, int, int>> candidatesCost;
+
         // calculates cost of each candidate
         for (int r = 0; r < sol->getNumRoutes(); r++) {
             for (int i = 0; i < candidates.size(); i++) {
                 double manhattanDistance = candidates[i]->manhattanDistance(g->getNode(0));
                 double cost = manhattanDistance * CT * 2;
-                    candidatesCost.push_back(make_tuple(candidates[i]->getID(), r, cost,0,0));
+                
+                candidatesCost.push_back(make_tuple(candidates[i]->getID(), r, cost,0,0));
             }
         }
 
@@ -419,30 +423,11 @@ namespace RandomConstructor {
         // sorts candidates by cost
         sol->sortCandidatesByCost(g);
 
-        //printCandidatesCost(sol);
-
         // while there are unattended clients
         while (!sol->allClientsAttended(g)) {
             
-            //cout << sol->getAttendedClients().size() << endl;
-            //cout << "---> clients unattended (out of " << sol->getNumClients() << "): ";
-            // int count = 0;
-            // for (int i = 0; i <= sol->getNumClients(); i++) {
-            //     if (!sol->getAttendedClient(i).second) {
-            //         cout << sol->getAttendedClient(i).first << " ";
-            //         count++;
-            //     }
-            // }
-            // cout << "=> TOTAL: " << count << endl;
-
-            // char c;
-            // cin >> c;
-
-            // gets random index for client
-            //printCandidatesCost(sol);
             int k = sol->random(0, trunc(alpha * (float)sol->getCandidatesCost().size()));
-            //cout << endl << "k = " << k << endl;
-
+        
             // gets k candidate 
             tuple<int, int, double, int, int> candidate = sol->getCandidateCost(k);
 
@@ -462,6 +447,8 @@ namespace RandomConstructor {
 
         //printRoutes();
         sol->updateSolution(g);
+        // print clients attended or not
+
     }
 
     vector<Solution*> run(Graph *g, int QT, double alpha, int numIterations, int setSize) {
@@ -481,7 +468,7 @@ namespace RandomConstructor {
             clients.push_back(g->getNode(i)->getID());  
 
         while (n < numIterations) {
-            Solution * currentSolution = new Solution(g, QT);
+            Solution *currentSolution = new Solution(g, QT);
             currentSolution->setNumClients(numClients+1);
 
             // checks if best solutions set is full
@@ -508,12 +495,14 @@ namespace RandomConstructor {
 
             // creates truck routes
             createRandomTruckRoutes(g, currentSolution, &numRoutes, &droneRouteCreated, alpha);
-
+            cout << "Truck routes created." << endl;
+            
             // creates drone routes
             Constructor::createDroneRoutes(g, currentSolution);
+            cout << "Drone routes created." << endl << endl;
 
             bestSolutions.push_back(currentSolution);
-                
+
             n++;
         }
 

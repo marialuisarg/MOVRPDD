@@ -1,19 +1,19 @@
 #ifndef ROUTE_H_INCLUDED
 #define ROUTE_H_INCLUDED
 
-using namespace std;
-
 #include <string>
 #include <vector>
+#include <unordered_map>
 
 #include "Node.hpp"
 #include "Graph.hpp"
 
 class Route {
     private:
-        vector<Node*> truckRoute;
-        vector<int> prevTruckRoute;                 // final truck route before drone flights
-        vector<tuple<int, int, int>> droneRoute;    // launch node, client, retrieval node 
+        std::vector<Node*> truckRoute;
+        std::vector<int> prevTruckRoute;                 // final truck route before drone flights
+        std::unordered_map<int, int> serviceType;        // 0: truck, 1: drone
+        std::vector<tuple<int, int, int>> droneRoute;    // launch node, client, retrieval node 
     
         double energyConsumption;      // f1
         double deliveryCost;           // f2
@@ -21,7 +21,7 @@ class Route {
 
         double currentTruckCapacity;
         double currentDroneCapacity;
-        int numClients;
+           int numClients;
         
     public:
         Route(double truckCapacity, double droneCapacity, Node* depot);
@@ -41,17 +41,18 @@ class Route {
         double getDeliveryTime();
         double getPrevCost();
         double getCurrentCapacity();
-        vector<Node*> getTruckRoute();
-        vector<int> getPrevTruckRoute();
-        vector<tuple<int, int, int>> getDroneRoute();
+        std::vector<Node*> getTruckRoute();
+        std::vector<int> getPrevTruckRoute();
+        std::vector<std::tuple<int, int, int>> getDroneRoute();
         int getNumClients();
         Node* getNode(int position);
         Node* getPrevNode(int position);
         Node* getNextNode(int position);
+        bool isClientServedByDrone(int clientID);
 
         void insertClient(Node *client);
         bool insertClient(Node *client, long int prevNode);  // returns false if client can't be inserted
-        void insertDroneFlight(tuple<int,int,int> flight);
+        void insertDroneFlight(std::tuple<int,int,int> flight);
 
         void printRoute();
 

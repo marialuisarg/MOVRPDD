@@ -11,9 +11,9 @@
 #include <unordered_set>
 
 namespace Crossover {   
-    std::vector<int> run(Solution *p1, Solution *p2);   // run crossover (PMX or OX)
-    std::vector<int> PMX(Solution *p1, Solution *p2);             // PMX crossover
-    std::vector<int> OX(Solution *p1, Solution *p2);              // OX crossover
+    std::vector<int> run(Solution *p1, Solution *p2);              // run crossover (PMX or OX)
+    std::vector<int> PMX(Solution *p1, Solution *p2);              // PMX crossover
+    std::vector<int> OX(Solution *p1, Solution *p2);               // OX crossover
 }
 
 #endif // CROSSOVER_HPP_
