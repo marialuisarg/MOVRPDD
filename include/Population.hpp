@@ -29,6 +29,7 @@ class Population {
         
         void                include(vector<Solution*> sol);
         void                include(Solution* sol);
+        int                 includeOffspring(vector<Solution*> sol, int gen);
         Solution*           decode(vector<int> sol, int QT);
 
         vector<Solution*>   getSolutions();

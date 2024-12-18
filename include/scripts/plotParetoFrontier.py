@@ -30,9 +30,9 @@ def plot_pareto_frontiers(all_data):
     
     for idx, data in enumerate(all_data):
         # Plot Objetivo 1 vs Objetivo 2
-        axs[0].scatter(data[:, 0], data[:, 1], c=[colors[idx]], label=f'Generation {idx+1}', alpha=0.6, s=2)
-        # Plot Objetivo 2 vs Objetivo 3
-        axs[1].scatter(data[:, 0], data[:, 2], c=[colors[idx]], label=f'Generation {idx+1}', alpha=0.6, s=2)
+        axs[0].scatter(data[:, 0], data[:, 1], c=[colors[idx]], label=f'Generation {idx+1}', alpha=0.6, s=10)
+        # Plot Objetivo 1 vs Objetivo 3
+        axs[1].scatter(data[:, 0], data[:, 2], c=[colors[idx]], label=f'Generation {idx+1}', alpha=0.6, s=10)
 
 
     axs[0].set_xlabel('F1')
@@ -52,7 +52,7 @@ def plot_pareto_frontiers(all_data):
 
 if __name__ == '__main__':
     # filename = sys.argv[1]
-    directory = './solutions/generations/'
+    directory = './solutions/generations/by_objectives/'
     #num_lines = count_lines_in_file(filename)
     
     # Carregar os dados de todas as gerações

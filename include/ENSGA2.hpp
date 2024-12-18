@@ -28,7 +28,7 @@ namespace ENSGA2 {
 
     void                run(int popSize, int numNodes, Graph *g, double alpha, int itConstructor, int itGA, string instanceName, int tSize);
     Solution*           getRandomSolution(Population *p);
-    parents             tournamentSelection(Population *p, int tournamentSize);
+    Solution*           tournamentSelection(Population *p, int tournamentSize);
     bool                isFeasible(vector<int> solution, Graph *g, int QT);
     vector<Solution*>   multiDimensionalSearch (vector<Solution*> firstFront);
 }

@@ -50,6 +50,18 @@ void checkMissingOrDuplicatedClients(int chromossomeSize, vector<int> child) {
     }
 }
 
+bool checkChildrenSimilarity(int chromossomeSize, vector<int> child, vector<int> p1) {
+    int sameAsParent1 = 0;
+
+    for (int i = 0; i < chromossomeSize-1; i++) {
+        if (child[i] == p1[i] && child[i+1] == p1[i+1]) sameAsParent1++;
+    }
+
+    std::cout << (100 * sameAsParent1) / (chromossomeSize-1) << "% igual ao pai" << std::endl;
+
+    return ((100 * sameAsParent1) / (chromossomeSize-1)==100);
+}
+
 std::vector<int> Crossover::run(Solution *p1, Solution *p2) {
     
     int crossoverOp = Util::getRandomInteger(0,100);
@@ -123,6 +135,16 @@ std::vector<int> Crossover::PMX(Solution *p1, Solution *p2) {
     //check if some client is missing or duplicated
     checkMissingOrDuplicatedClients(cromossomeSize, child);
 
+    std::cout << "Distance between chosen CP1 and CP2: " << abs(cp1-cp2) << " | parent1[" << cp1 << "] = " << parent1[cp1] << " | parent1[" << cp2 << "] = " << parent1[cp2] << std::endl; 
+    
+    //check % of child edges similar to parent
+    // if (!checkChildrenSimilarity(cromossomeSize, child, parent1)) {
+    //     if (!checkChildrenSimilarity(cromossomeSize, child, parent2))
+    //         return child;
+    // }
+
+    // vector<int> aux;
+    // return aux;
     return child;
 }
 
@@ -169,6 +191,17 @@ std::vector<int> Crossover::OX(Solution *p1, Solution *p2) {
     //std::cout << "After crossover:" << std::endl;
     printCrossover(parent1, parent2, child);
     checkMissingOrDuplicatedClients(chromossomeSize, child);
+
+    std::cout << "Distance between chosen CP1 and CP2: " << abs(cp1-cp2) << " | parent1[" << cp1 << "] = " << parent1[cp1] << " | parent1[" << cp2 << "] = " << parent1[cp2] << std::endl; 
+    
+    //check % of child edges similar to parent
+    // if (!checkChildrenSimilarity(chromossomeSize, child, parent1)) {
+    //     if (!checkChildrenSimilarity(chromossomeSize, child, parent2))
+    //         return child;
+    // }
+
+    // vector<int> aux;
+    // return aux;
 
     return child;
 }

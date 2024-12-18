@@ -13,11 +13,11 @@ namespace Mutation
 {   
     int getRandomPosition(int begin, int end);
 
-    std::vector<int> swap(Solution *s);             // swap mutation
-    std::vector<int> insert(Solution *s);           // insert mutation
-    std::vector<int> reverse(Solution *s);          // reverse mutation
+    std::vector<int> swap(vector<int>);             // swap mutation
+    std::vector<int> insert(vector<int>);           // insert mutation
+    std::vector<int> reverse(vector<int>);          // reverse mutation
 
-    std::vector<int> run(Solution *s);         // run mutation (swap, insert or reverse)
+    std::vector<int> run(vector<int>);              // run mutation (swap, insert or reverse)
     
     void             printSolution(std::vector<int> solution);
     

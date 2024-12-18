@@ -109,7 +109,7 @@ namespace Util{
     };
 
     static void printSolutionsToFile(vector<Solution*> s, string instanceName) {
-        string filename = "./solutions/functions_" + instanceName.erase(0,12);
+        string filename = "./solutions/by_objectives/functions_" + instanceName.erase(0,12);
     
         ofstream output_file(filename);
 
@@ -134,7 +134,7 @@ namespace Util{
     };
     
     static void printSolutionsToFile(vector<Solution*> s, string instanceName, string setName, bool normalized) {
-        string filename = "./solutions/functions_" + setName + "_" + instanceName.erase(0,12);
+        string filename = "./solutions/by_objectives/functions_" + setName + "_" + instanceName.erase(0,12);
     
         ofstream output_file(filename);
 
@@ -160,7 +160,7 @@ namespace Util{
     };
     
     static void printFunctionsByGenerationToFile(vector<vector<Solution*>> s, string instanceName, string setName, bool normalized) {
-        string filename = "./solutions/generations/" + setName + "_" + instanceName.erase(0,12);
+        string filename = "./solutions/generations/by_objectives/" + setName + "_" + instanceName.erase(0,12);
     
         ofstream output_file(filename);
 
@@ -190,12 +190,12 @@ namespace Util{
         std::cout << "File " << filename << " created." << std::endl;
         output_file.close();
 
-        //string command = "python ./include/scripts/plotParetoFrontier.py " + filename;
-        //int aux = system(command.c_str());
+        string command = "python ./include/scripts/plotParetoFrontier.py " + filename;
+        int aux = system(command.c_str());
     }
 
     static void printGenerationToFile(vector<vector<Solution*>> s, string instanceName, string setName, bool normalized) {
-        string filename = "./solutions/generations/" + setName + "_" + instanceName.erase(0,12);
+        string filename = "./solutions/generations/by_routes/routes_" + setName + "_" + instanceName.erase(0,12);
     
         ofstream output_file(filename);
 
@@ -216,11 +216,10 @@ namespace Util{
                 f3 = s.at(i).at(j)->getTotalDeliveryTime();
 
                 output_file << s.at(i).at(j)->getNumRoutes();
-                output_file << f1 << " " << f2 << " " << f3 << std::endl;
+                output_file << std::endl << f1 << " " << f2 << " " << f3 << std::endl;
                 
                 // print route to plot later
                 s.at(i).at(j)->saveRouteToPlot(output_file);
-                output_file << std::endl;
                 
                 // string plotFile = "./solutions/generations/plots/" + setName + "_" + instanceName.erase(0,12);
                 // s.at(i).at(j)->plotSolution(instanceName, j, plotFile);
@@ -231,8 +230,8 @@ namespace Util{
         std::cout << "File " << filename << " created." << std::endl;
         output_file.close();
         
-        // string command = "python printFuncToTable.py " + instanceName + " " + filename + " " + (normalized ? "True" : "False");
-        // int aux = system(command.c_str());
+        string command = "python ./include/scripts/plotNetworkGraph.py ./instances/" + instanceName + " " + filename;
+        int aux = system(command.c_str());
     };
 
     static void plotParetoFrontiers() {
@@ -240,6 +239,31 @@ namespace Util{
         string command = "python ./scripts/plotParetoFrontiers.py";
         int aux = system(command.c_str());
     }; 
+
+    static void printFirstFrontsToFile(vector<vector<Solution*>> s, string instanceName, string setName) {
+        string filename = "./solutions/generations/firstFront_" + instanceName.erase(0,12);
+        std::ofstream output_file;
+
+        output_file.open(filename, std::ios::app);
+        
+        float f1, f2, f3;
+
+        if (output_file.is_open()) {
+            for (int j = 0; j < s.at(0).size(); j++) {
+
+                f1 = s.at(0).at(j)->getTotalEnergyConsumption();
+                f2 = s.at(0).at(j)->getTotalDeliveryCost();
+                f3 = s.at(0).at(j)->getTotalDeliveryTime();
+
+                output_file << std::endl << f1 << " " << f2 << " " << f3;
+            }
+            output_file << std::endl;
+            output_file.close();
+        } else {
+            std::cerr << "Error while trying to open file." << std::endl;
+        }
+        
+    };
 };
 
 #endif /* UTILS_HPP_ */

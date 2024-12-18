@@ -38,6 +38,39 @@ void Population::include(vector<Solution*> sol) {
     }
 };
 
+int Population::includeOffspring(vector<Solution*> sol, int gen) {
+    vector<Solution*> pastGenSol = this->getSolutions();
+    bool isUniqueSolution = true;
+    int repeatedSolutions = 0;
+
+    for (size_t it = 0; it < sol.size(); it++) {
+        for (size_t it2 = 0; it2 < pastGenSol.size(); it2++) {
+            isUniqueSolution = (sol[it]->getTotalDeliveryCost() != pastGenSol[it2]->getTotalDeliveryCost() ||
+                                sol[it]->getTotalDeliveryTime() != pastGenSol[it2]->getTotalDeliveryTime() ||
+                                sol[it]->getTotalEnergyConsumption() != pastGenSol[it2]->getTotalEnergyConsumption());
+        
+            if (!isUniqueSolution) {
+                repeatedSolutions++;
+
+                std::ofstream repeatedSolFile("./solutions/repeatedSolutions.txt", std::ios::app);
+    
+                if (repeatedSolFile.is_open()) {
+                    repeatedSolFile <<  "Gen " << gen << " - " << 
+                                        sol[it]->getTotalDeliveryCost() << " | " <<
+                                        sol[it]->getTotalDeliveryTime() << " | " <<
+                                        sol[it]->getTotalEnergyConsumption() << std::endl;
+                    repeatedSolFile.close(); // Fechar o arquivo
+                }
+                break;
+            }
+        }
+
+        if (isUniqueSolution) this->include(sol[it]);
+    }
+
+    return repeatedSolutions;
+};
+
 void Population::include(Solution* sol) {
     solutions.push_back(sol);
     currentSize++;
@@ -216,9 +249,8 @@ void Population::crowdingDistance(vector<Solution*> &ndSet) {
         double fmax = ndSet[numSolutions-1]->getObjective(i);
 
         for (int j = 1; j < numSolutions-1; j++) {
-            double distance = ndSet[j+1]->getObjective(i) - ndSet[j-1]->getObjective(i);
+            double distance = ndSet[j]->getCrDistance() + (ndSet[j+1]->getObjective(i) - ndSet[j-1]->getObjective(i));
             distance /= fmax - fmin;
-            distance += ndSet[j]->getCrDistance();
             ndSet[j]->setCrDistance(distance);
         }
     }
@@ -233,8 +265,9 @@ void Population::cdPopulation() {
 
 void Population::saveGeneration(int generation, string instanceName) {
     string genName = "gen" + to_string(generation);
-    //Util::printGenerationToFile(fronts, instanceName, genName, false);
-    Util::printFunctionsByGenerationToFile(fronts, instanceName, genName, false);
+    Util::printGenerationToFile(fronts, instanceName, genName, false);
+    //Util::printFunctionsByGenerationToFile(fronts, instanceName, genName, false);
+    Util::printFirstFrontsToFile(fronts, instanceName, genName);
 }
 
 void Population::printFronts() {

@@ -5,7 +5,7 @@ Solution* ENSGA2::getRandomSolution(Population *p) {
     return p->getSolutions()[randomIndex];
 }
 
-pair<Solution*,Solution*> ENSGA2::tournamentSelection(Population *p, int tournamentSize) {
+Solution* ENSGA2::tournamentSelection(Population *p, int tournamentSize) {
 
     // create a priority queue of competitors ordered by rank (lower is better)
     std::priority_queue<competitor, vector<competitor>, comp> competitors;
@@ -24,35 +24,32 @@ pair<Solution*,Solution*> ENSGA2::tournamentSelection(Population *p, int tournam
 
         // if the competitor is already in competitors vector, select another random one
         
-        for (auto c : competitorsVector) {
-            double c_f1 = c->getTotalDeliveryCost();
-            double c_f2 = c->getTotalEnergyConsumption();
-            double c_f3 = c->getTotalDeliveryTime();
+        // for (auto c : competitorsVector) {
+        //     double c_f1 = c->getTotalDeliveryCost();
+        //     double c_f2 = c->getTotalEnergyConsumption();
+        //     double c_f3 = c->getTotalDeliveryTime();
 
-            if (s_f1 == c_f1 && s_f2 == c_f2 && s_f3 == c_f3) {
-                i--;
-                std::cout << "Competitor already in tournament pool. Selecting another random competitor." << std::endl;
+        //     if (s_f1 == c_f1 && s_f2 == c_f2 && s_f3 == c_f3) {
+        //         i--;
+        //         std::cout << "Competitor already in tournament pool. Selecting another random competitor." << std::endl;
                 
-                alreadyInVector = true;
-            }
+        //         alreadyInVector = true;
+        //     }
 
-            if (alreadyInVector) break;
-        }
+        //     if (alreadyInVector) break;
+        // }
 
-        if (!alreadyInVector) competitorsVector.push_back(s);
+        // if (!alreadyInVector) 
+        competitorsVector.push_back(s);
 
-        alreadyInVector = false;
+        // alreadyInVector = false;
     }
 
     // pass competitors vector to priority queue
     for (auto c : competitorsVector) 
         competitors.push(make_pair(c, c->getRank()));
 
-    // select the best two competitors from the tournament
-    Solution *bestCompetitor = competitors.top().first;
-    competitors.pop();
-
-    return make_pair(bestCompetitor, competitors.top().first);
+    return competitors.top().first;
 }
 
 bool ENSGA2::isFeasible(vector<int> solution, Graph *g, int QT) {
@@ -73,6 +70,18 @@ bool ENSGA2::isFeasible(vector<int> solution, Graph *g, int QT) {
     }
 
     return true;
+}
+
+bool checkChildrenSimilarity(int chromossomeSize, vector<int> child, vector<int> p1, int numPai) {
+    int sameAsParent1 = 0;
+
+    for (int i = 0; i < chromossomeSize-1; i++) {
+        if (child[i] == p1[i] && child[i+1] == p1[i+1]) sameAsParent1++;
+    }
+
+    std::cout << (100 * sameAsParent1) / (chromossomeSize-1) << "% similar to parent " << numPai <<std::endl;
+
+    return ((100 * sameAsParent1) / (chromossomeSize-1)==100);
 }
 
 void ENSGA2::run(int popSize, int numNodes, Graph *g, double alpha, int itConstructor, int itGA, string instanceName, int tSize) {
@@ -102,36 +111,90 @@ void ENSGA2::run(int popSize, int numNodes, Graph *g, double alpha, int itConstr
 
         while (offspring.getCurrentSize() < popSize) {
 
-            parents prnt = tournamentSelection(&p, tSize);
-            vector<int> child;
+            // cada torneio retorna um pai. verifica se são iguais depois da chamada das funções
+            // não precisa verificar se são iguais dentro da função
+            std::cout << "Selecionando pai 1" << std::endl;
+            Solution* prnt1 = tournamentSelection(&p, tSize);
 
-            // chooses crossover operator (80%) or mutation operator (20%) to generate offspring
+            Solution* prnt2;
+            do {
+                std::cout << "Selecionando pai 2" << std::endl;
+                prnt2 = tournamentSelection(&p, tSize);
+
+            } while (prnt1->getTotalDeliveryCost() == prnt2->getTotalDeliveryCost() &&
+                     prnt1->getTotalDeliveryTime() == prnt2->getTotalDeliveryTime() &&
+                     prnt1->getTotalEnergyConsumption() == prnt2->getTotalEnergyConsumption());
+            
+            vector<int> child1, child2;
+
+            // faz cruzamento em 80% das vezes, depois faz mutação em 20% das vezes
+
             if (rand() % 100 < 80) {
                 std::cout << std::endl << "USING CROSSOVER OPERATOR - ";
-                child = Crossover::run(prnt.first, prnt.second);
+                child1 = Crossover::run(prnt1, prnt2);
+                std::cout << std::endl << "USING CROSSOVER OPERATOR - ";
+                child2 = Crossover::run(prnt2, prnt1);
+
+                if (rand() % 100 < 20) {
+                    std::cout << std::endl << "USING MUTATION OPERATOR - ";
+                    child1 = Mutation::run(child1);
+                }
+
+                if(!checkChildrenSimilarity(child1.size(), child1, prnt1->encode(), 1)) {
+                    if(!checkChildrenSimilarity(child1.size(), child1, prnt2->encode(), 2)) {
+                        if (isFeasible(child1, g, QT)) {
+                            std::cout << "New solution is feasible! Including child 1 in offspring" << std::endl;
+                            offspring.include(offspring.decode(child1, QT));
+                        } else {
+                            std::cout << "New solution will not be included in offspring because it is not feasible." << std::endl;
+                        }
+                    } else {
+                        std::cout << "New solution will not be included in offspring because it is 100% equal to parent 2." << std::endl;
+                    }
+                } else {
+                    std::cout << "New solution will not be included in offspring because it is 100% equal to parent 1." << std::endl;
+                }
+
+                if (rand() % 100 < 20) {
+                    std::cout << std::endl << "USING MUTATION OPERATOR - ";
+                    child2 = Mutation::run(child2);
+                }
+
+                if(!checkChildrenSimilarity(child2.size(), child2, prnt1->encode(), 1)) {
+                    if(!checkChildrenSimilarity(child1.size(), child1, prnt2->encode(), 2)) {
+                        if (isFeasible(child2, g, QT)) {
+                            std::cout << "New solution is feasible! Including child in offspring" << std::endl;
+                            offspring.include(offspring.decode(child2, QT));
+                        } else {
+                            std::cout << "New solution will not be included in offspring because it is not feasible." << std::endl;
+                        }
+                    } else {
+                        std::cout << "New solution will not be included in offspring because it is 100% equal to parent 2." << std::endl;
+                    } 
+                } else {
+                    std::cout << "New solution will not be included in offspring because it is 100% equal to parent 1." << std::endl;
+                }
+
             } else {
-                std::cout << std::endl << "USING MUTATION OPERATOR - ";
-                child = Mutation::run(prnt.first);
+                std::cout << "No crossover or mutation were performed." << std::endl;
             }
 
-            if (isFeasible(child, g, QT)) {
-                std::cout << "New solution is feasible! Including child in offspring" << std::endl;
-                offspring.include(offspring.decode(child, QT));
-            }
 
             std::cout << std::endl;            
         }
 
         std::cout << offspring.getCurrentSize() << " offspring solutions generated." << std::endl;
 
-        std::cout << "-----------------------" << std::endl;
-        std::cout << "Performing multi-dimensional search on first front." << std::endl;
-        vector<Solution*> setG = multiDimensionalSearch(p.getFront(0));
+        // std::cout << "-----------------------" << std::endl;
+        // std::cout << "Performing multi-dimensional search on first front." << std::endl;
+        // vector<Solution*> setG = multiDimensionalSearch(p.getFront(0));
 
         // combine population, offspring and setG
         Population newPop(popSize*2, numNodes-1, g, QT);
         newPop.include(p.getSolutions());
-        newPop.include(offspring.getSolutions());
+        //newPop.include(offspring.getSolutions());
+        int repeated = newPop.includeOffspring(offspring.getSolutions(), generation);
+        std::cout << repeated << " repeated solutions were not included in new population." << std::endl;
         //newPop.include(setG);
         newPop.FNDS();
         newPop.printFronts();
@@ -144,6 +207,7 @@ void ENSGA2::run(int popSize, int numNodes, Graph *g, double alpha, int itConstr
         p = Population(popSize, numNodes-1, g, QT);
 
         int i = 0;
+        double lastCR = INF;
 
         while (p.getCurrentSize() < popSize) {
             vector<Solution*> currentFront = newPop.getFront(i);
@@ -158,7 +222,9 @@ void ENSGA2::run(int popSize, int numNodes, Graph *g, double alpha, int itConstr
             // if not, sort the current front by crowding distance
             newPop.crowdingDistance(currentFront);
             while (p.getCurrentSize() < popSize) {
-                p.include(currentFront.back());
+                if (currentFront.back()->getCrDistance() != 0) {
+                    p.include(currentFront.back());
+                }
                 currentFront.pop_back();
             }
         }
@@ -194,7 +260,8 @@ vector<Solution*> ENSGA2::multiDimensionalSearch (vector<Solution*> firstFront) 
         // for each objective function
         for (int obj = 0; obj < 3; obj++) {
             Solution *s1 = new Solution(*s);
-            Mutation::run(s1);
+
+            //Mutation::run(s1);
 
             switch (obj) {
                 case 0:

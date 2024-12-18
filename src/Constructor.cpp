@@ -456,7 +456,7 @@ namespace RandomConstructor {
         int numRoutes;
         bool droneRouteCreated;
 
-        vector<Solution*> bestSolutions;
+        vector<Solution*> popSolutions;
 
         int n = 0;
 
@@ -472,7 +472,7 @@ namespace RandomConstructor {
             currentSolution->setNumClients(numClients+1);
 
             // checks if best solutions set is full
-            if (bestSolutions.size() == setSize) {
+            if (popSolutions.size() == setSize) {
                 break;
             }
 
@@ -501,11 +501,11 @@ namespace RandomConstructor {
             Constructor::createDroneRoutes(g, currentSolution);
             cout << "Drone routes created." << endl << endl;
 
-            bestSolutions.push_back(currentSolution);
+            popSolutions.push_back(currentSolution);
 
             n++;
         }
 
-        return bestSolutions;
+        return popSolutions;
     }
 }
