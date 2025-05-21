@@ -281,9 +281,9 @@ void Population::printFronts() {
     for (const auto& front : fronts) {
         cout << "Front " << i << endl;
         for (const auto& solution : front) {
-            cout << "f1: " << solution->getTotalEnergyConsumption();
-            cout << " | f2: " << solution->getTotalDeliveryCost();
-            cout << " | f3: " << solution->getTotalDeliveryTime();
+            cout << "f1: " << solution->getTotalDeliveryCost();
+            cout << " | f2: " << solution->getTotalDeliveryTime();
+            cout << " | f3: " << solution->getTotalEnergyConsumption();
             cout << " [C.D. = " << solution->getCrDistance() << "]" << endl;
         }
 

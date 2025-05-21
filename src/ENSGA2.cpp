@@ -16,8 +16,8 @@ Solution* ENSGA2::tournamentSelection(Population *p, int tournamentSize) {
     for (int i = 0; i < tournamentSize; i++) {
         Solution *s = getRandomSolution(p);
 
-        double s_f1 = s->getTotalDeliveryCost();
-        double s_f2 = s->getTotalEnergyConsumption();
+        double s_f1 = s->getTotalEnergyConsumption();
+        double s_f2 = s->getTotalDeliveryCost();
         double s_f3 = s->getTotalDeliveryTime();
 
         std::cout << "Competitor S" << i+1 << " - Rank: " << s->getRank() << " | f1: " << s_f1 << " | f2: " << s_f2 << " | f3: " << s_f3 << std::endl;
@@ -97,8 +97,13 @@ void ENSGA2::run(int popSize, int numNodes, Graph *g, double alpha, int itConstr
     std::cout << "Creating initial population." << std::endl << std::endl;
 
     Population p(popSize, numNodes-1, g, QT);
-    vector<Solution*> randomSolutions = RandomConstructor::run(g, QT, alpha, itConstructor, popSize);
-    p.include(randomSolutions);
+    
+    // vector<Solution*> randomSolutions = RandomConstructor::run(g, QT, alpha, itConstructor, popSize);
+    // p.include(randomSolutions);
+
+    vector<Solution*> adaptiveSolutions = AdaptiveConstructor::run(g, QT, itConstructor, popSize);
+    p.include(adaptiveSolutions);
+
     p.FNDS();
     p.printFronts();
 

@@ -32,4 +32,9 @@ namespace RandomConstructor {
     vector<Solution*> run(Graph *g, int QT, double alpha, int numIterations, int setSize);
 }
 
+namespace AdaptiveConstructor {
+    void createAdaptiveTruckRoutes(Graph *g, Solution *sol, int *numRoutes, bool *droneRouteCreated);
+    vector<Solution*> run(Graph *g, int QT, int numIterations, int setSize);
+}
+
 #endif // CONSTRUCTOR_HPP_

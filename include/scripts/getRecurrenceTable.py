@@ -32,7 +32,7 @@ def processar_arquivo(arquivo):
 
 if __name__ == '__main__':
     filename = sys.argv[1]
-    outfile = "./recurrenceTable.txt"
+    outfile = "./recurrenceTables/" + sys.argv[2] + ".txt"
     
     table = processar_arquivo(filename)
     with open(outfile, "w") as f:

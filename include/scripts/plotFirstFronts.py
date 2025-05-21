@@ -32,12 +32,12 @@ def plot_graph(filename):
 
 
     for i, front in enumerate(norm_func):
-        if ((i+1)%10 == 0):
-            # Plot Objetivo 1 vs Objetivo 2
-            axs[0].scatter(front[:, 1], front[:, 0], c=[colors[i]], alpha=0.4, s=10)
+        # if ((i+1)%10 == 0):
+        # Plot Objetivo 1 vs Objetivo 2
+        axs[0].scatter(front[:, 1], front[:, 0], c=[colors[i]], alpha=0.4, s=10)
 
-            # Plot Objetivo 1 vs Objetivo 3
-            axs[1].scatter(front[:, 1], front[:, 2], c=[colors[i]], label=f'Gen {i+1}', alpha=0.4, s=10)
+        # Plot Objetivo 1 vs Objetivo 3
+        axs[1].scatter(front[:, 1], front[:, 2], c=[colors[i]], label=f'Gen {i+1}', alpha=0.4, s=10)
 
             
     # Configurações do gráfico f1 vs f2

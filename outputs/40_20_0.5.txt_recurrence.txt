@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "/mnt/c/Users/maria/OneDrive/Área de Trabalho/IC/MOVRPDD-MariaLuisa/./include/scripts/getRecurrenceTable.py", line 38, in <module>
+    with open(outfile, "w") as f:
+FileNotFoundError: [Errno 2] No such file or directory: './recurrenceTables/40_20_0.5.txt.txt'

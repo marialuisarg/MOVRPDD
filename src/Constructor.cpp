@@ -509,3 +509,122 @@ namespace RandomConstructor {
         return popSolutions;
     }
 }
+
+namespace AdaptiveConstructor {   
+
+    void createAdaptiveTruckRoutes(Graph *g, Solution *sol, int *numRoutes, bool *droneRouteCreated) {
+        // Define possíveis valores de alpha
+        vector<double> alphaValues = {0.25, 0.5, 0.75, 1.0};
+
+        // cria lista de candidatos
+        vector<Node*> candidates;
+
+        // insere clientes não atendidos na lista de candidatos
+        for (int i = 0; i <= sol->getNumClients(); i++) {
+            if (!sol->getAttendedClient(i).second) {
+                candidates.push_back(g->getNode(i));
+            }
+        }
+
+        vector<tuple<int, int, double, int, int>> candidatesCost;
+
+        // calcula o custo de cada candidato
+        for (int r = 0; r < sol->getNumRoutes(); r++) {
+            for (int i = 0; i < candidates.size(); i++) {
+                double manhattanDistance = candidates[i]->manhattanDistance(g->getNode(0));
+                double cost = manhattanDistance * CT * 2;
+
+                candidatesCost.push_back(make_tuple(candidates[i]->getID(), r, cost, 0, 0));
+            }
+        }
+
+        sol->setCandidatesCost(candidatesCost);
+
+        // ordena candidatos por custo
+        sol->sortCandidatesByCost(g);
+
+        // enquanto houver clientes não atendidos
+        while (!sol->allClientsAttended(g)) {
+            // Seleciona um alpha aleatoriamente da lista de valores possíveis
+            double alpha = alphaValues[sol->random(0, alphaValues.size() - 1)];
+
+            // Determina o índice k baseado no alpha selecionado
+            int k = sol->random(0, trunc(alpha * (float)sol->getCandidatesCost().size()));
+
+            // Obtém o k-ésimo candidato
+            tuple<int, int, double, int, int> candidate = sol->getCandidateCost(k);
+
+            int clientID = get<0>(candidate);
+            int routeIndex = get<1>(candidate);
+            int prevNode = get<3>(candidate);
+
+            Node *client = g->getNode(clientID);
+
+            // se o cliente ainda não foi inserido em uma rota
+            bool ins = sol->includeClient(client, g, prevNode, routeIndex);
+        }
+
+        // registra rotas finais de caminhão (antes dos drones)
+        for (int i = 0; i < sol->getNumRoutes(); i++) 
+            sol->getRoute(i)->registerPrevTruckRoute();
+
+        sol->updateSolution(g);
+    }
+
+    vector<Solution*> run(Graph *g, int QT, int numIterations, int setSize) {
+        int numRoutes;
+        bool droneRouteCreated;
+
+        vector<Solution*> popSolutions;
+
+        int n = 0;
+
+        // cria lista de clientes
+        vector<int> clients;
+        int numClients = g->getSize() - 1;
+
+        for (int i = 0; i <= numClients; i++)
+            clients.push_back(g->getNode(i)->getID());  
+
+        while (n < numIterations) {
+            Solution *currentSolution = new Solution(g, QT);
+            currentSolution->setNumClients(numClients + 1);
+
+            // verifica se o conjunto de melhores soluções está cheio
+            if (popSolutions.size() == setSize) {
+                break;
+            }
+
+            vector<pair<int, bool>> attendedClients;
+
+            for (int i = 0; i <= numClients; i++) {
+                attendedClients.push_back({clients.at(i), false});  
+            }
+
+            // depósito visitado
+            attendedClients[0].second = true;
+
+            currentSolution->setAttendedClients(attendedClients);
+
+            // cria rotas
+            for (int i = 0; i < currentSolution->getNumRoutes(); i++) {
+                Route r(QT, QD, g->getNode(0));
+                currentSolution->createRoute(r);
+            }
+
+            // cria rotas de caminhão de forma adaptativa
+            createAdaptiveTruckRoutes(g, currentSolution, &numRoutes, &droneRouteCreated);
+            cout << "Truck routes created adaptively." << endl;
+            
+            // cria rotas de drone
+            Constructor::createDroneRoutes(g, currentSolution);
+            cout << "Drone routes created." << endl << endl;
+
+            popSolutions.push_back(currentSolution);
+
+            n++;
+        }
+
+        return popSolutions;
+    }
+}

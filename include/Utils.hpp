@@ -211,9 +211,9 @@ namespace Util{
             output_file << s.at(i).size() << std::endl;
             for (int j = 0; j < s.at(i).size(); j++) {
 
-                f1 = s.at(i).at(j)->getTotalEnergyConsumption();
-                f2 = s.at(i).at(j)->getTotalDeliveryCost();
-                f3 = s.at(i).at(j)->getTotalDeliveryTime();
+                f1 = s.at(i).at(j)->getTotalDeliveryCost();
+                f2 = s.at(i).at(j)->getTotalDeliveryTime();
+                f3 = s.at(i).at(j)->getTotalEnergyConsumption();
 
                 output_file << s.at(i).at(j)->getNumRoutes();
                 output_file << std::endl << f1 << " " << f2 << " " << f3 << std::endl;
@@ -251,10 +251,10 @@ namespace Util{
         if (output_file.is_open()) {
             for (int j = 0; j < s.at(0).size(); j++) {
 
-                f1 = s.at(0).at(j)->getTotalEnergyConsumption();
-                f2 = s.at(0).at(j)->getTotalDeliveryCost();
-                f3 = s.at(0).at(j)->getTotalDeliveryTime();
-
+                f1 = s.at(0).at(j)->getTotalDeliveryCost();
+                f2 = s.at(0).at(j)->getTotalDeliveryTime();
+                f3 = s.at(0).at(j)->getTotalEnergyConsumption();
+                
                 output_file << std::endl << f1 << " " << f2 << " " << f3;
             }
             output_file << std::endl;
