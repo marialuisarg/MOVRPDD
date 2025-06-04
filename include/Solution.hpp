@@ -10,6 +10,7 @@ using namespace std;
 #include "Route.hpp"
 #include "Node.hpp"
 #include "Graph.hpp"
+#include "RandomGenerator.hpp"
 
 class Solution {
     private:
@@ -31,8 +32,10 @@ class Solution {
         double totalDeliveryCost;                       // f2    
         double totalDeliveryTime;                       // f3 
 
+        RandomGenerator* randGen;
+
     public:
-        Solution(Graph *g, int QT);
+        Solution(Graph *g, int QT, RandomGenerator *randGen);
         ~Solution();
 
         void setNumClients(int numClients) { this->numClients = numClients-1; };

@@ -10,6 +10,7 @@
 #include "Population.hpp"
 #include "Crossover.hpp"
 #include "Mutation.hpp"
+#include "RandomGenerator.hpp"
 
 typedef pair<Solution*, int> competitor;
 typedef pair<Solution*, Solution*> parents;
@@ -26,9 +27,9 @@ struct comp {
 
 namespace ENSGA2 {
 
-    void                run(int popSize, int numNodes, Graph *g, double alpha, int itConstructor, int itGA, string instanceName, int tSize);
-    Solution*           getRandomSolution(Population *p);
-    Solution*           tournamentSelection(Population *p, int tournamentSize);
+    void                run(int popSize, int numNodes, Graph *g, double alpha, int itConstructor, int itGA, string instanceName, int tSize, RandomGenerator *rng);
+    Solution*           getRandomSolution(Population *p, RandomGenerator *rng);
+    Solution*           tournamentSelection(Population *p, int tournamentSize, RandomGenerator *rng);
     bool                isFeasible(vector<int> solution, Graph *g, int QT);
     vector<Solution*>   multiDimensionalSearch (vector<Solution*> firstFront);
 }

@@ -1,11 +1,11 @@
 #include "../include/ENSGA2.hpp"
 
-Solution* ENSGA2::getRandomSolution(Population *p) {
-    int randomIndex = rand() % p->getSize();
+Solution* ENSGA2::getRandomSolution(Population *p, RandomGenerator *rng) {
+    int randomIndex = rng->getInt(0, p->getSize());
     return p->getSolutions()[randomIndex];
 }
 
-Solution* ENSGA2::tournamentSelection(Population *p, int tournamentSize) {
+Solution* ENSGA2::tournamentSelection(Population *p, int tournamentSize, RandomGenerator *rng) {
 
     // create a priority queue of competitors ordered by rank (lower is better)
     std::priority_queue<competitor, vector<competitor>, comp> competitors;
@@ -14,7 +14,7 @@ Solution* ENSGA2::tournamentSelection(Population *p, int tournamentSize) {
 
     // select n different competitors randomly (n = tournamentSize)
     for (int i = 0; i < tournamentSize; i++) {
-        Solution *s = getRandomSolution(p);
+        Solution *s = getRandomSolution(p, rng);
 
         double s_f1 = s->getTotalEnergyConsumption();
         double s_f2 = s->getTotalDeliveryCost();
@@ -84,9 +84,10 @@ bool checkChildrenSimilarity(int chromossomeSize, vector<int> child, vector<int>
     return ((100 * sameAsParent1) / (chromossomeSize-1)==100);
 }
 
-void ENSGA2::run(int popSize, int numNodes, Graph *g, double alpha, int itConstructor, int itGA, string instanceName, int tSize) {
+void ENSGA2::run(int popSize, int numNodes, Graph *g, double alpha, int itConstructor, int itGA, string instanceName, int tSize, RandomGenerator *rng) {
     
     std::cout << "Running ENSGA-II." << std::endl << std::endl;
+    std::cout << "Using seed: " << rng->getSeed() << std::endl;
 
     // outside loop to control number of generations
     int generation = 1;
@@ -96,12 +97,12 @@ void ENSGA2::run(int popSize, int numNodes, Graph *g, double alpha, int itConstr
     std::cout << "****************************" << std::endl;
     std::cout << "Creating initial population." << std::endl << std::endl;
 
-    Population p(popSize, numNodes-1, g, QT);
+    Population p(popSize, numNodes-1, g, QT, rng);
     
     // vector<Solution*> randomSolutions = RandomConstructor::run(g, QT, alpha, itConstructor, popSize);
     // p.include(randomSolutions);
 
-    vector<Solution*> adaptiveSolutions = AdaptiveConstructor::run(g, QT, itConstructor, popSize);
+    vector<Solution*> adaptiveSolutions = AdaptiveConstructor::run(g, QT, itConstructor, popSize, rng);
     p.include(adaptiveSolutions);
 
     p.FNDS();
@@ -112,19 +113,19 @@ void ENSGA2::run(int popSize, int numNodes, Graph *g, double alpha, int itConstr
         std::cout << "Generating offspring." << std::endl << std::endl;
 
         // generate set of offspring solutions with crossover and mutation
-        Population offspring(popSize, numNodes-1, g, QT);
+        Population offspring(popSize, numNodes-1, g, QT, rng);
 
         while (offspring.getCurrentSize() < popSize) {
 
             // cada torneio retorna um pai. verifica se são iguais depois da chamada das funções
             // não precisa verificar se são iguais dentro da função
             std::cout << "Selecionando pai 1" << std::endl;
-            Solution* prnt1 = tournamentSelection(&p, tSize);
+            Solution* prnt1 = tournamentSelection(&p, tSize, rng);
 
             Solution* prnt2;
             do {
                 std::cout << "Selecionando pai 2" << std::endl;
-                prnt2 = tournamentSelection(&p, tSize);
+                prnt2 = tournamentSelection(&p, tSize, rng);
 
             } while (prnt1->getTotalDeliveryCost() == prnt2->getTotalDeliveryCost() &&
                      prnt1->getTotalDeliveryTime() == prnt2->getTotalDeliveryTime() &&
@@ -134,13 +135,13 @@ void ENSGA2::run(int popSize, int numNodes, Graph *g, double alpha, int itConstr
 
             // faz cruzamento em 80% das vezes, depois faz mutação em 20% das vezes
 
-            if (rand() % 100 < 80) {
+            if (rng->getDouble(0,100) < 80) {
                 std::cout << std::endl << "USING CROSSOVER OPERATOR - ";
-                child1 = Crossover::run(prnt1, prnt2);
+                child1 = Crossover::run(prnt1, prnt2, rng);
                 std::cout << std::endl << "USING CROSSOVER OPERATOR - ";
-                child2 = Crossover::run(prnt2, prnt1);
+                child2 = Crossover::run(prnt2, prnt1, rng);
 
-                if (rand() % 100 < 20) {
+                if (rng->getDouble(0,100) < 20) {
                     std::cout << std::endl << "USING MUTATION OPERATOR - ";
                     child1 = Mutation::run(child1);
                 }
@@ -160,7 +161,7 @@ void ENSGA2::run(int popSize, int numNodes, Graph *g, double alpha, int itConstr
                     std::cout << "New solution will not be included in offspring because it is 100% equal to parent 1." << std::endl;
                 }
 
-                if (rand() % 100 < 20) {
+                if (rng->getDouble(0,100) < 20) {
                     std::cout << std::endl << "USING MUTATION OPERATOR - ";
                     child2 = Mutation::run(child2);
                 }
@@ -195,7 +196,7 @@ void ENSGA2::run(int popSize, int numNodes, Graph *g, double alpha, int itConstr
         // vector<Solution*> setG = multiDimensionalSearch(p.getFront(0));
 
         // combine population, offspring and setG
-        Population newPop(popSize*2, numNodes-1, g, QT);
+        Population newPop(popSize*2, numNodes-1, g, QT, rng);
         newPop.include(p.getSolutions());
         //newPop.include(offspring.getSolutions());
         int repeated = newPop.includeOffspring(offspring.getSolutions(), generation);
@@ -209,7 +210,7 @@ void ENSGA2::run(int popSize, int numNodes, Graph *g, double alpha, int itConstr
         std::cout << "SELECTING NEW POPULATION" << std::endl;
         std::cout << "-----------------------" << std::endl;
 
-        p = Population(popSize, numNodes-1, g, QT);
+        p = Population(popSize, numNodes-1, g, QT, rng);
 
         int i = 0;
         double lastCR = INF;

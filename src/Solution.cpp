@@ -10,13 +10,14 @@
 #include <tuple>
 #include <random>
 
-Solution::Solution(Graph *g, int QT) {
+Solution::Solution(Graph *g, int QT, RandomGenerator *randGen) {
     this->QT = QT;                           // maximum load capacity of trucks
     this->totalDeliveryCost = 0.0;
     this->totalEnergyConsumption = 0.0;
     this->totalDeliveryTime = 0.0;
     this->drone = false;
     this->dominatedBy = 0;
+    this->randGen = randGen;
 
     // calculates demand and divides by max load capacity of trucks to get num of routes
     setNumRoutes(ceil(g->getTotalDemand() / QT));
@@ -318,12 +319,7 @@ bool Solution::allClientsAttended(Graph *g) {
 }
 
 unsigned int Solution::random(int min, int max) {
-    random_device rd;
-    mt19937_64 e{rd()}; 
-    uniform_int_distribution<> dist{min, max};
-
-    unsigned int randomNumber = dist(e);
-    return randomNumber;
+    return randGen->getInt(min, max);
 }
 
 vector<int> Solution::encode() {

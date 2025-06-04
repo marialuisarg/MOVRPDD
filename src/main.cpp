@@ -4,6 +4,7 @@
 #include "../include/ENSGA2.hpp"
 #include "../include/Constructor.hpp"
 #include "../include/Solution.hpp"
+#include "../include/RandomGenerator.hpp"
 
 #include <iostream>
 #include <stdlib.h>
@@ -33,8 +34,8 @@ void printObjFunc(vector<Solution*> sol) {
 
 int main(int argc, char const *argv[]) {
 
-    if (!(argc == 6)) {
-        cout << "ERROR: Expecting <instance_file> <alpha> <population_size> <number_of_iterations>" << endl;
+    if (!(argc == 7 || argc == 6)) {
+        std::cout << "ERROR: Expecting <instance_file> <alpha> <population_size> <number_of_iterations> <tournament_size> <seed>" << std::endl;
         exit(1);
     }
 
@@ -57,13 +58,13 @@ int main(int argc, char const *argv[]) {
             graph.addEdge(i, j);
         }
     }
-
-    // set seed
-    srand(10);
-    cout << "SEED: " << 15 << endl;
     
-    if (argc == 6) {
+    if (argc == 7 || argc == 6) {
         
+        // set seed
+        unsigned int seed = (argc == 7) ? std::stoul(argv[6]) : std::random_device{}();
+        RandomGenerator rng(seed);
+
         // arguments for random truck route constructor
         float alpha_constructor = atof(argv[2]);         // alpha for random truck route constructor
         int it_constructor = 100;                        // number of iterations for random truck route constructor
@@ -74,7 +75,7 @@ int main(int argc, char const *argv[]) {
         int tournament = atoi(argv[5]);                 // tournament size
 
         // ENSGA2
-        ENSGA2::run(population, numNodes, &graph, alpha_constructor, it_constructor, it_GA, fileName, tournament);
+        ENSGA2::run(population, numNodes, &graph, alpha_constructor, it_constructor, it_GA, fileName, tournament, &rng);
     }
     
     return 0;

@@ -7,6 +7,7 @@
 #include "Node.hpp"
 #include "Constructor.hpp"
 #include "Utils.hpp"
+#include "RandomGenerator.hpp"
 #include <string>
 #include <vector>
 #include <map>
@@ -21,10 +22,11 @@ class Population {
         vector<Solution*>           solutions;
         vector<vector<Solution*>>   fronts;
         Graph*                      g;
+        RandomGenerator*            rng;
 
     public:
-        Population(int size, int numClients, Graph *g, int QT);
-        Population(int size, int numClients, Graph *g, int QT, double alpha, int numIterations, int constructorType);
+        Population(int size, int numClients, Graph *g, int QT, RandomGenerator *rng);
+        Population(int size, int numClients, Graph *g, int QT, double alpha, int numIterations, int constructorType, RandomGenerator *rng);
         ~Population();
         
         void                include(vector<Solution*> sol);
@@ -32,10 +34,11 @@ class Population {
         int                 includeOffspring(vector<Solution*> sol, int gen);
         Solution*           decode(vector<int> sol, int QT);
 
-        vector<Solution*>   getSolutions();
-        vector<Solution*>   getFront(int i) { return this->fronts[i]; };
-        int                 getSize() { return this->size; };
-        int                 getCurrentSize() { return this->currentSize; };
+        vector<Solution*>           getSolutions();
+        vector<Solution*>           getFront(int i) { return this->fronts[i]; };
+        vector<vector<Solution*>>   getFronts() { return this->fronts; };
+        int                         getSize() { return this->size; };
+        int                         getCurrentSize() { return this->currentSize; };
 
         void                FNDS();                                                 // Fast Non-Dominated Sort
         void                crowdingDistance(vector<Solution*> &ndSet);             // Crowding Distance Assignment

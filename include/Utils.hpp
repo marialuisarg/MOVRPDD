@@ -4,6 +4,7 @@
 #include<fstream>
 #include<iostream>
 #include<sstream>
+#include<filesystem>
 
 #include<vector>
 #include<tuple>
@@ -100,13 +101,6 @@ namespace Util{
 
         return nodes;
     };
-    
-    static int getRandomInteger(int begin, int end) {
-        std::random_device rd;
-        std::mt19937 gen(rd());
-        std::uniform_int_distribution<int> dis(begin, end);
-        return dis(gen);
-    };
 
     static void printSolutionsToFile(vector<Solution*> s, string instanceName) {
         string filename = "./solutions/by_objectives/functions_" + instanceName.erase(0,12);
@@ -196,8 +190,13 @@ namespace Util{
 
     static void printGenerationToFile(vector<vector<Solution*>> s, string instanceName, string setName, bool normalized) {
         string filename = "./solutions/generations/by_routes/routes_" + setName + "_" + instanceName.erase(0,12);
-    
+        std::cout << filename << std::endl;
         ofstream output_file(filename);
+
+        if (!output_file.is_open()) {
+            std::cerr << "Não foi possível abrir o arquivo: " << filename << std::endl;
+            return;
+        }
 
         int nFronts = s.size();
         
@@ -230,7 +229,7 @@ namespace Util{
         std::cout << "File " << filename << " created." << std::endl;
         output_file.close();
         
-        string command = "python ./include/scripts/plotNetworkGraph.py ./instances/" + instanceName + " " + filename;
+        string command = "python include/scripts/plotNetworkGraph.py instances/" + instanceName + " " + filename;
         int aux = system(command.c_str());
     };
 

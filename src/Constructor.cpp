@@ -1,11 +1,12 @@
 #include "../include/Constructor.hpp"
 
 namespace Constructor {
-    void insertRandomizedFirstClients(Graph *g, Solution *sol, int *numRoutes, bool *droneRouteCreated) {
+    void insertRandomizedFirstClients(Graph *g, Solution *sol, int *numRoutes, bool *droneRouteCreated, RandomGenerator *rng) {
         int n = sol->getNumRoutes();
         int i = 0;
         while (i < n) {
-            int randomIndex = rand() % sol->getCandidatesCost().size();
+            int randomIndex = rng->getInt(0, sol->getCandidatesCost().size());
+            
             int clientID = get<0>(sol->getCandidateCost(randomIndex));
             int routeIndex = i;
             int prevNode = get<3>(sol->getCandidateCost(randomIndex));
@@ -299,7 +300,7 @@ namespace Constructor {
 
 namespace GreedyConstructor {
 
-    void createTruckRoutes(Graph *g, Solution *sol, int *numRoutes, bool *droneRouteCreated) {
+    void createTruckRoutes(Graph *g, Solution *sol, int *numRoutes, bool *droneRouteCreated, RandomGenerator *rng) {
 
         // creates list of candidates
         vector<Node*> candidates;
@@ -328,7 +329,7 @@ namespace GreedyConstructor {
         sol->sortCandidatesByCost(g);
 
         //cout << endl;
-        Constructor::insertRandomizedFirstClients(g, sol, numRoutes, droneRouteCreated);
+        Constructor::insertRandomizedFirstClients(g, sol, numRoutes, droneRouteCreated, rng);
 
         //printRoutes();
         //printCandidatesCost(sol);
@@ -361,14 +362,14 @@ namespace GreedyConstructor {
         sol->updateSolution(g);
     }
 
-    Solution* run(Graph *g, int QT) {
+    Solution* run(Graph *g, int QT, RandomGenerator *randGen) {
         int numRoutes;
         int numClients = g->getSize();
         bool droneRouteCreated;
 
         vector<pair<int, bool>> attendedClients;
 
-        Solution *sol = new Solution(g, QT);     // creates solution
+        Solution *sol = new Solution(g, QT, randGen);     // creates solution
         sol->setNumClients(numClients);          // sets number of clients in solution
 
         for (int i = 0; i < numClients; i++) {
@@ -386,7 +387,7 @@ namespace GreedyConstructor {
             sol->createRoute(r);
         }
 
-        createTruckRoutes(g, sol, &numRoutes, &droneRouteCreated);
+        createTruckRoutes(g, sol, &numRoutes, &droneRouteCreated, randGen);
         Constructor::createDroneRoutes(g, sol);
         return sol;
     }
@@ -394,7 +395,7 @@ namespace GreedyConstructor {
 
 namespace RandomConstructor {   
 
-    void createRandomTruckRoutes(Graph *g, Solution *sol, int *numRoutes, bool *droneRouteCreated, double alpha) {
+    void createRandomTruckRoutes(Graph *g, Solution *sol, int *numRoutes, bool *droneRouteCreated, double alpha, RandomGenerator *rng) {
 
         // creates list of candidates
         vector<Node*> candidates;
@@ -451,7 +452,7 @@ namespace RandomConstructor {
 
     }
 
-    vector<Solution*> run(Graph *g, int QT, double alpha, int numIterations, int setSize) {
+    vector<Solution*> run(Graph *g, int QT, double alpha, int numIterations, int setSize, RandomGenerator *rng) {
 
         int numRoutes;
         bool droneRouteCreated;
@@ -468,7 +469,7 @@ namespace RandomConstructor {
             clients.push_back(g->getNode(i)->getID());  
 
         while (n < numIterations) {
-            Solution *currentSolution = new Solution(g, QT);
+            Solution *currentSolution = new Solution(g, QT, rng);
             currentSolution->setNumClients(numClients+1);
 
             // checks if best solutions set is full
@@ -494,7 +495,7 @@ namespace RandomConstructor {
             }
 
             // creates truck routes
-            createRandomTruckRoutes(g, currentSolution, &numRoutes, &droneRouteCreated, alpha);
+            createRandomTruckRoutes(g, currentSolution, &numRoutes, &droneRouteCreated, alpha, rng);
             cout << "Truck routes created." << endl;
             
             // creates drone routes
@@ -571,7 +572,7 @@ namespace AdaptiveConstructor {
         sol->updateSolution(g);
     }
 
-    vector<Solution*> run(Graph *g, int QT, int numIterations, int setSize) {
+    vector<Solution*> run(Graph *g, int QT, int numIterations, int setSize, RandomGenerator *rng) {
         int numRoutes;
         bool droneRouteCreated;
 
@@ -587,7 +588,7 @@ namespace AdaptiveConstructor {
             clients.push_back(g->getNode(i)->getID());  
 
         while (n < numIterations) {
-            Solution *currentSolution = new Solution(g, QT);
+            Solution *currentSolution = new Solution(g, QT, rng);
             currentSolution->setNumClients(numClients + 1);
 
             // verifica se o conjunto de melhores soluções está cheio

@@ -59,9 +59,9 @@ This project has been developed as part of my undergraduate research project at 
    ```sh
    make
    ```
-3. For random constructor, run 
+3. For random adaptive constructor, run 
    ```sh
-   ./MOVRPDD <instance_file> <alpha> <population_size> <number_of_iterations> <tournament_size>
+   ./MOVRPDD <instance_file> <alpha> <population_size> <number_of_iterations> <tournament_size> <use_random_seed?> <seed>
    ```
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>

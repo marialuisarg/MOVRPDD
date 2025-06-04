@@ -32,23 +32,23 @@ def plot_graph(filename):
 
 
     for i, front in enumerate(norm_func):
-        # if ((i+1)%10 == 0):
-        # Plot Objetivo 1 vs Objetivo 2
-        axs[0].scatter(front[:, 1], front[:, 0], c=[colors[i]], alpha=0.4, s=10)
+        if ((i+1)%50 == 0):
+            # Plot Objetivo 1 vs Objetivo 2
+            axs[0].scatter(front[:, 0], front[:, 1], c=[colors[i]], alpha=0.4, s=10)
 
-        # Plot Objetivo 1 vs Objetivo 3
-        axs[1].scatter(front[:, 1], front[:, 2], c=[colors[i]], label=f'Gen {i+1}', alpha=0.4, s=10)
+            # Plot Objetivo 1 vs Objetivo 3
+            axs[1].scatter(front[:, 0], front[:, 2], c=[colors[i]], label=f'Gen {i+1}', alpha=0.4, s=10)
 
             
     # Configurações do gráfico f1 vs f2
-    axs[0].set_xlabel('f2')
-    axs[0].set_ylabel('f1')
+    axs[0].set_xlabel('f1')
+    axs[0].set_ylabel('f2')
     axs[0].set_title('f1 vs f2')
 
     # Configurações do gráfico f2 vs f3
-    axs[1].set_xlabel('f2')
+    axs[1].set_xlabel('f1')
     axs[1].set_ylabel('f3')
-    axs[1].set_title('f3 vs f2')
+    axs[1].set_title('f1 vs f3')
     axs[1].legend()
 
     plt.tight_layout()

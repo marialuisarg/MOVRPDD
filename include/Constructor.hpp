@@ -10,9 +10,10 @@
 #include "Graph.hpp"
 #include "Solution.hpp"
 #include "Types.hpp"
+#include "RandomGenerator.hpp"
 
 namespace Constructor {
-    void insertRandomizedFirstClients(Graph *g, Solution *sol, int *numRoutes, bool *droneRouteCreated);
+    void insertRandomizedFirstClients(Graph *g, Solution *sol, int *numRoutes, bool *droneRouteCreated, RandomGenerator *rng);
     bool isInSearchRange(vector<int> searchRange, int clientID);
     void sortListByEuclideanDistance(Graph *g, vector<int> *nodeIdList, int clientNode);
     void sortListByGain(vector<tuple<int, int, int, double, bool>> *list);
@@ -23,18 +24,18 @@ namespace Constructor {
 }
 
 namespace GreedyConstructor {
-    void createTruckRoutes(Graph *g, Solution *sol, int *numRoutes, bool *droneRouteCreated);
+    void createTruckRoutes(Graph *g, Solution *sol, int *numRoutes, bool *droneRouteCreated, RandomGenerator *rng);
     Solution* run(Graph *g, int QT);
 }
 
 namespace RandomConstructor {   
-    void createRandomTruckRoutes(Graph *g, Solution *sol, int *numRoutes, bool *droneRouteCreated, double alpha);
-    vector<Solution*> run(Graph *g, int QT, double alpha, int numIterations, int setSize);
+    void createRandomTruckRoutes(Graph *g, Solution *sol, int *numRoutes, bool *droneRouteCreated, double alpha, RandomGenerator *rng);
+    vector<Solution*> run(Graph *g, int QT, double alpha, int numIterations, int setSize, RandomGenerator *rng);
 }
 
 namespace AdaptiveConstructor {
     void createAdaptiveTruckRoutes(Graph *g, Solution *sol, int *numRoutes, bool *droneRouteCreated);
-    vector<Solution*> run(Graph *g, int QT, int numIterations, int setSize);
+    vector<Solution*> run(Graph *g, int QT, int numIterations, int setSize, RandomGenerator *rng);
 }
 
 #endif // CONSTRUCTOR_HPP_

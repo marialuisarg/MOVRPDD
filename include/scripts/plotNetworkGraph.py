@@ -111,7 +111,7 @@ if __name__ == '__main__':
 
     #region Grafo completo
     # Desenha o grafo
-    nx.draw(G, pos, with_labels=True, node_color='lightblue', edge_color=weights, edge_cmap=cmap, width=1, node_size=350, font_size=10)
+    nx.draw(G, pos, with_labels=True, node_color='lightblue', edge_color=weights, edge_cmap=cmap, width=1, node_size=150, font_size=5)
     #endregion
     
     # Mapa de cores

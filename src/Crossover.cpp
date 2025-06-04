@@ -62,21 +62,21 @@ bool checkChildrenSimilarity(int chromossomeSize, vector<int> child, vector<int>
     return ((100 * sameAsParent1) / (chromossomeSize-1)==100);
 }
 
-std::vector<int> Crossover::run(Solution *p1, Solution *p2) {
+std::vector<int> Crossover::run(Solution *p1, Solution *p2, RandomGenerator *rng) {
     
-    int crossoverOp = Util::getRandomInteger(0,100);
+    int crossoverOp = rng->getDouble(0,100);
     
     // choose crossover operator
     if (crossoverOp < 50) {
         std::cout << "PMX" << std::endl;
-        return Crossover::PMX(p1, p2);
+        return Crossover::PMX(p1, p2, rng);
     } else {
         std::cout << "OX" << std::endl;
-        return Crossover::OX(p1, p2);
+        return Crossover::OX(p1, p2, rng);
     }
 }
 
-std::vector<int> Crossover::PMX(Solution *p1, Solution *p2) {
+std::vector<int> Crossover::PMX(Solution *p1, Solution *p2, RandomGenerator *rng) {
     // encode parents
     std::vector<int> parent1 = p1->encode();
     std::vector<int> parent2 = p2->encode();
@@ -84,10 +84,10 @@ std::vector<int> Crossover::PMX(Solution *p1, Solution *p2) {
     int cromossomeSize = parent1.size();
 
     // generate random crossover points
-    int cp2 = 0, cp1 = Util::getRandomInteger(0,cromossomeSize-1);
+    int cp2 = 0, cp1 = rng->getInt(0, cromossomeSize);
     
     while (cp2 == cp1 || cp2 == 0) {
-        cp2 = Util::getRandomInteger(0,cromossomeSize-1);
+        cp2 = rng->getInt(0, cromossomeSize);
     }
 
     if (cp1 > cp2) {
@@ -148,7 +148,7 @@ std::vector<int> Crossover::PMX(Solution *p1, Solution *p2) {
     return child;
 }
 
-std::vector<int> Crossover::OX(Solution *p1, Solution *p2) {
+std::vector<int> Crossover::OX(Solution *p1, Solution *p2, RandomGenerator *rng) {
     // encode parents
     vector<int> parent1 = p1->encode();
     vector<int> parent2 = p2->encode();
@@ -156,10 +156,10 @@ std::vector<int> Crossover::OX(Solution *p1, Solution *p2) {
     int chromossomeSize = parent1.size();
 
     // generate random crossover points
-    int cp2 = 0, cp1 = rand() % (chromossomeSize-1);
+    int cp2 = 0, cp1 = rng->getInt(0, chromossomeSize);
     
     while (cp2 == cp1 || cp2 == 0) {
-        cp2 = rand() % (chromossomeSize-1);
+        cp2 = rng->getInt(0, chromossomeSize);
     }
 
     if (cp1 > cp2) {

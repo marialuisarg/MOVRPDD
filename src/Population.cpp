@@ -11,21 +11,23 @@
 #include <unordered_set>
 
 // starts population without routes constructor
-Population::Population(int size, int numClients, Graph *g, int q) {
+Population::Population(int size, int numClients, Graph *g, int q, RandomGenerator *rng) {
     this->size = size;
     this->numClients = numClients;
     this->currentSize = 0;
     this->g = g;
+    this->rng = rng;
 };
 
 // starts population with routes constructor
-Population::Population(int size, int numClients, Graph *g, int q, double alpha, int numIterations, int constructorType) {
+Population::Population(int size, int numClients, Graph *g, int q, double alpha, int numIterations, int constructorType, RandomGenerator *rng) {
     this->size = size;
     this->numClients = numClients;
     this->currentSize = 0;
     this->g = g;
+    this->rng = rng;
 
-    vector<Solution*> sol = RandomConstructor::run(g, q, alpha, numIterations, size);
+    vector<Solution*> sol = RandomConstructor::run(g, q, alpha, numIterations, size, rng);
     include(sol);
 };
 
@@ -82,7 +84,7 @@ vector<Solution*> Population::getSolutions() {
 
 Solution* Population::decode(vector<int> sol, int q) {
 
-    Solution *decodedSol = new Solution(g, QT);
+    Solution *decodedSol = new Solution(g, QT, rng);
     int numRoutes = decodedSol->getNumRoutes();
     decodedSol->setNumClients(numClients+1);
 
