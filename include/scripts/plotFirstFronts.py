@@ -31,25 +31,13 @@ def read_objectives(filename):
 
 def plot_graph(filename):
     norm_func = read_objectives(filename)
-<<<<<<< HEAD
-    colors = plt.cm.viridis(np.linspace(0, 1, len(norm_func)))  # Generate a color map
-=======
     colors = plt.cm.inferno(np.linspace(0.1, 0.6, len(norm_func)))  # Generate a color map
->>>>>>> 52cc473 (fix: drone route construction algorithm | delete: big files)
 
     # Plotagem dos gráficos
     fig, axs = plt.subplots(1, 2, figsize=(14, 6))
 
 
     for i, front in enumerate(norm_func):
-<<<<<<< HEAD
-        if ((i+1)%50 == 0):
-            # Plot Objetivo 1 vs Objetivo 2
-            axs[0].scatter(front[:, 0], front[:, 1], c=[colors[i]], alpha=0.4, s=10)
-
-            # Plot Objetivo 1 vs Objetivo 3
-            axs[1].scatter(front[:, 0], front[:, 2], c=[colors[i]], label=f'Gen {i+1}', alpha=0.4, s=10)
-=======
         #if (((i+1)>=200 and (i+1)%20 == 0) or ((i+1)<200 and (i+1)%100 == 0)):
         if (((i+1) == 100)):
             # Plot Objetivo 1 vs Objetivo 2
@@ -57,7 +45,6 @@ def plot_graph(filename):
 
             # Plot Objetivo 1 vs Objetivo 3
             axs[1].scatter(front[:, 0], front[:, 2], c=[colors[i]], label=f'Gen {i+1}', alpha=0.8, s=10)
->>>>>>> 52cc473 (fix: drone route construction algorithm | delete: big files)
 
             
     # Configurações do gráfico f1 vs f2
