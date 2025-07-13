@@ -53,7 +53,7 @@ class Solution {
         pair<int, bool>                             getAttendedClient(int i) { return this->attendedClients[i]; };
         vector<int>                                 getDominatedSolutions() { return this->dominatedSolutions; };
         int                                         getDominatedBy() { return this->dominatedBy; };
-        vector<tuple<int, int, double, int, int>>   getCandidatesCost() { return this->candidatesCost; };
+        vector<tuple<int, int, double, int, int>>&  getCandidatesCost() { return this->candidatesCost; };
         tuple<int, int, double, int, int>           getCandidateCost(int i) { return this->candidatesCost[i]; };
         double                                      getObjective(int i);
         double                                      getCrDistance() { return this->crDistance; };

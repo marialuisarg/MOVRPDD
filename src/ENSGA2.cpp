@@ -1,7 +1,7 @@
 #include "../include/ENSGA2.hpp"
 
 Solution* ENSGA2::getRandomSolution(Population *p, RandomGenerator *rng) {
-    int randomIndex = rng->getInt(0, p->getSize());
+    int randomIndex = rng->getInt(0, p->getSize()-1);
     return p->getSolutions()[randomIndex];
 }
 

@@ -5,7 +5,7 @@ namespace Constructor {
         int n = sol->getNumRoutes();
         int i = 0;
         while (i < n) {
-            int randomIndex = rng->getInt(0, sol->getCandidatesCost().size());
+            int randomIndex = rng->getInt(0, sol->getCandidatesCost().size()-1);
             
             int clientID = get<0>(sol->getCandidateCost(randomIndex));
             int routeIndex = i;
@@ -20,46 +20,20 @@ namespace Constructor {
         //printRoutes();
     }
 
-    bool isInSearchRange(vector<int> searchRange, int clientID) {
-        for (int i = 0; i < searchRange.size(); i++) {
-            if (searchRange[i] == clientID) {
-                //cout << "Client " << clientID << " is in search range" << endl;
-                return true;
-            }
-        }
-        //cout << "Client " << clientID << " is not in search range" << endl;
-        return false;
+    bool isInSearchRange(const deque<long>& searchRange, long int nodeID) {
+        return std::find(searchRange.begin(), searchRange.end(), nodeID) != searchRange.end();
     }
 
     void sortListByEuclideanDistance(Graph *g, vector<int> *nodeIdList, int clientNode) {
-        int i, j, aux;
-        double cij, cik, ckj;
-
-        for (i = 0; i < nodeIdList->size(); i++) {
-            for (j = i+1; j < nodeIdList->size(); j++) {
-                cij = g->getEuclideanDistance(clientNode, nodeIdList->at(i));
-                cik = g->getEuclideanDistance(clientNode, nodeIdList->at(j));
-                if (cik < cij) {
-                    aux = nodeIdList->at(i);
-                    nodeIdList->at(i) = nodeIdList->at(j);
-                    nodeIdList->at(j) = aux;
-                }
-            }
-        }
+        std::sort(nodeIdList->begin(), nodeIdList->end(), [g, clientNode](int a, int b) {
+            return g->getEuclideanDistance(clientNode, a) < g->getEuclideanDistance(clientNode, b);
+        });
     }
 
     void sortListByGain(vector<tuple<int, int, int, double, bool>> *list) {
-        int i, j;
-        tuple<int, int, int, double, bool> aux;
-        for (i = 0; i < list->size(); i++) {
-            for (j = i+1; j < list->size(); j++) {
-                if (get<3>(list->at(j)) > get<3>(list->at(i))) {
-                    aux = list->at(i);
-                    list->at(i) = list->at(j);
-                    list->at(j) = aux;
-                }
-            }
-        }
+        std::sort(list->begin(), list->end(), [](const auto &a, const auto &b) {
+            return get<3>(a) > get<3>(b);
+        });
     }
 
     bool isReachableByDrone(Graph *g, Solution *sol, tuple<int, int, int> flight, int routeIndex) {
@@ -167,13 +141,13 @@ namespace Constructor {
     void createDroneRoutes(Graph *g, Solution *sol) {
         int launchNode, clientNode, retrieveNode;
         vector<int> launchNodesList, retrieveNodesList; 
-        tuple<int, int, int> flight(0,0,0);
+        tuple<int, int, int> flight(0,0,0); // <launchNode, clientNode, retrieveNode>
 
         // for each client on each truck route
         for (int i = 0; i < sol->getNumRoutes(); i++) { 
             vector<Node*> tRoute = sol->getRoute(i)->getTruckRoute();
-            vector<tuple<int, int, int, double, bool>> bestFlight;  // <clientID, launchNode, retrieveNode, gain, is possible>
-            vector<int> searchRange;
+            vector<tuple<int, int, int, double, bool>> bestFlight;  // <launchNode, clientNode, retrieveNode, gain, is possible>
+            deque<long int> searchRange;
 
             // creates a list with all clients on the route (every node besides depot)
             for (int k = 1; k < tRoute.size()-1; k++) {
@@ -187,6 +161,7 @@ namespace Constructor {
                     
                     // if client can be reached by drone and its demand is less than the drone's capacity
                     if (client->getServiceBy() == TRUCK_DRONE && client->getDemand() <= QD) {
+
                         // verifies if node isn't depot or first/last node on route
                         if ((client->getID() != tRoute[0]->getID()) && (client->getID() != tRoute[1]->getID()) && (client->getID() != tRoute[tRoute.size()-2]->getID())) {
                             //cout << endl << endl << "ROUTE: " << i << " | CLIENT: " << client->getID();
@@ -194,13 +169,12 @@ namespace Constructor {
                             get<1>(flight) = clientNode;
 
                             // creates a launching nodes list with all nodes before client
-                            int k;
                             launchNodesList.clear();
-                            for (k = 0; k < searchRange.size(); k++) {
-                                if (searchRange[k] == clientNode)
+                            for (const auto& nodeID : searchRange) {
+                                if (nodeID == clientNode)
                                     break;
 
-                                launchNodesList.push_back(searchRange[k]);
+                                launchNodesList.push_back(nodeID);
                             }
 
                             // sort launching nodes list by euclidean distance to client
@@ -208,18 +182,21 @@ namespace Constructor {
 
                             // creates a retrieving nodes list with all nodes after client
                             retrieveNodesList.clear();
-                            for (k = k+1; k < searchRange.size(); k++) {
-                                retrieveNodesList.push_back(searchRange[k]);
+                            auto it = std::find(searchRange.begin(), searchRange.end(), clientNode);
+                            if (it != searchRange.end()) {
+                                ++it; // Move to the next element after clientNode
+                                for (; it != searchRange.end(); ++it) {
+                                    retrieveNodesList.push_back(*it);
+                                }
                             }
 
                             // goes through lauching and retrieving nodes list, choosing flights that doesn't exceed flight endurance
-                            get<1>(flight) = clientNode;
-                            std::tuple<int,int,int> bestClientFlight;
+                            std::tuple<int,int,int> bestClientFlight; // <launchNode, clientNode, retrieveNode>
                             double biggestGain = -INF;
 
                             for (int n = 0; n < launchNodesList.size(); n++) {
                                 get<0>(flight) = launchNodesList[n];
-                                for (k = 0; k < retrieveNodesList.size(); k++) {
+                                for (int k = 0; k < retrieveNodesList.size(); k++) {
                                     get<2>(flight) = retrieveNodesList[k];
 
                                     if (isReachableByDrone(g, sol, flight, i)) {
@@ -251,7 +228,7 @@ namespace Constructor {
                             // if the best flight is better than the truck route, adds it to the best flight list
                             if (biggestGain > 0) {
                                 //cout << endl << "best flight for client " << client->getID() << ": (" << get<0>(bestClientFlight) << "," << get<1>(bestClientFlight) << "," << get<2>(bestClientFlight) << ")" << endl;
-                                bestFlight.push_back(make_tuple(get<1>(bestClientFlight), get<0>(bestClientFlight), get<2>(bestClientFlight), biggestGain, true));
+                                bestFlight.push_back(make_tuple(get<0>(bestClientFlight), get<1>(bestClientFlight), get<2>(bestClientFlight), biggestGain, true));
                             }
 
                         } //else {
@@ -268,23 +245,28 @@ namespace Constructor {
 
             // adds best flights to route
             //cout << "best flights size: " << bestFlight.size() << endl;
-            for (int j = 0; j < bestFlight.size(); j++) {
-                
-                // verifies if all best flights are possible
-                for (int k = j+1; k < bestFlight.size(); k++) {
-                    if (get<0>(bestFlight[j]) == get<1>(bestFlight[k]) || get<1>(bestFlight[j]) == get<0>(bestFlight[k])) {
-                        //cout << "encontrou erro: (" << get<1>(bestFlight[j]) << "," << get<0>(bestFlight[j]) << "," << get<2>(bestFlight[j]) << ") e (" << get<1>(bestFlight[k]) << "," << get<0>(bestFlight[k]) << "," << get<2>(bestFlight[k]) << ")" << endl;
-                        get<4>(bestFlight[k]) = false;
-                    }
-                }
 
-                // if flight is possible, adds it to route
-                if (get<4>(bestFlight[j])) {
-                    get<0>(flight) = get<1>(bestFlight[j]);
-                    get<1>(flight) = get<0>(bestFlight[j]);
-                    get<2>(flight) = get<2>(bestFlight[j]);
+            unordered_map<int, string> usedNodes; // map to track nodes and their roles in flights
+
+            for (const auto& flightOption : bestFlight) {
+                int launchNode = get<0>(flightOption);
+                int clientNode = get<1>(flightOption);
+                int retrieveNode = get<2>(flightOption);
+
+                // Check if nodes are already used in conflicting roles
+                if (usedNodes[clientNode].empty() && 
+                    (usedNodes[launchNode].empty() || usedNodes[launchNode] == "retrieve") && 
+                    usedNodes[retrieveNode].empty()) {
+                    
+                    // Add flight to the route
+                    tuple<int, int, int> flight = {launchNode, clientNode, retrieveNode};
                     sol->getRoute(i)->insertDroneFlight(flight);
                     sol->setDroneRouteCreated(true);
+
+                    // Mark nodes with their roles
+                    usedNodes[launchNode] = "launch";
+                    usedNodes[clientNode] = "client";
+                    usedNodes[retrieveNode] = "retrieve";
                 }
             }
 
@@ -550,7 +532,7 @@ namespace AdaptiveConstructor {
             double alpha = alphaValues[sol->random(0, alphaValues.size() - 1)];
 
             // Determina o índice k baseado no alpha selecionado
-            int k = sol->random(0, trunc(alpha * (float)sol->getCandidatesCost().size()));
+            int k = sol->random(0, trunc(alpha * (float)sol->getCandidatesCost().size())-1);
 
             // Obtém o k-ésimo candidato
             tuple<int, int, double, int, int> candidate = sol->getCandidateCost(k);
@@ -564,7 +546,7 @@ namespace AdaptiveConstructor {
             // se o cliente ainda não foi inserido em uma rota
             bool ins = sol->includeClient(client, g, prevNode, routeIndex);
         }
-
+        
         // registra rotas finais de caminhão (antes dos drones)
         for (int i = 0; i < sol->getNumRoutes(); i++) 
             sol->getRoute(i)->registerPrevTruckRoute();

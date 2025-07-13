@@ -9,6 +9,7 @@
 #include <fstream>
 #include <tuple>
 #include <random>
+#include <algorithm>
 
 Solution::Solution(Graph *g, int QT, RandomGenerator *randGen) {
     this->QT = QT;                           // maximum load capacity of trucks
@@ -133,19 +134,26 @@ void Solution::saveRouteToPlot(std::ofstream &output_file) {
 }
 
 void Solution::sortCandidatesByCost(Graph* g) {
-    int n = this->getCandidatesCost().size();
-    tuple<int, int, double, int, int> temp;
+    // int n = this->getCandidatesCost().size();
+    // tuple<int, int, double, int, int> temp;
     
-    int i, j;
-    for (i = 0; i < n - 1; i++) {
-        for (j = 0; j < n - i - 1; j++) {
-            if (get<2>(this->getCandidateCost(j)) > get<2>(this->getCandidateCost(j+1))) {
-                temp = this->getCandidateCost(j);
-                this->setCandidateCost(j, this->getCandidateCost(j+1));
-                this->setCandidateCost(j+1, temp);
-            }
-        }
-    }
+    // int i, j;
+    // for (i = 0; i < n - 1; i++) {
+    //     for (j = 0; j < n - i - 1; j++) {
+    //         if (get<2>(this->getCandidateCost(j)) > get<2>(this->getCandidateCost(j+1))) {
+    //             temp = this->getCandidateCost(j);
+    //             this->setCandidateCost(j, this->getCandidateCost(j+1));
+    //             this->setCandidateCost(j+1, temp);
+    //         }
+    //     }
+    // }
+
+    auto& candidates = this->getCandidatesCost();
+
+    std::sort(candidates.begin(), candidates.end(),
+        [](const auto& a, const auto& b) {
+            return std::get<2>(a) < std::get<2>(b);
+        });
 }
 
 bool Solution::includeClient(Node* client, Graph *g, int prevNode, int routeIndex) {
@@ -314,11 +322,11 @@ bool Solution::allClientsAttended(Graph *g) {
             return false;
         }
     }
-
     return true;
 }
 
 unsigned int Solution::random(int min, int max) {
+    if (max < 0) max = 0;
     return randGen->getInt(min, max);
 }
 

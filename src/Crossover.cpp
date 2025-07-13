@@ -84,10 +84,10 @@ std::vector<int> Crossover::PMX(Solution *p1, Solution *p2, RandomGenerator *rng
     int cromossomeSize = parent1.size();
 
     // generate random crossover points
-    int cp2 = 0, cp1 = rng->getInt(0, cromossomeSize);
+    int cp2 = 0, cp1 = rng->getInt(0, cromossomeSize-1);
     
     while (cp2 == cp1 || cp2 == 0) {
-        cp2 = rng->getInt(0, cromossomeSize);
+        cp2 = rng->getInt(0, cromossomeSize-1);
     }
 
     if (cp1 > cp2) {
@@ -156,10 +156,10 @@ std::vector<int> Crossover::OX(Solution *p1, Solution *p2, RandomGenerator *rng)
     int chromossomeSize = parent1.size();
 
     // generate random crossover points
-    int cp2 = 0, cp1 = rng->getInt(0, chromossomeSize);
+    int cp2 = 0, cp1 = rng->getInt(0, chromossomeSize-1);
     
     while (cp2 == cp1 || cp2 == 0) {
-        cp2 = rng->getInt(0, chromossomeSize);
+        cp2 = rng->getInt(0, chromossomeSize-1);
     }
 
     if (cp1 > cp2) {

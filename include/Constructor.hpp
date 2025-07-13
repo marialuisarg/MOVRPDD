@@ -6,6 +6,8 @@
 #include <random>
 #include <algorithm>
 #include <cmath>
+#include <deque>
+#include <unordered_map>
 
 #include "Graph.hpp"
 #include "Solution.hpp"

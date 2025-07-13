@@ -70,7 +70,7 @@ void Route::updateEnergyConsumption(Graph *g, int QT) {
     for (int j = 0; j < this->droneRoute.size(); j++) {
         int laNode = get<0>(this->droneRoute[j]);
         double dronePackageWeight = g->getNode(get<1>(this->droneRoute[j]))->getDemand();
-        launchingNodes.push_back(make_pair(laNode, dronePackageWeight));
+        launchingNodes.emplace_back(laNode, dronePackageWeight);
     }
 
     //cout << this->truckRoute[0]->getID() << " -> " << this->truckRoute[1]->getID() << ": " << truckWeight << endl;
@@ -89,7 +89,7 @@ void Route::updateEnergyConsumption(Graph *g, int QT) {
 
         path = g->getManhattanDistance(this->truckRoute[i]->getID(), this->truckRoute[i+1]->getID());
 
-        if (truckWeight == this->truckRoute[i]->getDemand())
+        if (std::abs(truckWeight - this->truckRoute[i]->getDemand()) < 1e-6)
             truckWeight = 0.0;
         else
             truckWeight -= this->truckRoute[i]->getDemand() + dronePackageWeight;
@@ -259,14 +259,17 @@ void Route::insertDroneFlight(std::tuple<int,int,int> flight) {
 }
 
 void Route::removeClientsServedByDrone(Graph *g, int CT, int CD, int CB) {
-    for (int i = 0; i < this->droneRoute.size(); i++) {
-        for (int j = 1; j < this->truckRoute.size()-1; j++) {
-            if (this->truckRoute[j]->getID() == get<1>(this->droneRoute[i])) {
-                this->truckRoute.erase(this->truckRoute.begin() + j);
-                break;
-            }
-        }
+    unordered_set<int> droneClients;
+    for (const auto& flight : this->droneRoute) {
+        droneClients.insert(get<1>(flight));
     }
+
+    this->truckRoute.erase(
+        remove_if(this->truckRoute.begin() + 1, this->truckRoute.end() - 1,
+                  [&droneClients](Node* node) {
+                      return droneClients.count(node->getID()) > 0;
+                  }),
+        this->truckRoute.end() - 1);
 
     updateDeliveryCost(g, CT, CD, CB);
 }
