@@ -102,151 +102,154 @@ void ENSGA2::run(int popSize, int numNodes, Graph *g, double alpha, int itConstr
     // vector<Solution*> randomSolutions = RandomConstructor::run(g, QT, alpha, itConstructor, popSize);
     // p.include(randomSolutions);
 
-    vector<Solution*> adaptiveSolutions = AdaptiveConstructor::run(g, QT, itConstructor, popSize, rng);
-    p.include(adaptiveSolutions);
+    // vector<Solution*> adaptiveSolutions = AdaptiveConstructor::run(g, QT, itConstructor, popSize, rng);
+    // p.include(adaptiveSolutions);
+
+    vector<Solution*> literatureSolutions = LiteratureConstructor::run(g, QT, rng, popSize);
+    p.include(literatureSolutions);
 
     p.FNDS();
     p.printFronts();
 
-    while (generation <= itGA) {
+    // while (generation <= itGA) {
         
-        std::cout << "Generating offspring." << std::endl << std::endl;
+    //     std::cout << "Generating offspring." << std::endl << std::endl;
 
-        // generate set of offspring solutions with crossover and mutation
-        Population offspring(popSize, numNodes-1, g, QT, rng);
+    //     // generate set of offspring solutions with crossover and mutation
+    //     Population offspring(popSize, numNodes-1, g, QT, rng);
 
-        while (offspring.getCurrentSize() < popSize) {
+    //     while (offspring.getCurrentSize() < popSize) {
 
-            // cada torneio retorna um pai. verifica se são iguais depois da chamada das funções
-            // não precisa verificar se são iguais dentro da função
-            std::cout << "Selecionando pai 1" << std::endl;
-            Solution* prnt1 = tournamentSelection(&p, tSize, rng);
+    //         // cada torneio retorna um pai. verifica se são iguais depois da chamada das funções
+    //         // não precisa verificar se são iguais dentro da função
+    //         std::cout << "Selecionando pai 1" << std::endl;
+    //         Solution* prnt1 = tournamentSelection(&p, tSize, rng);
 
-            Solution* prnt2;
-            do {
-                std::cout << "Selecionando pai 2" << std::endl;
-                prnt2 = tournamentSelection(&p, tSize, rng);
+    //         Solution* prnt2;
+    //         do {
+    //             std::cout << "Selecionando pai 2" << std::endl;
+    //             prnt2 = tournamentSelection(&p, tSize, rng);
 
-            } while (prnt1->getTotalDeliveryCost() == prnt2->getTotalDeliveryCost() &&
-                     prnt1->getTotalDeliveryTime() == prnt2->getTotalDeliveryTime() &&
-                     prnt1->getTotalEnergyConsumption() == prnt2->getTotalEnergyConsumption());
+    //         } while (prnt1->getTotalDeliveryCost() == prnt2->getTotalDeliveryCost() &&
+    //                  prnt1->getTotalDeliveryTime() == prnt2->getTotalDeliveryTime() &&
+    //                  prnt1->getTotalEnergyConsumption() == prnt2->getTotalEnergyConsumption());
             
-            vector<int> child1, child2;
+    //         vector<int> child1, child2;
 
-            // faz cruzamento em 80% das vezes, depois faz mutação em 20% das vezes
+    //         // faz cruzamento em 80% das vezes, depois faz mutação em 20% das vezes
 
-            if (rng->getDouble(0,100) < 80) {
-                std::cout << std::endl << "USING CROSSOVER OPERATOR - ";
-                child1 = Crossover::run(prnt1, prnt2, rng);
-                std::cout << std::endl << "USING CROSSOVER OPERATOR - ";
-                child2 = Crossover::run(prnt2, prnt1, rng);
+    //         if (rng->getDouble(0,100) < 80) {
+    //             std::cout << std::endl << "USING CROSSOVER OPERATOR - ";
+    //             child1 = Crossover::run(prnt1, prnt2, rng);
+    //             std::cout << std::endl << "USING CROSSOVER OPERATOR - ";
+    //             child2 = Crossover::run(prnt2, prnt1, rng);
 
-                if (rng->getDouble(0,100) < 20) {
-                    std::cout << std::endl << "USING MUTATION OPERATOR - ";
-                    child1 = Mutation::run(child1);
-                }
+    //             if (rng->getDouble(0,100) < 20) {
+    //                 std::cout << std::endl << "USING MUTATION OPERATOR - ";
+    //                 child1 = Mutation::run(child1);
+    //             }
 
-                if(!checkChildrenSimilarity(child1.size(), child1, prnt1->encode(), 1)) {
-                    if(!checkChildrenSimilarity(child1.size(), child1, prnt2->encode(), 2)) {
-                        if (isFeasible(child1, g, QT)) {
-                            std::cout << "New solution is feasible! Including child 1 in offspring" << std::endl;
-                            offspring.include(offspring.decode(child1, QT));
-                        } else {
-                            std::cout << "New solution will not be included in offspring because it is not feasible." << std::endl;
-                        }
-                    } else {
-                        std::cout << "New solution will not be included in offspring because it is 100% equal to parent 2." << std::endl;
-                    }
-                } else {
-                    std::cout << "New solution will not be included in offspring because it is 100% equal to parent 1." << std::endl;
-                }
+    //             if(!checkChildrenSimilarity(child1.size(), child1, prnt1->encode(), 1)) {
+    //                 if(!checkChildrenSimilarity(child1.size(), child1, prnt2->encode(), 2)) {
+    //                     if (isFeasible(child1, g, QT)) {
+    //                         std::cout << "New solution is feasible! Including child 1 in offspring" << std::endl;
+    //                         offspring.include(offspring.decode(child1, QT));
+    //                     } else {
+    //                         std::cout << "New solution will not be included in offspring because it is not feasible." << std::endl;
+    //                     }
+    //                 } else {
+    //                     std::cout << "New solution will not be included in offspring because it is 100% equal to parent 2." << std::endl;
+    //                 }
+    //             } else {
+    //                 std::cout << "New solution will not be included in offspring because it is 100% equal to parent 1." << std::endl;
+    //             }
 
-                if (rng->getDouble(0,100) < 20) {
-                    std::cout << std::endl << "USING MUTATION OPERATOR - ";
-                    child2 = Mutation::run(child2);
-                }
+    //             if (rng->getDouble(0,100) < 20) {
+    //                 std::cout << std::endl << "USING MUTATION OPERATOR - ";
+    //                 child2 = Mutation::run(child2);
+    //             }
 
-                if(!checkChildrenSimilarity(child2.size(), child2, prnt1->encode(), 1)) {
-                    if(!checkChildrenSimilarity(child1.size(), child1, prnt2->encode(), 2)) {
-                        if (isFeasible(child2, g, QT)) {
-                            std::cout << "New solution is feasible! Including child in offspring" << std::endl;
-                            offspring.include(offspring.decode(child2, QT));
-                        } else {
-                            std::cout << "New solution will not be included in offspring because it is not feasible." << std::endl;
-                        }
-                    } else {
-                        std::cout << "New solution will not be included in offspring because it is 100% equal to parent 2." << std::endl;
-                    } 
-                } else {
-                    std::cout << "New solution will not be included in offspring because it is 100% equal to parent 1." << std::endl;
-                }
+    //             if(!checkChildrenSimilarity(child2.size(), child2, prnt1->encode(), 1)) {
+    //                 if(!checkChildrenSimilarity(child1.size(), child1, prnt2->encode(), 2)) {
+    //                     if (isFeasible(child2, g, QT)) {
+    //                         std::cout << "New solution is feasible! Including child in offspring" << std::endl;
+    //                         offspring.include(offspring.decode(child2, QT));
+    //                     } else {
+    //                         std::cout << "New solution will not be included in offspring because it is not feasible." << std::endl;
+    //                     }
+    //                 } else {
+    //                     std::cout << "New solution will not be included in offspring because it is 100% equal to parent 2." << std::endl;
+    //                 } 
+    //             } else {
+    //                 std::cout << "New solution will not be included in offspring because it is 100% equal to parent 1." << std::endl;
+    //             }
 
-            } else {
-                std::cout << "No crossover or mutation were performed." << std::endl;
-            }
+    //         } else {
+    //             std::cout << "No crossover or mutation were performed." << std::endl;
+    //         }
 
 
-            std::cout << std::endl;            
-        }
+    //         std::cout << std::endl;            
+    //     }
 
-        std::cout << offspring.getCurrentSize() << " offspring solutions generated." << std::endl;
+    //     std::cout << offspring.getCurrentSize() << " offspring solutions generated." << std::endl;
 
-        // std::cout << "-----------------------" << std::endl;
-        // std::cout << "Performing multi-dimensional search on first front." << std::endl;
-        // vector<Solution*> setG = multiDimensionalSearch(p.getFront(0));
+    //     // std::cout << "-----------------------" << std::endl;
+    //     // std::cout << "Performing multi-dimensional search on first front." << std::endl;
+    //     // vector<Solution*> setG = multiDimensionalSearch(p.getFront(0));
 
-        // combine population, offspring and setG
-        Population newPop(popSize*2, numNodes-1, g, QT, rng);
-        newPop.include(p.getSolutions());
-        //newPop.include(offspring.getSolutions());
-        int repeated = newPop.includeOffspring(offspring.getSolutions(), generation);
-        std::cout << repeated << " repeated solutions were not included in new population." << std::endl;
-        //newPop.include(setG);
-        newPop.FNDS();
-        newPop.printFronts();
+    //     // combine population, offspring and setG
+    //     Population newPop(popSize*2, numNodes-1, g, QT, rng);
+    //     newPop.include(p.getSolutions());
+    //     //newPop.include(offspring.getSolutions());
+    //     int repeated = newPop.includeOffspring(offspring.getSolutions(), generation);
+    //     std::cout << repeated << " repeated solutions were not included in new population." << std::endl;
+    //     //newPop.include(setG);
+    //     newPop.FNDS();
+    //     newPop.printFronts();
 
-        // select new population
-        std::cout << "-----------------------" << std::endl;
-        std::cout << "SELECTING NEW POPULATION" << std::endl;
-        std::cout << "-----------------------" << std::endl;
+    //     // select new population
+    //     std::cout << "-----------------------" << std::endl;
+    //     std::cout << "SELECTING NEW POPULATION" << std::endl;
+    //     std::cout << "-----------------------" << std::endl;
 
-        p = Population(popSize, numNodes-1, g, QT, rng);
+    //     p = Population(popSize, numNodes-1, g, QT, rng);
 
-        int i = 0;
-        double lastCR = INF;
+    //     int i = 0;
+    //     double lastCR = INF;
 
-        while (p.getCurrentSize() < popSize) {
-            vector<Solution*> currentFront = newPop.getFront(i);
+    //     while (p.getCurrentSize() < popSize) {
+    //         vector<Solution*> currentFront = newPop.getFront(i);
 
-            // if the current front fits in the new population, include it
-            if (currentFront.size() + p.getCurrentSize() <= popSize) {
-                p.include(newPop.getFront(i));
-                i++;
-                continue;
-            }
+    //         // if the current front fits in the new population, include it
+    //         if (currentFront.size() + p.getCurrentSize() <= popSize) {
+    //             p.include(newPop.getFront(i));
+    //             i++;
+    //             continue;
+    //         }
 
-            // if not, sort the current front by crowding distance
-            newPop.crowdingDistance(currentFront);
-            while (p.getCurrentSize() < popSize) {
-                if (currentFront.back()->getCrDistance() != 0) {
-                    p.include(currentFront.back());
-                }
-                currentFront.pop_back();
-            }
-        }
+    //         // if not, sort the current front by crowding distance
+    //         newPop.crowdingDistance(currentFront);
+    //         while (p.getCurrentSize() < popSize) {
+    //             if (currentFront.back()->getCrDistance() != 0) {
+    //                 p.include(currentFront.back());
+    //             }
+    //             currentFront.pop_back();
+    //         }
+    //     }
 
-        p.FNDS();
-        p.printFronts();
+    //     p.FNDS();
+    //     p.printFronts();
 
-        p.saveGeneration(generation, instanceName);
-        generation++;
+    //     p.saveGeneration(generation, instanceName);
+    //     generation++;
 
-        if (generation > itGA) break;
+    //     if (generation > itGA) break;
 
-        std::cout << "****************************" << std::endl;
-        std::cout << "GENERATION " << generation << std::endl;
-        std::cout << "****************************" << std::endl;
-    }
+    //     std::cout << "****************************" << std::endl;
+    //     std::cout << "GENERATION " << generation << std::endl;
+    //     std::cout << "****************************" << std::endl;
+    // }
 
         // char control;
         // std::cin >> control;

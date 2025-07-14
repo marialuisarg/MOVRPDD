@@ -16,7 +16,6 @@
 
 namespace Constructor {
     void insertRandomizedFirstClients(Graph *g, Solution *sol, int *numRoutes, bool *droneRouteCreated, RandomGenerator *rng);
-    bool isInSearchRange(vector<int> searchRange, int clientID);
     void sortListByEuclideanDistance(Graph *g, vector<int> *nodeIdList, int clientNode);
     void sortListByGain(vector<tuple<int, int, int, double, bool>> *list);
     bool isReachableByDrone(Graph *g, Solution *sol, tuple<int, int, int> flight, int routeIndex);
@@ -38,6 +37,11 @@ namespace RandomConstructor {
 namespace AdaptiveConstructor {
     void createAdaptiveTruckRoutes(Graph *g, Solution *sol, int *numRoutes, bool *droneRouteCreated);
     vector<Solution*> run(Graph *g, int QT, int numIterations, int setSize, RandomGenerator *rng);
+}
+
+namespace LiteratureConstructor {
+    vector<Solution*> run(Graph *g, int QT, RandomGenerator *randGen, int setSize);
+    Solution* truckRouteSplit(vector<Node*> clients, Graph *g);
 }
 
 #endif // CONSTRUCTOR_HPP_

@@ -85,6 +85,8 @@ class Solution {
         bool dominates(Solution *s);
         unsigned int random(int min, int max);
 
+        void includeRoute(Route* route);
+
         void updateSolution(Graph *g);
         bool allClientsAttended(Graph *g);
 

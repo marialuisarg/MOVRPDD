@@ -156,6 +156,10 @@ void Solution::sortCandidatesByCost(Graph* g) {
         });
 }
 
+void Solution::includeRoute(Route* route) {
+    this->routes.push_back(*route);
+}
+
 bool Solution::includeClient(Node* client, Graph *g, int prevNode, int routeIndex) {
     Route * r = &(this->routes[routeIndex]);
 

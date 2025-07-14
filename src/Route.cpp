@@ -19,7 +19,7 @@ Route::Route(double truckCapacity, double droneCapacity, Node* depot) {
     this->energyConsumption = 0.0;
 
     // add depot at the end of the routes
-    truckRoute.push_back(depot);
+    //truckRoute.push_back(depot);
 
     this->numClients = 2;
 }
