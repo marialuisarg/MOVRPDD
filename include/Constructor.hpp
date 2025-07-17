@@ -41,7 +41,9 @@ namespace AdaptiveConstructor {
 
 namespace LiteratureConstructor {
     vector<Solution*> run(Graph *g, int QT, RandomGenerator *randGen, int setSize);
-    Solution* truckRouteSplit(vector<Node*> clients, Graph *g);
+    Solution* truckRouteSplit(std::deque<Node*> clients, Graph* g);
+    SplitResult split(const std::deque<Node*>& clients, Graph* g);
+    deque<Route*> extract(const std::deque<Node*>& clients, const std::vector<int>& predecessorIndex, Graph* g);
 }
 
 #endif // CONSTRUCTOR_HPP_

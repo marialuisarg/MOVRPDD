@@ -78,38 +78,29 @@ std::vector<int> Crossover::run(Solution *p1, Solution *p2, RandomGenerator *rng
 
 std::vector<int> Crossover::PMX(Solution *p1, Solution *p2, RandomGenerator *rng) {
     // encode parents
-    std::vector<int> parent1 = p1->encode();
-    std::vector<int> parent2 = p2->encode();
+    // std::vector<int> parent1 = p1->encode();
+    // std::vector<int> parent2 = p2->encode();
+
+    vector<int> parent1 = p1->getGiantTour();
+    vector<int> parent2 = p2->getGiantTour();
 
     int cromossomeSize = parent1.size();
 
-    // generate random crossover points
     int cp2 = 0, cp1 = rng->getInt(0, cromossomeSize-1);
     
-    while (cp2 == cp1 || cp2 == 0) {
+    while (cp2 == cp1 || cp2 == 0)
         cp2 = rng->getInt(0, cromossomeSize-1);
-    }
 
-    if (cp1 > cp2) {
-        int aux = cp1;
-        cp1 = cp2;
-        cp2 = aux;
-    }
+    if (cp1 > cp2) 
+        std::swap(cp1, cp2);
 
     vector<int> child = parent2;
     vector<bool> is_direct(cromossomeSize, false);
-
-    //std::cout << "CH before crossover:" << std::endl;
-    //printCrossover(parent1, parent2, child);
-    //std::cout << std::endl;
 
     for (size_t i = cp1; i < cp2; i++) {
         child[i] = parent1[i];
         is_direct[parent1[i]] = true;
     }
-
-    //std::cout << "Copying offspring from parent 1 to child (between [" << cp1 << "] = " << parent1[cp1] << " and [" << cp2 << "] = " << parent1[cp2] << "):" << std::endl;
-    //printCrossover(parent1, parent2, child);
 
     vector<int> index_lookup(cromossomeSize, 0);
 
@@ -128,30 +119,21 @@ std::vector<int> Crossover::PMX(Solution *p1, Solution *p2, RandomGenerator *rng
         }
     }
 
-    //std::cout << std::endl;
-    //std::cout << "After crossover:" << std::endl;
     printCrossover(parent1, parent2, child);
-
-    //check if some client is missing or duplicated
     checkMissingOrDuplicatedClients(cromossomeSize, child);
 
     std::cout << "Distance between chosen CP1 and CP2: " << abs(cp1-cp2) << " | parent1[" << cp1 << "] = " << parent1[cp1] << " | parent1[" << cp2 << "] = " << parent1[cp2] << std::endl; 
     
-    //check % of child edges similar to parent
-    // if (!checkChildrenSimilarity(cromossomeSize, child, parent1)) {
-    //     if (!checkChildrenSimilarity(cromossomeSize, child, parent2))
-    //         return child;
-    // }
-
-    // vector<int> aux;
-    // return aux;
     return child;
 }
 
 std::vector<int> Crossover::OX(Solution *p1, Solution *p2, RandomGenerator *rng) {
     // encode parents
-    vector<int> parent1 = p1->encode();
-    vector<int> parent2 = p2->encode();
+    // vector<int> parent1 = p1->encode();
+    // vector<int> parent2 = p2->encode();
+
+    vector<int> parent1 = p1->getGiantTour();
+    vector<int> parent2 = p2->getGiantTour();
 
     int chromossomeSize = parent1.size();
 

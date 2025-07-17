@@ -613,23 +613,11 @@ namespace AdaptiveConstructor {
 }
 
 namespace LiteratureConstructor {
-    
-    Solution* truckRouteSplit(deque<Node*> clients, Graph *g) {
+
+    SplitResult split(const std::deque<Node*>& clients, Graph* g) {
         int n = clients.size();
-        std::cout << "numero de clientes: " << n << std::endl;
-        std::cout << "\n--- iniciando truckRouteSplit com " << n - 1 << " clientes ---" << std::endl;
-        std::cout << "Giant Tour (S): ";
-        for(int i = 0; i < n; ++i) std::cout << clients[i]->getID() << " ";
-        std::cout << std::endl;
-
-        std::vector<float> costShortestPath;
-        std::vector<int> predecessorIndex; 
-
-        int j;
-        float cost, load;
-
-        costShortestPath.resize(n);
-        predecessorIndex.resize(n);
+        std::vector<float> costShortestPath(n);
+        std::vector<int> predecessorIndex(n);
 
         costShortestPath[0] = 0;
         predecessorIndex[0] = 0;
@@ -640,10 +628,11 @@ namespace LiteratureConstructor {
 
         std::cout << "\n--- Iniciando Algoritmo 1: Calculando custos (V) e predecessores (P) ---" << std::endl;
         for (int i = 1; i < n; i++) {
-            std::cout << "\n[i = " << i << "] Explorando rotas que comecam com o cliente " << clients[i]->getID() << std::endl;
-            j = i;
-            load = 0;
-            cost = 0;
+            //std::cout << "\n[i = " << i << "] Explorando rotas que comecam com o cliente " << clients[i]->getID() << std::endl;
+            int j = i;
+            float load = 0;
+            float cost = 0;
+            
             do {
                 load += clients[j]->getDemand();
 
@@ -651,65 +640,84 @@ namespace LiteratureConstructor {
                     cost = g->getManhattanDistance(0, clients[j]->getID()) * 2;
                 } else {
                     cost = cost - g->getManhattanDistance(clients[j-1]->getID(), 0)
-                               + g->getManhattanDistance(clients[j-1]->getID(), clients[j]->getID())
-                               + g->getManhattanDistance(clients[j]->getID(), 0);
+                            + g->getManhattanDistance(clients[j-1]->getID(), clients[j]->getID())
+                            + g->getManhattanDistance(clients[j]->getID(), 0);
                 }
                 
-                std::cout << "  [j = " << j << "] Considerando sub-rota de " << i << " a " << j << ". Cliente: " << clients[j]->getID() << std::endl;
-                std::cout << "    Carga da Rota: " << load << ", Custo da Rota: " << cost << std::endl;
-                std::cout << "    Checando atualizacao para V[" << j << "]: V[i-1]+cost < V[j]? -> " 
-                          << costShortestPath[i-1] << " + " << cost << " < " << costShortestPath[j] << "?" << std::endl;
+                //std::cout << "  [j = " << j << "] Considerando sub-rota de " << i << " a " << j << ". Cliente: " << clients[j]->getID() << std::endl;
+                //std::cout << "    Carga da Rota: " << load << ", Custo da Rota: " << cost << std::endl;
+                //std::cout << "    Checando atualizacao para V[" << j << "]: V[i-1]+cost < V[j]? -> " 
+                //        << costShortestPath[i-1] << " + " << cost << " < " << costShortestPath[j] << "?" << std::endl;
 
                 if (load <= QT && costShortestPath[i-1] + cost < costShortestPath[j]) {
                     costShortestPath[j] = costShortestPath[i-1] + cost;
                     predecessorIndex[j] = i-1;
-                    std::cout << "      --> SIM. Atualizando V[" << j << "] para " << costShortestPath[j] 
-                              << " e P[" << j << "] para " << predecessorIndex[j] << std::endl;
+                    //std::cout << "      --> SIM. Atualizando V[" << j << "] para " << costShortestPath[j] 
+                    //        << " e P[" << j << "] para " << predecessorIndex[j] << std::endl;
                 }
 
                 j++;
             } while (j < n && load <= QT);      
         }
-        
-        std::cout << "\n--- Fim do Algoritmo 1. Vetores finais: ---" << std::endl;
-        for (int k = 0; k < n; ++k) {
-            std::cout << "Index " << k << ": V = " << costShortestPath[k] << ", P = " << predecessorIndex[k] << std::endl;
-        }
 
+        // std::cout << "\n--- Fim do Algoritmo 1. Vetores finais: ---" << std::endl;
+        // for (int k = 0; k < n; ++k) {
+        //     std::cout << "Index " << k << ": V = " << costShortestPath[k] << ", P = " << predecessorIndex[k] << std::endl;
+        // }
+        
+        return {costShortestPath, predecessorIndex};
+    }
+
+    std::deque<Route*> extract(const std::deque<Node*>& clients, const std::vector<int>& predecessorIndex, Graph* g) {
         std::cout << "\n--- Iniciando Algoritmo 2: Reconstruindo as rotas ---" << std::endl;
 
-        Solution* solution = new Solution(g, QT, nullptr); 
         std::deque<Route*> routesList;
+        int n = clients.size();
+        int j = n - 1;
 
-        j = n - 1; 
+        while (j > 0) {
+            Route* currentTrip = new Route(QT, QD, g->getNode(0));
+            int i = predecessorIndex[j];
 
-        while (j > 0) { 
-            Route* currentTrip = new Route(QT, QD, g->getNode(0)); 
-            
-            int i = predecessorIndex[j]; 
+            //std::cout << "Backtracking de j=" << j << ". Predecessor i=" << i << ". Criando rota para clientes de " << i + 1 << " a " << j << std::endl;
 
-            std::cout << "Backtracking de j=" << j << ". Predecessor i=" << i << ". Criando rota para clientes de " << i + 1 << " a " << j << std::endl;
+            // insere deposito
+            currentTrip->insertClient(g->getNode(0));
 
+            // insere clientes da rota atual
             for (int k = i + 1; k <= j; k++) {
                 currentTrip->insertClient(clients[k]);
             }
             
-            std::cout << "  --> Rota criada: ";
-            currentTrip->printRoute();
-
             routesList.push_front(currentTrip);
             j = i;
         }
         
-        for (Route* route : routesList) {
-            solution->includeRoute(route);
-        }
-
-        solution->setNumRoutes(routesList.size());
-
-        std::cout << "\n--- truckRouteSplit finalizado. Total de rotas: " << solution->getNumRoutes() << " ---\n" << std::endl;
-        return solution;
+        return routesList;
     }
+
+    Solution* truckRouteSplit(std::deque<Node*> clients, Graph* g) {
+    //std::cout << "\n--- iniciando truckRouteSplit com " << clients.size() - 1 << " clientes ---" << std::endl;
+
+    Solution* solution = new Solution(g, QT, nullptr);
+    
+    std::vector<int> clientIDs;
+    for (const auto& client : clients) {
+        clientIDs.push_back(client->getID());
+    }
+    solution->setGiantTour(clientIDs);
+
+    SplitResult splitResult = split(clients, g);
+
+    std::deque<Route*> extractedRoutes = extract(clients, splitResult.predecessors, g);
+    
+    for (Route* route : extractedRoutes) {
+        solution->includeRoute(route);
+    }
+
+    std::cout << "\n--- truckRouteSplit finalizado. Total de rotas: " << solution->getNumRoutes() << " ---\n" << std::endl;
+    return solution;
+}
 
     vector<Solution*> run(Graph *g, int QT, RandomGenerator *randGen, int setSize) {
 
@@ -735,8 +743,6 @@ namespace LiteratureConstructor {
 
             std::shuffle(clients.begin(), clients.end(), randGen->getEngine());
 
-            clients.push_front(g->getNode(0)); // depot is always first
-
             // print clients after shuffling
             std::cout << "Clients after shuffling: ";
             for (const auto& client : clients) {
@@ -747,10 +753,13 @@ namespace LiteratureConstructor {
             // creates solution with truck route split algorithm
             Solution* solution = truckRouteSplit(clients, g);
 
+            // cria rotas de drone
+            Constructor::createDroneRoutes(g, solution);
+            cout << "Drone routes created." << endl << endl;
+
             solution->printRoutes(); // prints routes for debugging
 
             solutions.push_back(solution);
-
         }
 
         return solutions;

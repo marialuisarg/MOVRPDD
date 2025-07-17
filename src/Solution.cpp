@@ -21,7 +21,8 @@ Solution::Solution(Graph *g, int QT, RandomGenerator *randGen) {
     this->randGen = randGen;
 
     // calculates demand and divides by max load capacity of trucks to get num of routes
-    setNumRoutes(ceil(g->getTotalDemand() / QT));
+    // setNumRoutes(ceil(g->getTotalDemand() / QT));
+    setNumRoutes(0);
 }
 
 void Solution::updateSolution(Graph *g) {
@@ -158,6 +159,7 @@ void Solution::sortCandidatesByCost(Graph* g) {
 
 void Solution::includeRoute(Route* route) {
     this->routes.push_back(*route);
+    this->setNumRoutes(this->getNumRoutes() + 1);
 }
 
 bool Solution::includeClient(Node* client, Graph *g, int prevNode, int routeIndex) {

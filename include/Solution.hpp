@@ -6,6 +6,7 @@ using namespace std;
 #include <string>
 #include <vector>
 #include <tuple>
+#include <deque>
 
 #include "Route.hpp"
 #include "Node.hpp"
@@ -22,6 +23,7 @@ class Solution {
         vector<pair<int, bool>> attendedClients;                    // (clientID, attended)
         vector<tuple<int, int, double, int, int>> candidatesCost;   // (clientID, routeIndex, cost, prevNode, nextNode)
         bool drone;
+        vector<int> giantTour;                                      // giant tour of all clients (used for literature constructor)
         
         int         rank;                                           // ranking for fast non-dominated sort
         int         dominatedBy;                                    // number of solutions that dominate this solution
@@ -47,6 +49,7 @@ class Solution {
         void setDominatedBy(int dominatedBy) { this->dominatedBy = dominatedBy; };
         void setCandidateCost(int i, tuple<int, int, double, int, int> value) { this->candidatesCost[i] = value; };
         void setCandidatesCost(vector<tuple<int, int, double, int, int>> candidatesCost) { this->candidatesCost = candidatesCost; };
+        void setGiantTour(std::vector<int> giantTour) { this->giantTour = giantTour; };
         
         int                                         getRank() { return this->rank; };
         vector<pair<int, bool>>                     getAttendedClients() { return this->attendedClients; }
@@ -62,6 +65,7 @@ class Solution {
         int                                         getQT() { return this->QT; };
         int                                         getNumRoutes() { return this->numRoutes; };
         int                                         getNumClients() { return this->numClients; };
+        std::vector<int>                            getGiantTour() { return this->giantTour; };
         bool                                        droneIsUsed() { return this->drone; };
 
         void eraseCandidateCostAt(int i);

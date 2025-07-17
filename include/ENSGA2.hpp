@@ -11,6 +11,7 @@
 #include "Crossover.hpp"
 #include "Mutation.hpp"
 #include "RandomGenerator.hpp"
+#include "Constructor.hpp"
 
 typedef pair<Solution*, int> competitor;
 typedef pair<Solution*, Solution*> parents;
@@ -31,7 +32,9 @@ namespace ENSGA2 {
     Solution*           getRandomSolution(Population *p, RandomGenerator *rng);
     Solution*           tournamentSelection(Population *p, int tournamentSize, RandomGenerator *rng);
     bool                isFeasible(vector<int> solution, Graph *g, int QT);
+    bool                isFeasibleLiterature(vector<int> solution, Graph *g);
     vector<Solution*>   multiDimensionalSearch (vector<Solution*> firstFront);
+    Solution*           decodeLiterature(vector<int> sol, Graph *g);
 }
 
 #endif /* ENSGA2_H_ */

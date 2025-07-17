@@ -33,6 +33,7 @@ class Population {
         void                include(Solution* sol);
         int                 includeOffspring(vector<Solution*> sol, int gen);
         Solution*           decode(vector<int> sol, int QT);
+        Solution*           decodeLiterature(vector<int> sol, Graph *g);
 
         vector<Solution*>           getSolutions();
         vector<Solution*>           getFront(int i) { return this->fronts[i]; };
