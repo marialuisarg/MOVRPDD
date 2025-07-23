@@ -21,7 +21,7 @@ Route::Route(double truckCapacity, double droneCapacity, Node* depot) {
     // add depot at the end of the routes
     //truckRoute.push_back(depot);
 
-    this->numClients = 2;
+    this->numClients = 1;
 }
 
 Route::~Route() {

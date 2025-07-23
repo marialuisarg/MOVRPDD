@@ -150,9 +150,14 @@ namespace Constructor {
             deque<long int> searchRange;
 
             // creates a list with all clients on the route (every node besides depot)
-            for (int k = 1; k < tRoute.size()-1; k++) {
+            std::cout << "Number of clients in route " << i << ": " << tRoute.size() << std::endl;
+            int k = 1;
+            do {
+                std::cout << tRoute[k]->getID() << " ";
                 searchRange.push_back(tRoute[k]->getID());
-            }
+                k++;
+            } while (k < tRoute.size()-1);
+            std::cout << std::endl;
 
             for (int j = 0; j < tRoute.size(); j++) {
 
@@ -546,10 +551,27 @@ namespace AdaptiveConstructor {
             // se o cliente ainda não foi inserido em uma rota
             bool ins = sol->includeClient(client, g, prevNode, routeIndex);
         }
-        
-        // registra rotas finais de caminhão (antes dos drones)
-        for (int i = 0; i < sol->getNumRoutes(); i++) 
-            sol->getRoute(i)->registerPrevTruckRoute();
+
+        // registra rotas finais de caminhão, giantTour e splitResults
+        vector<int> giantTour;
+        vector<int> predecessors;
+        int currentPredIndex = 0;
+        predecessors.push_back(currentPredIndex);
+
+        // percorre todas as rotas e registra o índice do antecessor do primeiro cliente de cada uma
+        // printa rotas 
+        for (auto & route : sol->getRoutes()) {
+            cout << "Route: ";
+            for (int i = 1; i < route.getTruckRoute().size(); i++) {
+                cout << route.getTruckRoute()[i]->getID() << " ";
+                giantTour.push_back(route.getTruckRoute()[i]->getID());
+                if (i == 1) {
+                    currentPredIndex = giantTour.size() - 1;
+                }
+                predecessors.push_back(currentPredIndex);
+            }
+            cout << endl;
+        }
 
         sol->updateSolution(g);
     }
@@ -571,6 +593,8 @@ namespace AdaptiveConstructor {
 
         while (n < numIterations) {
             Solution *currentSolution = new Solution(g, QT, rng);
+            // calculates demand and divides by max load capacity of trucks to get num of routes
+            currentSolution->setNumRoutes(ceil(g->getTotalDemand() / QT));
             currentSolution->setNumClients(numClients + 1);
 
             // verifica se o conjunto de melhores soluções está cheio
@@ -592,6 +616,7 @@ namespace AdaptiveConstructor {
             // cria rotas
             for (int i = 0; i < currentSolution->getNumRoutes(); i++) {
                 Route r(QT, QD, g->getNode(0));
+                r.insertClient(g->getNode(0)); // insere depósito no fim da rota
                 currentSolution->createRoute(r);
             }
 
@@ -614,8 +639,14 @@ namespace AdaptiveConstructor {
 
 namespace LiteratureConstructor {
 
-    SplitResult split(const std::deque<Node*>& clients, Graph* g) {
-        int n = clients.size();
+    void split(Graph* g, Solution* sol) {
+        int n = sol->getNumClients();
+
+        deque<Node*> clients;
+        for (int i = 0; i < n; i++) {
+            clients.push_back(g->getNode(sol->getGiantTour()[i]));
+        }
+
         std::vector<float> costShortestPath(n);
         std::vector<int> predecessorIndex(n);
 
@@ -628,7 +659,7 @@ namespace LiteratureConstructor {
 
         std::cout << "\n--- Iniciando Algoritmo 1: Calculando custos (V) e predecessores (P) ---" << std::endl;
         for (int i = 1; i < n; i++) {
-            //std::cout << "\n[i = " << i << "] Explorando rotas que comecam com o cliente " << clients[i]->getID() << std::endl;
+
             int j = i;
             float load = 0;
             float cost = 0;
@@ -643,29 +674,17 @@ namespace LiteratureConstructor {
                             + g->getManhattanDistance(clients[j-1]->getID(), clients[j]->getID())
                             + g->getManhattanDistance(clients[j]->getID(), 0);
                 }
-                
-                //std::cout << "  [j = " << j << "] Considerando sub-rota de " << i << " a " << j << ". Cliente: " << clients[j]->getID() << std::endl;
-                //std::cout << "    Carga da Rota: " << load << ", Custo da Rota: " << cost << std::endl;
-                //std::cout << "    Checando atualizacao para V[" << j << "]: V[i-1]+cost < V[j]? -> " 
-                //        << costShortestPath[i-1] << " + " << cost << " < " << costShortestPath[j] << "?" << std::endl;
 
                 if (load <= QT && costShortestPath[i-1] + cost < costShortestPath[j]) {
                     costShortestPath[j] = costShortestPath[i-1] + cost;
                     predecessorIndex[j] = i-1;
-                    //std::cout << "      --> SIM. Atualizando V[" << j << "] para " << costShortestPath[j] 
-                    //        << " e P[" << j << "] para " << predecessorIndex[j] << std::endl;
                 }
 
                 j++;
             } while (j < n && load <= QT);      
         }
-
-        // std::cout << "\n--- Fim do Algoritmo 1. Vetores finais: ---" << std::endl;
-        // for (int k = 0; k < n; ++k) {
-        //     std::cout << "Index " << k << ": V = " << costShortestPath[k] << ", P = " << predecessorIndex[k] << std::endl;
-        // }
         
-        return {costShortestPath, predecessorIndex};
+        sol->setPredecessors(predecessorIndex);
     }
 
     std::deque<Route*> extract(const std::deque<Node*>& clients, const std::vector<int>& predecessorIndex, Graph* g) {
@@ -673,18 +692,17 @@ namespace LiteratureConstructor {
 
         std::deque<Route*> routesList;
         int n = clients.size();
-        int j = n - 1;
+        int j = n-1;
 
         while (j > 0) {
             Route* currentTrip = new Route(QT, QD, g->getNode(0));
             int i = predecessorIndex[j];
 
-            //std::cout << "Backtracking de j=" << j << ". Predecessor i=" << i << ". Criando rota para clientes de " << i + 1 << " a " << j << std::endl;
-
             // insere deposito
             currentTrip->insertClient(g->getNode(0));
 
             // insere clientes da rota atual
+            if (i == 0) i  = -1; // garante que o primeiro cliente seja inserido corretamente
             for (int k = i + 1; k <= j; k++) {
                 currentTrip->insertClient(clients[k]);
             }
@@ -692,14 +710,15 @@ namespace LiteratureConstructor {
             routesList.push_front(currentTrip);
             j = i;
         }
+
         
         return routesList;
     }
 
     Solution* truckRouteSplit(std::deque<Node*> clients, Graph* g) {
-    //std::cout << "\n--- iniciando truckRouteSplit com " << clients.size() - 1 << " clientes ---" << std::endl;
 
     Solution* solution = new Solution(g, QT, nullptr);
+    solution->setNumClients(clients.size()+1);
     
     std::vector<int> clientIDs;
     for (const auto& client : clients) {
@@ -707,9 +726,9 @@ namespace LiteratureConstructor {
     }
     solution->setGiantTour(clientIDs);
 
-    SplitResult splitResult = split(clients, g);
+    split(g, solution);
 
-    std::deque<Route*> extractedRoutes = extract(clients, splitResult.predecessors, g);
+    std::deque<Route*> extractedRoutes = extract(clients, solution->getPredecessors(), g);
     
     for (Route* route : extractedRoutes) {
         solution->includeRoute(route);

@@ -20,8 +20,6 @@ Solution::Solution(Graph *g, int QT, RandomGenerator *randGen) {
     this->dominatedBy = 0;
     this->randGen = randGen;
 
-    // calculates demand and divides by max load capacity of trucks to get num of routes
-    // setNumRoutes(ceil(g->getTotalDemand() / QT));
     setNumRoutes(0);
 }
 

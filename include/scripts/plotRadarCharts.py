@@ -15,13 +15,6 @@ def read_objectives(filename):
         # Separar as funções objetivo da geração
         functions = np.array([list(map(float, linha.split())) for linha in geracao.splitlines()])
 
-        # # Normalização: (valor - min) / (max - min) por coluna (f1, f2, f3)
-        # min_vals = np.min(functions, axis=0)
-        # max_vals = np.max(functions, axis=0)
-        # ranges = max_vals - min_vals
-        # ranges[ranges == 0] = 1  # Evita divisão por zero
-        # norm = (functions - min_vals) / ranges
-
         func.append(functions)
 
     return func
@@ -65,9 +58,8 @@ def plot_radar_chart(filename):
     # Cria um DataFrame do pandas para facilitar a manipulação e a plotagem
     df = pd.DataFrame(avg_objectives)
 
-    # Filtra o DataFrame para incluir apenas as gerações múltiplas de 100
-    # A geração 1 também é incluída para ter um ponto de partida
-    df_filtered = df[(df['Geracao'] == 75) | (df['Geracao'] == 10) | (df['Geracao'] == 20) | (df['Geracao'] % 50 == 0)]
+    # Filtra o DataFrame
+    df_filtered = df[(df['Geracao'] == 1) | (df['Geracao'] % 50 == 0)]
 
     # Prepara os dados para o formato que o plotly espera ("long format")
     df_melted = df_filtered.melt(id_vars=['Geracao'], value_vars=['F1', 'F2', 'F3'],

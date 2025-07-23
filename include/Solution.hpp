@@ -23,7 +23,9 @@ class Solution {
         vector<pair<int, bool>> attendedClients;                    // (clientID, attended)
         vector<tuple<int, int, double, int, int>> candidatesCost;   // (clientID, routeIndex, cost, prevNode, nextNode)
         bool drone;
+
         vector<int> giantTour;                                      // giant tour of all clients (used for literature constructor)
+        vector<int> predecessors;                                   // used for decomposing giant tour into routes
         
         int         rank;                                           // ranking for fast non-dominated sort
         int         dominatedBy;                                    // number of solutions that dominate this solution
@@ -49,6 +51,7 @@ class Solution {
         void setDominatedBy(int dominatedBy) { this->dominatedBy = dominatedBy; };
         void setCandidateCost(int i, tuple<int, int, double, int, int> value) { this->candidatesCost[i] = value; };
         void setCandidatesCost(vector<tuple<int, int, double, int, int>> candidatesCost) { this->candidatesCost = candidatesCost; };
+        void setPredecessors(vector<int> predecessors) { this->predecessors = predecessors; };
         void setGiantTour(std::vector<int> giantTour) { this->giantTour = giantTour; };
         
         int                                         getRank() { return this->rank; };
@@ -66,6 +69,7 @@ class Solution {
         int                                         getNumRoutes() { return this->numRoutes; };
         int                                         getNumClients() { return this->numClients; };
         std::vector<int>                            getGiantTour() { return this->giantTour; };
+        vector<int>                                 getPredecessors() { return this->predecessors; };
         bool                                        droneIsUsed() { return this->drone; };
 
         void eraseCandidateCostAt(int i);

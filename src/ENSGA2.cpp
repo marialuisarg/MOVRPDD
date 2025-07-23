@@ -225,6 +225,7 @@ void ENSGA2::run(int popSize, int numNodes, Graph *g, double alpha, int itConstr
         // combine population, offspring and setG
         Population newPop(popSize*2, numNodes-1, g, QT, rng);
         newPop.include(p.getSolutions());
+
         //newPop.include(offspring.getSolutions());
         int repeated = newPop.includeOffspring(offspring.getSolutions(), generation);
         std::cout << repeated << " repeated solutions were not included in new population." << std::endl;
