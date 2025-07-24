@@ -6,6 +6,7 @@
 #include <map>
 #include <queue>
 #include <random>
+#include <functional>
 
 #include "Population.hpp"
 #include "Crossover.hpp"
@@ -14,6 +15,7 @@
 #include "Constructor.hpp"
 
 typedef pair<Solution*, int> competitor;
+typedef pair<Solution*, double> competitorDouble;
 typedef pair<Solution*, Solution*> parents;
 
 struct comp {
@@ -34,6 +36,8 @@ namespace ENSGA2 {
     bool                isFeasible(vector<int> solution, Graph *g, int QT);
     bool                isFeasibleLiterature(vector<int> solution, Graph *g);
     vector<Solution*>   multiDimensionalSearch (vector<Solution*> firstFront);
+    vector<Solution*>   massiveLocalSearch(Population* offspring, Graph *g, RandomGenerator *rng);
+    Solution*           applyLocalSearch(Solution *s, Graph *g, RandomGenerator *rng, std::function<double(Solution*)> objectiveGetter);
     Solution*           decodeLiterature(vector<int> sol, Graph *g);
 }
 

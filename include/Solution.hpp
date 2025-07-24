@@ -19,12 +19,14 @@ class Solution {
         int QT;                                                     // maximum truck capacity      
         int numRoutes;                                              // number of routes
         int numClients;                                             // number of clients
-        vector<Route> routes;                                       // list of routes
+        bool drone;
+        bool localSearch;                                           // true if local search has been used
+
+        vector<Route*> routes;                                      // list of routes
         vector<pair<int, bool>> attendedClients;                    // (clientID, attended)
         vector<tuple<int, int, double, int, int>> candidatesCost;   // (clientID, routeIndex, cost, prevNode, nextNode)
-        bool drone;
 
-        vector<int> giantTour;                                      // giant tour of all clients (used for literature constructor)
+        vector<int> giantTour;                                      // giant tour of all clients (chromossome)
         vector<int> predecessors;                                   // used for decomposing giant tour into routes
         
         int         rank;                                           // ranking for fast non-dominated sort
@@ -53,6 +55,7 @@ class Solution {
         void setCandidatesCost(vector<tuple<int, int, double, int, int>> candidatesCost) { this->candidatesCost = candidatesCost; };
         void setPredecessors(vector<int> predecessors) { this->predecessors = predecessors; };
         void setGiantTour(std::vector<int> giantTour) { this->giantTour = giantTour; };
+        void setLocalSearch(bool localSearch) { this->localSearch = localSearch; };
         
         int                                         getRank() { return this->rank; };
         vector<pair<int, bool>>                     getAttendedClients() { return this->attendedClients; }
@@ -63,13 +66,14 @@ class Solution {
         tuple<int, int, double, int, int>           getCandidateCost(int i) { return this->candidatesCost[i]; };
         double                                      getObjective(int i);
         double                                      getCrDistance() { return this->crDistance; };
-        vector<Route>                               getRoutes();
-        Route*                                      getRoute(int i) { return &(this->routes[i]); };
+        vector<Route*>                              getRoutes();
+        Route*                                      getRoute(int i) { return (this->routes[i]); };
         int                                         getQT() { return this->QT; };
         int                                         getNumRoutes() { return this->numRoutes; };
         int                                         getNumClients() { return this->numClients; };
         std::vector<int>                            getGiantTour() { return this->giantTour; };
         vector<int>                                 getPredecessors() { return this->predecessors; };
+        bool                                        wasLocalSearchUsed() { return this->localSearch; };
         bool                                        droneIsUsed() { return this->drone; };
 
         void eraseCandidateCostAt(int i);
@@ -88,7 +92,7 @@ class Solution {
 
         void setNumRoutes(int numRoutes) { this->numRoutes = numRoutes; };
         void setDroneRouteCreated(bool droneRouteCreated) { this->drone = droneRouteCreated; };
-        void createRoute(Route r) { this->routes.push_back(r); };
+        void createRoute(Route *r) { this->routes.push_back(r); };
 
         bool dominates(Solution *s);
         unsigned int random(int min, int max);

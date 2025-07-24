@@ -34,7 +34,7 @@ def plot_3d_graph(filename):
 
     for i, front in enumerate(norm_func):
         # Plot apenas uma geração específica 
-        if (i + 1) == 500:
+        if (i + 1) == 40:
             ax.scatter(front[:, 0], front[:, 1], front[:, 2], c=[colors[i]], label=f'Geração {i+1}', alpha=0.8, s=20)
 
     ax.set_xlabel('f1 (eixo X)')

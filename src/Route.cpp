@@ -18,6 +18,9 @@ Route::Route(double truckCapacity, double droneCapacity, Node* depot) {
     this->deliveryTime = 0.0;
     this->energyConsumption = 0.0;
 
+    this->currentTruckRouteCost = 0.0;
+    this->currentDroneRouteCost = 0.0;
+
     // add depot at the end of the routes
     //truckRoute.push_back(depot);
 
@@ -29,7 +32,12 @@ Route::~Route() {
     droneRoute.clear();
 }
 
-void Route::updateDeliveryCost(Graph*g, int CT, int CD, int CB) {
+// Used when a new flight is inserted 
+// void Route::updateDeliveryCost(Graph*g, int CT, int CD, int CB, std::vector<tuple<int, int, int>> flightIndexes) {
+//     double newFlightCost = 
+// }
+
+void Route::setDeliveryCost(Graph*g, int CT, int CD, int CB) {
     //cout << "=> updating delivery cost." << endl;
 
     double droneCost = 0.0;
@@ -165,10 +173,6 @@ double Route::getEnergyConsumption() {
     return this->energyConsumption;
 }
 
-vector<int> Route::getPrevTruckRoute() {
-    return this->prevTruckRoute;
-}
-
 double Route::getCurrentCapacity() {
     return this->currentTruckCapacity;
 }
@@ -189,7 +193,7 @@ Node *Route::getNode(int position) {
     return this->truckRoute[position];
 }
 
-bool Route::insertClient(Node *client, long int prevNodeIndex) {
+bool Route::insertClientPrev(Node *client, long int prevNodeIndex) {
     if (client->getDemand() > this->currentTruckCapacity) {
         //cout << "client " << client->getID() << " not inserted. demand: " << client->getDemand() << " | capacity: " << this->currentTruckCapacity << endl;
         return false;
@@ -206,16 +210,18 @@ bool Route::insertClient(Node *client, long int prevNodeIndex) {
     return true;
 }
 
-void Route::insertClient(Node *client) {
+void Route::insertClient(Node *client, int ID) {
     this->truckRoute.insert(this->truckRoute.end() - 1, client);
     this->updateCapacity(client->getDemand());
+    if (ID != 0)
+        this->truckRouteIDs.push_back(ID);
 }
 
 void Route::printRoute() {
 
     cout << "PREV TRUCK ROUTE: ";
-    for (int i = 0; i < this->prevTruckRoute.size(); i++) {
-        cout << this->prevTruckRoute[i] << " ";
+    for (int i = 0; i < this->truckRouteIDs.size(); i++) {
+        cout << this->truckRouteIDs[i] << " ";
     }
 
     cout << endl << "CURRENT ROUTES:" << endl;
@@ -260,9 +266,10 @@ void Route::insertDroneFlight(std::tuple<int,int,int> flight) {
 
 void Route::removeClientsServedByDrone(Graph *g, int CT, int CD, int CB) {
     unordered_set<int> droneClients;
-    for (const auto& flight : this->droneRoute) {
-        droneClients.insert(get<1>(flight));
-    }
+    // for (const auto& flight : this->droneRoute) {
+    //     droneClients.insert(get<1>(flight));
+    //     updateDeliveryCost(g, CT, CD, CB);
+    // }
 
     this->truckRoute.erase(
         remove_if(this->truckRoute.begin() + 1, this->truckRoute.end() - 1,
@@ -270,16 +277,14 @@ void Route::removeClientsServedByDrone(Graph *g, int CT, int CD, int CB) {
                       return droneClients.count(node->getID()) > 0;
                   }),
         this->truckRoute.end() - 1);
-
-    updateDeliveryCost(g, CT, CD, CB);
 }
 
-void Route::registerPrevTruckRoute() {
-    for (int i = 0; i < this->truckRoute.size(); i++) {
-        prevTruckRoute.push_back(truckRoute[i]->getID());
-        serviceType[truckRoute[i]->getID()] = 0;
-    }
-}
+// void Route::registerPrevTruckRoute() {
+//     for (int i = 0; i < this->truckRoute.size(); i++) {
+//         prevTruckRoute.push_back(truckRoute[i]->getID());
+//         serviceType[truckRoute[i]->getID()] = 0;
+//     }
+// }
 
 bool Route::isClientServedByDrone(int clientID) {
     return serviceType[clientID];

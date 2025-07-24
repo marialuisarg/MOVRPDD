@@ -229,8 +229,8 @@ namespace Util{
         std::cout << "File " << filename << " created." << std::endl;
         output_file.close();
         
-        string command = "python include/scripts/plotNetworkGraph.py instances/" + instanceName + " " + filename;
-        int aux = system(command.c_str());
+        // string command = "python include/scripts/plotNetworkGraph.py instances/" + instanceName + " " + filename;
+        // int aux = system(command.c_str());
     };
 
     static void plotParetoFrontiers() {

@@ -8,6 +8,7 @@
 #include <cmath>
 #include <deque>
 #include <unordered_map>
+#include <iterator>
 
 #include "Graph.hpp"
 #include "Solution.hpp"
@@ -41,9 +42,10 @@ namespace AdaptiveConstructor {
 
 namespace LiteratureConstructor {
     vector<Solution*> run(Graph *g, int QT, RandomGenerator *randGen, int setSize);
-    Solution* truckRouteSplit(std::deque<Node*> clients, Graph* g);
+    Solution* truckRouteSplit(std::vector<int> clients, Graph* g);
     void split(Graph* g, Solution* sol);
-    deque<Route*> extract(const std::deque<Node*>& clients, const std::vector<int>& predecessorIndex, Graph* g);
+    std::deque<Route*> extract(const std::vector<int>& clients, const std::vector<int>& predecessorIndex, Graph* g);
+    void droneRouteConstructor(Solution* sol, Graph* g);
 }
 
 #endif // CONSTRUCTOR_HPP_

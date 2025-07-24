@@ -19,6 +19,7 @@ Solution::Solution(Graph *g, int QT, RandomGenerator *randGen) {
     this->drone = false;
     this->dominatedBy = 0;
     this->randGen = randGen;
+    this->localSearch = false;
 
     setNumRoutes(0);
 }
@@ -27,13 +28,13 @@ void Solution::updateSolution(Graph *g) {
     double f1 = 0.0, f2 = 0.0, f3 = 0.0;
 
     for (int i = 0; i < getNumRoutes(); i++) {
-        routes[i].updateEnergyConsumption(g, QT);
-        routes[i].updateDeliveryTime(g, ST, SD);
+        routes[i]->updateEnergyConsumption(g, QT);
+        routes[i]->updateDeliveryTime(g, ST, SD);
 
-        f1 += routes[i].getEnergyConsumption();
-        f2 += routes[i].getDeliveryCost();
-        if (routes[i].getDeliveryTime() > f3)
-            f3 = routes[i].getDeliveryTime();
+        f1 += routes[i]->getEnergyConsumption();
+        f2 += routes[i]->getDeliveryCost();
+        if (routes[i]->getDeliveryTime() > f3)
+            f3 = routes[i]->getDeliveryTime();
     }
 
     setTotalEnergyConsumption(f1);
@@ -45,7 +46,7 @@ void Solution::printRoutes() {
     cout << endl;
     for (int i = 0; i < getNumRoutes(); i++) {
         cout << "Route " << i << ": ";
-        routes[i].printRoute();
+        routes[i]->printRoute();
     }
 }
 
@@ -73,8 +74,8 @@ void Solution::plotSolution(string instance, int i, string filename) {
     for (int i=0; i < nRoutes; i++) {
         string truckRoute = "";
 
-        for (int j=0; j < this->routes[i].getTruckRoute().size(); j++){
-            truckRoute = truckRoute + "-" + to_string(this->routes[i].getTruckRoute()[j]->getID());
+        for (int j=0; j < this->routes[i]->getTruckRoute().size(); j++){
+            truckRoute = truckRoute + "-" + to_string(this->routes[i]->getTruckRoute()[j]->getID());
         }
 
         if(!truckRoute.empty())
@@ -83,10 +84,10 @@ void Solution::plotSolution(string instance, int i, string filename) {
 
         string droneRoute = " ";
 
-        for (int j=0; j < this->routes[i].getDroneRoute().size(); j++){
-            droneRoute = droneRoute + "/" + to_string(get<0>(this->routes[i].getDroneRoute()[j]))
-                                    + "-" + to_string(get<1>(this->routes[i].getDroneRoute()[j]))
-                                    + "-" + to_string(get<2>(this->routes[i].getDroneRoute()[j]));
+        for (int j=0; j < this->routes[i]->getDroneRoute().size(); j++){
+            droneRoute = droneRoute + "/" + to_string(get<0>(this->routes[i]->getDroneRoute()[j]))
+                                    + "-" + to_string(get<1>(this->routes[i]->getDroneRoute()[j]))
+                                    + "-" + to_string(get<2>(this->routes[i]->getDroneRoute()[j]));
         }
 
         if(!droneRoute.empty())
@@ -110,8 +111,8 @@ void Solution::saveRouteToPlot(std::ofstream &output_file) {
     for (int i=0; i < nRoutes; i++) {
         string truckRoute = "";
 
-        for (int j=0; j < this->routes[i].getTruckRoute().size(); j++){
-            truckRoute = truckRoute + "-" + to_string(this->routes[i].getTruckRoute()[j]->getID());
+        for (int j=0; j < this->routes[i]->getTruckRoute().size(); j++){
+            truckRoute = truckRoute + "-" + to_string(this->routes[i]->getTruckRoute()[j]->getID());
         }
 
         if(!truckRoute.empty())
@@ -120,10 +121,10 @@ void Solution::saveRouteToPlot(std::ofstream &output_file) {
 
         string droneRoute = " ";
 
-        for (int j=0; j < this->routes[i].getDroneRoute().size(); j++){
-            droneRoute = droneRoute + "/" + to_string(get<0>(this->routes[i].getDroneRoute()[j]))
-                                    + "-" + to_string(get<1>(this->routes[i].getDroneRoute()[j]))
-                                    + "-" + to_string(get<2>(this->routes[i].getDroneRoute()[j]));
+        for (int j=0; j < this->routes[i]->getDroneRoute().size(); j++){
+            droneRoute = droneRoute + "/" + to_string(get<0>(this->routes[i]->getDroneRoute()[j]))
+                                    + "-" + to_string(get<1>(this->routes[i]->getDroneRoute()[j]))
+                                    + "-" + to_string(get<2>(this->routes[i]->getDroneRoute()[j]));
         }
 
         if(!droneRoute.empty())
@@ -156,12 +157,12 @@ void Solution::sortCandidatesByCost(Graph* g) {
 }
 
 void Solution::includeRoute(Route* route) {
-    this->routes.push_back(*route);
+    this->routes.push_back(route);
     this->setNumRoutes(this->getNumRoutes() + 1);
 }
 
-bool Solution::includeClient(Node* client, Graph *g, int prevNode, int routeIndex) {
-    Route * r = &(this->routes[routeIndex]);
+bool Solution::includeClient(Node* client, Graph* g, int prevNode, int routeIndex) {
+    Route* r = this->routes[routeIndex];
 
     // verifies if client is already attended
     if (this->getAttendedClient(client->getID()).second) {
@@ -169,7 +170,7 @@ bool Solution::includeClient(Node* client, Graph *g, int prevNode, int routeInde
     }
     
     // inserts client in route
-    if (!r->insertClient(client, prevNode)) {
+    if (!r->insertClientPrev(client, prevNode)) {
         for (int i = 0; i < this->getCandidatesCost().size(); i++) {
             if (get<0>(this->getCandidateCost(i)) == client->getID() && get<1>(this->getCandidateCost(i)) == routeIndex) {
                 this->eraseCandidateCostAt(i);
@@ -182,7 +183,7 @@ bool Solution::includeClient(Node* client, Graph *g, int prevNode, int routeInde
 
     // updates attended clients
     this->updateAttendedClients(client->getID());
-    r->updateDeliveryCost(g, CT, CD, CB);
+    //r->updateDeliveryCost(g, CT, CD, CB);
     
     // updates cheapest insertion candidates list
     this->updateCandidatesList(client, g, routeIndex);
@@ -316,7 +317,7 @@ bool Solution::dominates(Solution *s) {
     return false;
 }
 
-vector<Route> Solution::getRoutes() {
+vector<Route*> Solution::getRoutes() {
     return routes;
 }
 
@@ -346,9 +347,9 @@ vector<int> Solution::encode() {
     for (int i = 0; i < numRoutes; i++) {
         Route *route = getRoute(i);
         
-        for (int j = 1; j < route->getPrevTruckRoute().size()-1; j++) {
-            encodedSol.push_back(route->getPrevTruckRoute()[j]);
-        }
+        // for (int j = 1; j < route->getPrevTruckRoute().size()-1; j++) {
+        //     encodedSol.push_back(route->getPrevTruckRoute()[j]);
+        // }
 
         if (i == numRoutes-1) break;
 

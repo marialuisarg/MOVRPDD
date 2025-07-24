@@ -27,8 +27,8 @@ Population::Population(int size, int numClients, Graph *g, int q, double alpha, 
     this->g = g;
     this->rng = rng;
 
-    vector<Solution*> sol = RandomConstructor::run(g, q, alpha, numIterations, size, rng);
-    include(sol);
+    // vector<Solution*> sol = RandomConstructor::run(g, q, alpha, numIterations, size, rng);
+    // include(sol);
 };
 
 Population::~Population() {};
@@ -82,73 +82,73 @@ vector<Solution*> Population::getSolutions() {
     return solutions;
 };
 
-Solution* Population::decode(vector<int> sol, int q) {
+// Solution* Population::decode(vector<int> sol, int q) {
 
-    Solution *decodedSol = new Solution(g, QT, rng);
-    int numRoutes = decodedSol->getNumRoutes();
-    decodedSol->setNumClients(numClients+1);
+//     Solution *decodedSol = new Solution(g, QT, rng);
+//     int numRoutes = decodedSol->getNumRoutes();
+//     decodedSol->setNumClients(numClients+1);
 
-    // SPLITTING ENCODED SOLUTION INTO ROUTES
-    vector<int> currentRoute;
-    vector<vector<int>> routes;
+//     // SPLITTING ENCODED SOLUTION INTO ROUTES
+//     vector<int> currentRoute;
+//     vector<vector<int>> routes;
     
-    for (int num : sol) {
-        if (num == 0 || num > numClients) {
-            if (!currentRoute.empty()) {
-                routes.push_back(currentRoute);
-                currentRoute.clear();
-            }
-        } else {
-            currentRoute.push_back(num);
-        }
-    }
+//     for (int num : sol) {
+//         if (num == 0 || num > numClients) {
+//             if (!currentRoute.empty()) {
+//                 routes.push_back(currentRoute);
+//                 currentRoute.clear();
+//             }
+//         } else {
+//             currentRoute.push_back(num);
+//         }
+//     }
 
-    if (!currentRoute.empty()) {
-        routes.push_back(currentRoute);
-    }
+//     if (!currentRoute.empty()) {
+//         routes.push_back(currentRoute);
+//     }
 
-    // PASSING ROUTES TO SOLUTION
-    double f1 = 0.0, f2 = 0.0, f3 = 0.0;
+//     // PASSING ROUTES TO SOLUTION
+//     double f1 = 0.0, f2 = 0.0, f3 = 0.0;
 
-    // creates routes
-    for (int i = 0; i < routes.size(); i++) {
-        Route r(QT, QD, g->getNode(0));
-        decodedSol->createRoute(r);
-    }
+//     // creates routes
+//     for (int i = 0; i < routes.size(); i++) {
+//         Route r(QT, QD, g->getNode(0));
+//         decodedSol->createRoute(&r);
+//     }
 
-    int index = 0;
+//     int index = 0;
 
-    for (const auto& route : routes) {
-        Node *currentNode;
-        Route *r = decodedSol->getRoute(index);
+//     for (const auto& route : routes) {
+//         Node *currentNode;
+//         Route *r = decodedSol->getRoute(index);
 
-        for (int num : route) {
-            currentNode = g->getNode(num);
-            r->insertClient(currentNode);
-        }
+//         for (int num : route) {
+//             currentNode = g->getNode(num);
+//             r->insertClient(currentNode, num);
+//         }
 
-        r->updateEnergyConsumption(g, QT);
-        r->updateDeliveryTime(g, ST, SD);
-        r->updateDeliveryCost(g, QT, QD, CB);
+//         r->updateEnergyConsumption(g, QT);
+//         r->updateDeliveryTime(g, ST, SD);
+//         //r->updateDeliveryCost(g, QT, QD, CB);
 
-        f1 += r->getEnergyConsumption();
-        f2 += r->getDeliveryCost();
-        if (r->getDeliveryTime() > f3)
-            f3 = r->getDeliveryTime();
+//         f1 += r->getEnergyConsumption();
+//         f2 += r->getDeliveryCost();
+//         if (r->getDeliveryTime() > f3)
+//             f3 = r->getDeliveryTime();
 
-        r->registerPrevTruckRoute();
-        index++;
-    }
+//         r->registerPrevTruckRoute();
+//         index++;
+//     }
 
-    decodedSol->setTotalEnergyConsumption(f1);
-    decodedSol->setTotalDeliveryCost(f2);
-    decodedSol->setTotalDeliveryTime(f3);
+//     decodedSol->setTotalEnergyConsumption(f1);
+//     decodedSol->setTotalDeliveryCost(f2);
+//     decodedSol->setTotalDeliveryTime(f3);
 
-    // CREATE DRONE ROUTES
-    Constructor::createDroneRoutes(g, decodedSol);
+//     // CREATE DRONE ROUTES
+//     Constructor::createDroneRoutes(g, decodedSol);
 
-    return decodedSol;
-};
+//     return decodedSol;
+// };
 
 // fast non-dominated sort (Deb, 2002)
 void Population::FNDS() {
