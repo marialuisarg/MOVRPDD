@@ -17,6 +17,10 @@ enum nodeType {
     DRONE = 3
 };
 
+enum insertionType {
+    
+};
+
 // parameter settings of MOVRPDD Model //
 
 const int   WT = 1500,      // tare weight of trucks

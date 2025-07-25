@@ -20,14 +20,17 @@ class Solution {
         int numRoutes;                                              // number of routes
         int numClients;                                             // number of clients
         bool drone;
+        bool decoded;                                               // true if solution has been decoded before
         bool localSearch;                                           // true if local search has been used
 
         vector<Route*> routes;                                      // list of routes
         vector<pair<int, bool>> attendedClients;                    // (clientID, attended)
         vector<tuple<int, int, double, int, int>> candidatesCost;   // (clientID, routeIndex, cost, prevNode, nextNode)
+        vector<vector<double>> truckEnergyCons;                     // matrix with truck (gross weight * distance traveled) on each segment of the trip
 
         vector<int> giantTour;                                      // giant tour of all clients (chromossome)
         vector<int> predecessors;                                   // used for decomposing giant tour into routes
+        vector<double> costs;
         
         int         rank;                                           // ranking for fast non-dominated sort
         int         dominatedBy;                                    // number of solutions that dominate this solution
@@ -44,7 +47,7 @@ class Solution {
         Solution(Graph *g, int QT, RandomGenerator *randGen);
         ~Solution();
 
-        void setNumClients(int numClients) { this->numClients = numClients-1; };
+        void setNumClients(int numClients) { this->numClients = numClients; };
         void setAttendedClient(int i, bool value) { this->attendedClients[i].second = value; };
         void setAttendedClients(vector<pair<int, bool>> attendedClients) { this->attendedClients = attendedClients; }; 
         void setRank(int rank) { this->rank = rank; };
@@ -56,6 +59,7 @@ class Solution {
         void setPredecessors(vector<int> predecessors) { this->predecessors = predecessors; };
         void setGiantTour(std::vector<int> giantTour) { this->giantTour = giantTour; };
         void setLocalSearch(bool localSearch) { this->localSearch = localSearch; };
+        void setCosts(vector<double> costs) { this->costs = costs; };
         
         int                                         getRank() { return this->rank; };
         vector<pair<int, bool>>                     getAttendedClients() { return this->attendedClients; }
@@ -75,12 +79,14 @@ class Solution {
         vector<int>                                 getPredecessors() { return this->predecessors; };
         bool                                        wasLocalSearchUsed() { return this->localSearch; };
         bool                                        droneIsUsed() { return this->drone; };
+        bool                                        isDecoded() { return this->decoded; };
 
         void eraseCandidateCostAt(int i);
         bool includeClient(Node* client, Graph *g, int prevNode, int routeIndex);
         void sortCandidatesByCost(Graph *g);
         void updateAttendedClients(int clientID);
         void updateCandidatesList(Node *client, Graph *g, int iRoute);
+        void updateDecoded(bool dec) {  this->decoded = dec; };
 
         void setTotalEnergyConsumption(double totalEnergyConsumption) { this->totalEnergyConsumption = totalEnergyConsumption; };
         void setTotalDeliveryCost(double totalDeliveryCost) { this->totalDeliveryCost = totalDeliveryCost; };
@@ -99,7 +105,10 @@ class Solution {
 
         void includeRoute(Route* route);
 
-        void updateSolution(Graph *g);
+        void calculateObjectives(Graph *g);
+        void calculateTruckEnergyConsumption(Graph* g, Route* r);
+        void calculateEnergyConsumption(Graph* g, Route* r);
+        
         bool allClientsAttended(Graph *g);
 
         void printSolution();

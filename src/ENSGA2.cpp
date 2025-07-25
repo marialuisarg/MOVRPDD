@@ -111,7 +111,7 @@ bool checkChildrenSimilarity(int chromossomeSize, vector<int> child, vector<int>
 Solution* ENSGA2::decodeLiterature(vector<int> sol, Graph *g) {
     
     Solution *s = LiteratureConstructor::truckRouteSplit(sol, g);
-    s->updateSolution(g);
+    //s->updateSolution(g);
     LiteratureConstructor::droneRouteConstructor(s, g);
 
     return s;
@@ -340,12 +340,8 @@ void ENSGA2::run(int popSize, int numNodes, Graph *g, double alpha, int itConstr
 
                 if(!checkChildrenSimilarity(child1.size(), child1, prnt1->getGiantTour(), 1)) {
                     if(!checkChildrenSimilarity(child1.size(), child1, prnt2->getGiantTour(), 2)) {
-                        if (isFeasibleLiterature(child1, g)) {
-                            std::cout << "New solution is feasible! Including child 1 in offspring" << std::endl;
-                            offspring.include(decodeLiterature(child1, g));
-                        } else {
-                            std::cout << "New solution will not be included in offspring because it is not feasible." << std::endl;
-                        }
+                        std::cout << "Including child 1 in offspring" << std::endl;
+                        offspring.include(decodeLiterature(child1, g));
                     } else {
                         std::cout << "New solution will not be included in offspring because it is 100% equal to parent 2." << std::endl;
                     }
@@ -359,13 +355,9 @@ void ENSGA2::run(int popSize, int numNodes, Graph *g, double alpha, int itConstr
                 }
 
                 if(!checkChildrenSimilarity(child2.size(), child2, prnt1->getGiantTour(), 1)) {
-                    if(!checkChildrenSimilarity(child1.size(), child1, prnt2->getGiantTour(), 2)) {
-                        if (isFeasibleLiterature(child2, g)) {
-                            std::cout << "New solution is feasible! Including child in offspring" << std::endl;
-                            offspring.include(decodeLiterature(child2, g));
-                        } else {
-                            std::cout << "New solution will not be included in offspring because it is not feasible." << std::endl;
-                        }
+                    if(!checkChildrenSimilarity(child2.size(), child2, prnt2->getGiantTour(), 2)) {
+                        std::cout << "Including child 2 in offspring" << std::endl;
+                        offspring.include(decodeLiterature(child2, g));
                     } else {
                         std::cout << "New solution will not be included in offspring because it is 100% equal to parent 2." << std::endl;
                     } 
@@ -376,7 +368,6 @@ void ENSGA2::run(int popSize, int numNodes, Graph *g, double alpha, int itConstr
             } else {
                 std::cout << "No crossover or mutation were performed." << std::endl;
             }
-
 
             std::cout << std::endl;            
         }

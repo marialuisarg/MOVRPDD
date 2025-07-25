@@ -20,21 +20,21 @@ Solution::Solution(Graph *g, int QT, RandomGenerator *randGen) {
     this->dominatedBy = 0;
     this->randGen = randGen;
     this->localSearch = false;
+    this->decoded = false;
+
+    this->truckEnergyCons = vector<vector<double>>(g->getSize(), std::vector<double>(g->getSize(), 0.0));
 
     setNumRoutes(0);
 }
 
-void Solution::updateSolution(Graph *g) {
+void Solution::calculateObjectives(Graph *g) {
     double f1 = 0.0, f2 = 0.0, f3 = 0.0;
 
     for (int i = 0; i < getNumRoutes(); i++) {
-        routes[i]->updateEnergyConsumption(g, QT);
-        routes[i]->updateDeliveryTime(g, ST, SD);
-
         f1 += routes[i]->getEnergyConsumption();
-        f2 += routes[i]->getDeliveryCost();
-        if (routes[i]->getDeliveryTime() > f3)
-            f3 = routes[i]->getDeliveryTime();
+        // f2 += routes[i]->getDeliveryCost();
+        // if (routes[i]->getDeliveryTime() > f3)
+        //     f3 = routes[i]->getDeliveryTime();
     }
 
     setTotalEnergyConsumption(f1);
@@ -48,6 +48,8 @@ void Solution::printRoutes() {
         cout << "Route " << i << ": ";
         routes[i]->printRoute();
     }
+
+    cout << "---------------------------------------------------------------------------------------------------------------------------" << endl << endl;
 }
 
 void Solution::plotSolution(string instance, int i, string filename) {
@@ -407,6 +409,40 @@ void Solution::printSolution() {
     cout << "Number of attended clients: " << count << endl;
     cout << "-------------------" << endl;
 };
+
+void Solution::calculateTruckEnergyConsumption(Graph* g, Route* r) {
+    vector<int>* truckIDs = r->getTruckRouteIDs();
+    int numNodes = r->getNumClients();
+    double segEnergyCons, totalEnergyCons = 0.0;
+
+    for (int i = 0; i < numNodes; i++) {
+
+        int client = truckIDs->at(i);
+        int nextClient;
+        int lastClient;
+
+        if (i == 0) {
+            lastClient = 0;
+            nextClient = truckIDs->at(i+1);
+
+            segEnergyCons = (WT + QT - r->getCurrentCapacity()) * g->getManhattanDistance(lastClient, client);
+            this->truckEnergyCons[lastClient][client] = segEnergyCons;
+            totalEnergyCons += segEnergyCons;
+        } else if (i == numNodes-1) {
+            nextClient = 0;
+            lastClient = truckIDs->at(i-1);
+        } else {
+            nextClient = truckIDs->at(i+1);
+            lastClient = truckIDs->at(i-1);
+        }
+
+        segEnergyCons = ((this->truckEnergyCons[lastClient][client] / g->getManhattanDistance(lastClient, client)) - g->getNode(client)->getDemand()) * g->getManhattanDistance(client, nextClient);
+        this->truckEnergyCons[client][nextClient] = segEnergyCons;
+        totalEnergyCons += segEnergyCons;
+    }
+
+    r->setEnergyConsumption(totalEnergyCons);
+}
 
 Solution::~Solution() {
     routes.clear();

@@ -43,7 +43,7 @@ namespace AdaptiveConstructor {
 namespace LiteratureConstructor {
     vector<Solution*> run(Graph *g, int QT, RandomGenerator *randGen, int setSize);
     Solution* truckRouteSplit(std::vector<int> clients, Graph* g);
-    void split(Graph* g, Solution* sol);
+    void split(Graph* g, Solution* sol, std::vector<int> clients);
     std::deque<Route*> extract(const std::vector<int>& clients, const std::vector<int>& predecessorIndex, Graph* g);
     void droneRouteConstructor(Solution* sol, Graph* g);
 }

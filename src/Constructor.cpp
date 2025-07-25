@@ -51,7 +51,7 @@ namespace Constructor {
         double loadedFlight = (distance_ij / totalDistance) * g->getDroneFlightEndurance(launchNode, clientNode);
         double emptyFlight = (distance_jk / totalDistance);
 
-        if (loadedFlight == 0) return false; // drone can't fly to client node
+        if (loadedFlight <= 0) return false; // drone can't fly to client node
 
         //std::cout << "o drone é capaz de voar até o cliente" << std::endl;
         double expct_max_flight_endurance = (loadedFlight + emptyFlight)*E;
@@ -60,7 +60,7 @@ namespace Constructor {
         // from launch node to client node and from client node to retrieve node, returns true
 
         double t_ij = g->getDroneFlightTime(launchNode, clientNode);
-        std::cout << "drone flight time i,j: " << t_ij << std::endl;
+
         if (t_ij == INF) return false; // drone can't fly to client node
 
         double t_jk = g->getDroneFlightTime(clientNode, retrieveNode);
@@ -70,8 +70,6 @@ namespace Constructor {
         //cout << "expct_max_flight_endurance: " << expct_m
         //cout << "time spent: " << t_ij + t_jk << endl;
         
-        std::cout << "drone flight time total: " << droneTime << std::endl;
-        std::cout << "expct max flight end: " << expct_max_flight_endurance << std::endl;
         if (droneTime > expct_max_flight_endurance) return false; 
 
         // verifies if truck will be able to reach client node before or with drone
@@ -104,7 +102,6 @@ namespace Constructor {
 
         //cout << "total truck time: " << truckTime << endl;
 
-        std::cout << "total truck time: " << totalTruckTime << std::endl;
         return totalTruckTime <= droneTime;
 
     }
@@ -139,147 +136,6 @@ namespace Constructor {
             std::cout << "Candidate " << get<0>(sol->getCandidateCost(j)) << " (" <<  get<3>(sol->getCandidateCost(j)) << "_" << get<4>(sol->getCandidateCost(j)) <<") => route " << get<1>(sol->getCandidateCost(j)) << endl;
         }
     }
-
-    // void createDroneRoutes(Graph *g, Solution *sol) {
-    //     int launchNode, clientNodeID, retrieveNode;
-    //     vector<int> launchNodesList, retrieveNodesList; 
-    //     tuple<int, int, int> flight(0,0,0); // <launchNode, clientNode, retrieveNode>
-
-    //     // for each client on each truck route
-    //     for (int i = 0; i < sol->getNumRoutes(); i++) { 
-    //         vector<tuple<int, int, int, double, bool>> bestFlight;  // <launchNode, clientNode, retrieveNode, gain, is possible>
-    //         deque<long int> searchRange;
-
-    //         vector<int> tRoute;
-
-    //         // creates a list with all clients on the route (every node besides depot)
-    //         std::cout << "Number of clients in route " << i << ": " << tRoute.size() << std::endl;
-    //         int k = 1;
-    //         do {
-    //             std::cout << tRoute[k] << " ";
-    //             searchRange.push_back(tRoute[k]);
-    //             k++;
-    //         } while (k < tRoute.size()-1);
-    //         std::cout << std::endl;
-
-    //         for (int j = 0; j < tRoute.size(); j++) {
-
-    //             if (isInSearchRange(searchRange, tRoute[j])) {
-    //                 Node* client = sol->getRoute(i)->getTruckRoute()[j];
-                    
-    //                 // if client can be reached by drone and its demand is less than the drone's capacity
-    //                 if (client->getServiceBy() == TRUCK_DRONE && client->getDemand() <= QD) {
-
-    //                     int clientNodeID = client->getID();
-
-    //                     // verifies if node isn't depot or first/last node on route
-    //                     if ((clientNodeID != tRoute[0]) && (clientNodeID != tRoute[1]) && (clientNodeID != tRoute[tRoute.size()-2])) {
-    //                         //cout << endl << endl << "ROUTE: " << i << " | CLIENT: " << client->getID();
-    //                         get<1>(flight) = clientNodeID;
-    //                         int index = 0;
-    //                         // creates a launching nodes list with all nodes before client
-    //                         launchNodesList.clear();
-    //                         for (const auto& nodeID : searchRange) {
-    //                             if (nodeID == clientNodeID)
-    //                                 break;
-
-    //                             index++;
-    //                             launchNodesList.push_back(nodeID);
-    //                         }
-
-    //                         // sort launching nodes list by euclidean distance to client
-    //                         sortListByEuclideanDistance(g, &launchNodesList, clientNodeID);
-
-    //                         // creates a retrieving nodes list with all nodes after client
-    //                         retrieveNodesList.clear();
-    //                         int searchRangeSize = searchRange.size();
-    //                         index++;
-    //                         for (int idx = index; idx < searchRangeSize; idx++)
-    //                             retrieveNodesList.push_back(searchRange[idx]);
-    //                         }
-
-    //                         // goes through lauching and retrieving nodes list, choosing flights that doesn't exceed flight endurance
-    //                         std::tuple<int,int,int> bestClientFlight; // <launchNode, clientNode, retrieveNode>
-    //                         double biggestGain = -INF;
-
-    //                         for (int n = 0; n < launchNodesList.size(); n++) {
-    //                             get<0>(flight) = launchNodesList[n];
-    //                             for (int k = 0; k < retrieveNodesList.size(); k++) {
-    //                                 get<2>(flight) = retrieveNodesList[k];
-
-    //                                 if (isReachableByDrone(g, sol, flight, i)) {
-    //                                     double droneFlightCost = g->getEuclideanDistance(get<0>(flight), get<1>(flight)) + g->getEuclideanDistance(get<1>(flight), get<2>(flight));
-    //                                     double truckRouteCost = 
-
-    //                                     double gain = truckRouteCost - droneFlightCost;
-
-    //                                     if (gain > biggestGain) {
-    //                                         get<0>(bestClientFlight) = get<0>(flight);
-    //                                         get<1>(bestClientFlight) = get<1>(flight);
-    //                                         get<2>(bestClientFlight) = get<2>(flight);
-
-    //                                         //cout << "best: " << get<0>(bestClientFlight) << " " << get<1>(bestClientFlight) << " " << get<2>(bestClientFlight) << endl;
-    //                                         //cout << "current: " << get<0>(flight) << " " << get<1>(flight) << " " << get<2>(flight) << endl;
-
-    //                                         biggestGain = gain;
-    //                                     }
-    //                                 }
-    //                             }
-    //                         }
-                            
-    //                         // if the best flight is better than the truck route, adds it to the best flight list
-    //                         if (biggestGain > 0) {
-    //                             //cout << endl << "best flight for client " << client->getID() << ": (" << get<0>(bestClientFlight) << "," << get<1>(bestClientFlight) << "," << get<2>(bestClientFlight) << ")" << endl;
-    //                             bestFlight.push_back(make_tuple(get<0>(bestClientFlight), get<1>(bestClientFlight), get<2>(bestClientFlight), biggestGain, true));
-    //                         }
-
-    //                     } //else {
-    //                         //cout << "Node " << client->getID() << " can't be attended by drone (is depot or first/last node after/before depot)." << endl;
-    //                     //}
-    //                 }
-    //             }
-    //         }
-
-    //         // sorts best flights by gain
-    //         sortListByGain(&bestFlight);
-            
-    //         //cout << "iniciando correção de rotas de drones" << endl;
-
-    //         // adds best flights to route
-    //         //cout << "best flights size: " << bestFlight.size() << endl;
-
-    //         unordered_map<int, string> usedNodes; // map to track nodes and their roles in flights
-
-    //         for (const auto& flightOption : bestFlight) {
-    //             int launchNode = get<0>(flightOption);
-    //             int clientNode = get<1>(flightOption);
-    //             int retrieveNode = get<2>(flightOption);
-
-    //             // Check if nodes are already used in conflicting roles
-    //             if (usedNodes[clientNode].empty() && 
-    //                 (usedNodes[launchNode].empty() || usedNodes[launchNode] == "retrieve") && 
-    //                 usedNodes[retrieveNode].empty()) {
-                    
-    //                 // Add flight to the route
-    //                 tuple<int, int, int> flight = {launchNode, clientNode, retrieveNode};
-    //                 sol->getRoute(i)->insertDroneFlight(flight);
-    //                 sol->setDroneRouteCreated(true);
-
-    //                 // Mark nodes with their roles
-    //                 usedNodes[launchNode] = "launch";
-    //                 usedNodes[clientNode] = "client";
-    //                 usedNodes[retrieveNode] = "retrieve";
-    //             }
-    //         }
-
-    //         // corrects truck route (removes clients that were served by drone)
-    //         sol->getRoute(i)->removeClientsServedByDrone(g, CT, CD, CB);
-    //         bestFlight.clear();
-    //         searchRange.clear();
-    //     }
-
-    //     sol->updateSolution(g);
-    // }
 }
 
 // namespace GreedyConstructor {
@@ -636,98 +492,111 @@ namespace Constructor {
 
 namespace LiteratureConstructor {
 
-    void split(Graph* g, Solution* sol) {
+    void split(Graph* g, Solution* sol, vector<int> clients) {
         int n = sol->getNumClients();
 
-        deque<Node*> clients;
-        for (int i = 0; i < n; i++) {
-            clients.push_back(g->getNode(sol->getGiantTour()[i]));
-        }
-
-        std::vector<float> costShortestPath(n);
-        std::vector<int> predecessorIndex(n);
+        std::vector<double> costShortestPath(n+1);
+        std::vector<int> predecessorIndex(n+1);
 
         costShortestPath[0] = 0;
         predecessorIndex[0] = 0;
 
-        for (int i = 1; i < n; i++) {
+        for (int i = 1; i <= n; i++) {
             costShortestPath[i] = INF;
         }
 
-        std::cout << "\n--- Iniciando Algoritmo 1: Calculando custos (V) e predecessores (P) ---" << std::endl;
-        for (int i = 1; i < n; i++) {
+        for (int i = 1; i <= n; i++) {
 
             int j = i;
-            float load = 0;
-            float cost = 0;
+            double cost, load = 0.0;
             
             do {
-                load += clients[j]->getDemand();
+                load = load + g->getNode(clients[j])->getDemand();
 
                 if (i == j) {
-                    cost = g->getManhattanDistance(0, clients[j]->getID()) * 2;
+                    cost = g->getManhattanDistance(0, clients[i]) + g->getManhattanDistance(clients[i], 0);
                 } else {
-                    cost = cost - g->getManhattanDistance(clients[j-1]->getID(), 0)
-                            + g->getManhattanDistance(clients[j-1]->getID(), clients[j]->getID())
-                            + g->getManhattanDistance(clients[j]->getID(), 0);
+                    cost = cost - (g->getManhattanDistance(clients[j-1], 0) + g->getManhattanDistance(clients[j-1], clients[j]) + g->getManhattanDistance(clients[j], 0));
                 }
 
+                // std::cout << "Testando inserir " << clients[j] << " na rota que termina com " << clients[j-1] << ": custo = " << cost << " | load = " << load << std::endl;
+                // std::cout << "Custo da rota entre 0 e o " << i-1 << "o nó: " << costShortestPath[i-1] << std::endl;
+                // std::cout << "Custo da rota entre 0 e o " << j << "o nó: " << costShortestPath[j] << std::endl;
+                // std::cout << costShortestPath[i-1] + cost << std::endl;
+
+                //if (load > QT) std::cout << "ULTRAPASSOU CARGA MÁXIMA" << std::endl;
                 if (load <= QT && costShortestPath[i-1] + cost < costShortestPath[j]) {
+                    // std::cout << "Rota atualizada. Primeiro da rota que contém o " << clients[j] << ": " << clients[i-1] << std::endl;
                     costShortestPath[j] = costShortestPath[i-1] + cost;
                     predecessorIndex[j] = i-1;
                 }
 
                 j++;
-            } while (j < n && load <= QT);      
+            } while (j <= n && load <= QT);
+            
         }
         
         sol->setPredecessors(predecessorIndex);
+        //sol->setCosts(costShortestPath);
     }
 
     std::deque<Route*> extract(const std::vector<int>& clients, const std::vector<int>& predecessorIndex, Graph* g) {
-        std::cout << "\n--- Iniciando Algoritmo 2: Reconstruindo as rotas ---" << std::endl;
+        // std::cout << "\n--- Iniciando Algoritmo 2: Reconstruindo as rotas ---" << std::endl;
 
         std::deque<Route*> routesList;
-        int n = clients.size();
-        int j = n-1;
+        int n = clients.size() - 2;
+        int i, j = n;
 
-        while (j > 0) {
+        do {
             Route* currentTrip = new Route(QT, QD, g->getNode(0));
-            int i = predecessorIndex[j];
-
-            // insere deposito
-            currentTrip->insertClient(g->getNode(0), 0);
+            i = predecessorIndex[j];
+            currentTrip->insertClient(g->getNode(0),0); // insere depósito no início da rota
 
             // insere clientes da rota atual
-            if (i == 0) i  = -1; // garante que o primeiro cliente seja inserido corretamente
             for (int k = i + 1; k <= j; k++) {
                 currentTrip->insertClient(g->getNode(clients[k]), clients[k]);
             }
             
             routesList.push_front(currentTrip);
             j = i;
-        }
-        
+
+        } while (i != 0);
+
         return routesList;
     }
 
     Solution* truckRouteSplit(std::vector<int> clients, Graph* g) {
 
-    Solution* solution = new Solution(g, QT, nullptr);
-    solution->setNumClients(clients.size()+1);
-    solution->setGiantTour(clients);
+        Solution* solution = new Solution(g, QT, nullptr);
+        solution->setNumClients(clients.size());
+        solution->setGiantTour(clients);
 
-    split(g, solution);
+        // aux vector with depots
+        std::vector<int> giantTour(clients.size() + 2);
+        std::copy(clients.begin(), clients.end(), giantTour.begin() + 1);
+        giantTour[0] = 0;
+        giantTour.back() = 0;
 
-    std::deque<Route*> extractedRoutes = extract(clients, solution->getPredecessors(), g);
-    
-    for (Route* route : extractedRoutes) {
-        solution->includeRoute(route);
+        // for (int i = 0; i < giantTour.size(); i++) {
+        //     std::cout << giantTour[i] << " ";
+        // }
+        // std::cout << std::endl;
+
+        split(g, solution, giantTour);
+
+        std::deque<Route*> extractedRoutes = extract(giantTour, solution->getPredecessors(), g);
+        
+        for (Route* route : extractedRoutes) {
+            solution->includeRoute(route);
+            solution->calculateTruckEnergyConsumption(g, route);
+        }
+
+        solution->updateDecoded(true);
+        //solution->calculateObjectives(g);
+
+        std::cout << "Truck routes created. Number of routes: " << solution->getNumRoutes() << std::endl;
+        return solution;
     }
-
-    std::cout << "\n--- truckRouteSplit finalizado. Total de rotas: " << solution->getNumRoutes() << " ---\n" << std::endl;
-    return solution;
-}
 
     void droneRouteConstructor(Solution* sol, Graph* g) {
         // creates as many flights as possible for each truck route in solution
@@ -764,9 +633,9 @@ namespace LiteratureConstructor {
 
                         //std::cout << "-- launchList = ";
 
-                        for (int c = 0; c < launchList.size(); c++) 
-                            std::cout << launchList[c] << " ";
-                        std::cout << std::endl;
+                        // for (int c = 0; c < launchList.size(); c++) 
+                        //     std::cout << launchList[c] << " ";
+                        // std::cout << std::endl;
 
                         // launch client will be the node with the mininimum euclidean distance from customer client
                         Constructor::sortListByEuclideanDistance(g, &launchList, cCustomer);
@@ -805,19 +674,23 @@ namespace LiteratureConstructor {
                 }
             }
         }
+
+        cout << "Drone routes created." << endl;
     }
 
     vector<Solution*> run(Graph *g, int QT, RandomGenerator *randGen, int setSize) {
 
-        std::cout << "Running Literature Constructor..." << std::endl;
+        std::cout << "Running Literature Constructor..." << std::endl << std::endl;
+        std::cout << "---------------------------------------------------------------------------------------------------------------------------" << std::endl << std::endl;
 
         vector<Solution*> solutions;
 
         for (int p = 0; p < setSize; p++) {
 
-            std::vector<int> clients;
-            
-            // giant truck vector is initialized with depot on first position and clients in random order
+            // vector of clients without depots
+            std::vector<int> clients; 
+
+            // giant truck vector is initialized with clients in random order
             for (int i = 1; i < g->getSize(); i++) {
                 clients.push_back(g->getNode(i)->getID());
             }
@@ -827,14 +700,10 @@ namespace LiteratureConstructor {
             // creates solution with truck route split algorithm
             Solution* solution = truckRouteSplit(clients, g);
 
-            solution->printRoutes();
-
-            std::cin >> std::ws;
+            // solution->printRoutes();
 
             // cria rotas de drone
             LiteratureConstructor::droneRouteConstructor(solution, g);
-            std::cin >> std::ws;
-            cout << "Drone routes created." << endl << endl;
 
             solution->printRoutes(); // prints routes for debugging
 

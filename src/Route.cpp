@@ -21,10 +21,7 @@ Route::Route(double truckCapacity, double droneCapacity, Node* depot) {
     this->currentTruckRouteCost = 0.0;
     this->currentDroneRouteCost = 0.0;
 
-    // add depot at the end of the routes
-    //truckRoute.push_back(depot);
-
-    this->numClients = 1;
+    this->numClients = -1;
 }
 
 Route::~Route() {
@@ -68,7 +65,7 @@ void Route::setDeliveryCost(double cost) {
     this->deliveryCost = cost;
 }
 
-void Route::updateEnergyConsumption(Graph *g, int QT) {
+void Route::calculateEnergyConsumption(Graph *g, int QT) {
     //cout << "=> updating energy consumption." << endl;	
     
     double path = 0.0, ec = 0.0, truckWeight = QT - this->currentTruckCapacity;
@@ -114,7 +111,7 @@ void Route::updateEnergyConsumption(Graph *g, int QT) {
     //cout << "---" << endl;	
 }
 
-void Route::updateDeliveryTime(Graph *g, int VT, int VD) {
+void Route::calculateDeliveryTime(Graph *g, int VT, int VD) {
     double truckTime = 0.0, droneTime = 0.0;
     setDeliveryTime(0.0);
 
@@ -215,16 +212,18 @@ void Route::insertClient(Node *client, int ID) {
     this->updateCapacity(client->getDemand());
     if (ID != 0)
         this->truckRouteIDs.push_back(ID);
+
+    this->updateNumClients();
 }
 
 void Route::printRoute() {
 
-    cout << "PREV TRUCK ROUTE: ";
-    for (int i = 0; i < this->truckRouteIDs.size(); i++) {
-        cout << this->truckRouteIDs[i] << " ";
-    }
+    // cout << "PREV TRUCK ROUTE: ";
+    // for (int i = 0; i < this->truckRouteIDs.size(); i++) {
+    //     cout << this->truckRouteIDs[i] << " ";
+    // }
 
-    cout << endl << "CURRENT ROUTES:" << endl;
+    cout << endl << "TRUCK ROUTE:" << endl;
     for (int i = 0; i < this->truckRoute.size(); i++) {
        cout << this->truckRoute[i]->getID() << " ";
     }

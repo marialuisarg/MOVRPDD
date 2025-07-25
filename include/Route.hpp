@@ -34,14 +34,15 @@ class Route {
         ~Route();
 
         void setDeliveryCost(Graph *g, int CT, int CD, int CB);
-        void updateDeliveryCost(Graph *g, int CT, int CD, int CB, std::vector<tuple<int, int, int>> flightIndexes);
-        void updateEnergyConsumption(Graph *g, int QT);
-        void updateDeliveryTime(Graph *g, int VT, int VD);
+
+        void calculateDeliveryCost(Graph *g, int CT, int CD, int CB);
+        void calculateEnergyConsumption(Graph *g, int QT);
+        void calculateDeliveryTime(Graph *g, int VT, int VD);
+
         void updateCapacity(double capacity);
         void updateNumClients();
 
         void removeClientsServedByDrone(Graph *g, int CT, int CD, int CB);
-        void registerPrevTruckRoute();
 
         double getDeliveryCost();
         double getEnergyConsumption();
