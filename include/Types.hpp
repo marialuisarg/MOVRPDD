@@ -17,8 +17,12 @@ enum nodeType {
     DRONE = 3
 };
 
-enum insertionType {
-    
+enum executionType {
+    LIT,
+    LIT_LS,
+    ADPT,
+    ADPT_LS,
+    INVALID
 };
 
 // parameter settings of MOVRPDD Model //

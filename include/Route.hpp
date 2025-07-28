@@ -13,7 +13,7 @@
 class Route {
     private:
         std::vector<Node*> truckRoute;
-        std::vector<int> truckRouteIDs;                  // final truck route before drone flights
+        std::vector<int> truckRouteIDs;                  // final truck route after drone flights
         std::unordered_map<int, int> serviceType;        // 0: truck, 1: drone
         std::vector<tuple<int, int, int>> droneRoute;    // launch node, client, retrieval node 
     
@@ -42,7 +42,7 @@ class Route {
         void updateCapacity(double capacity);
         void updateNumClients();
 
-        void removeClientsServedByDrone(Graph *g, int CT, int CD, int CB);
+        void removeClientsServedByDrone(Graph *g);
 
         double getDeliveryCost();
         double getEnergyConsumption();
@@ -56,7 +56,7 @@ class Route {
         Node* getNode(int position);
         Node* getPrevNode(int position);
         Node* getNextNode(int position);
-        bool isClientServedByDrone(int clientID);
+        bool isClientServedByDrone(int clientID);        
 
         void insertClient(Node *client, int ID);
         bool insertClientPrev(Node *client, long int prevNode);  // returns false if client can't be inserted

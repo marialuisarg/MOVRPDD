@@ -2,7 +2,7 @@
 
 Solution* ENSGA2::getRandomSolution(Population *p, RandomGenerator *rng) {
     int randomIndex = rng->getInt(0, p->getSize()-1);
-    return p->getSolutions()[randomIndex];
+    return p->getSolutions()[randomIndex].get();
 }
 
 Solution* ENSGA2::tournamentSelection(Population *p, int tournamentSize, RandomGenerator *rng) {
@@ -75,7 +75,7 @@ bool ENSGA2::isFeasible(vector<int> solution, Graph *g, int QT) {
 
 bool ENSGA2::isFeasibleLiterature(vector<int> solution, Graph *g) {
 
-    Solution *s = decodeLiterature(solution, g);
+    auto s = decodeLiterature(solution, g);
 
     // check if truck routes are feasible
 
@@ -108,22 +108,23 @@ bool checkChildrenSimilarity(int chromossomeSize, vector<int> child, vector<int>
     return ((100 * sameAsParent1) / (chromossomeSize-1)==100);
 }
 
-Solution* ENSGA2::decodeLiterature(vector<int> sol, Graph *g) {
+std::unique_ptr<Solution> ENSGA2::decodeLiterature(vector<int> sol, Graph *g) {
     
-    Solution *s = LiteratureConstructor::truckRouteSplit(sol, g);
-    //s->updateSolution(g);
+    std::unique_ptr<Solution> s_ptr = LiteratureConstructor::truckRouteSplit(sol, g);
+    Solution *s = s_ptr.get();
     LiteratureConstructor::droneRouteConstructor(s, g);
+    s->calculateObjectiveFunctions(g);
 
-    return s;
+    return s_ptr;
 }
 
 // based on multi-dimensional local search by (Zhang et al., 2022)
-vector<Solution*> ENSGA2::multiDimensionalSearch (vector<Solution*> firstFront) {
+vector<std::unique_ptr<Solution>> ENSGA2::multiDimensionalSearch (vector<Solution*> firstFront, Graph *g, RandomGenerator *rng) {
 
-    vector<Solution*> newFront;
+    vector<std::unique_ptr<Solution>> newFront;
     
-    for (int i = 0; i < firstFront.size(); i++) {
-        Solution *s = firstFront[i];
+    for (Solution* s : firstFront) {
+
         if (s->getDominatedBy() > 0) continue;
 
         double objFuncS = 0;
@@ -131,9 +132,9 @@ vector<Solution*> ENSGA2::multiDimensionalSearch (vector<Solution*> firstFront) 
 
         // for each objective function
         for (int obj = 0; obj < 3; obj++) {
-            Solution *s1 = new Solution(*s);
 
-            //Mutation::run(s1);
+            // Create a new solution by decoding the chromosome again
+            auto s1 = decodeLiterature(Mutation::run(s->getGiantTour(), rng), g);
 
             switch (obj) {
                 case 0:
@@ -154,7 +155,7 @@ vector<Solution*> ENSGA2::multiDimensionalSearch (vector<Solution*> firstFront) 
 
             if (objFuncS1 < objFuncS) {
                 cout << "New solution is better than the original for F" << obj+1 << ". Including in new front." << endl;
-                newFront.push_back(s1);
+                newFront.push_back(std::move(s1));
             }
         }   
     }
@@ -162,12 +163,12 @@ vector<Solution*> ENSGA2::multiDimensionalSearch (vector<Solution*> firstFront) 
     return newFront;
 }
 
-Solution* ENSGA2::applyLocalSearch(Solution *s, Graph *g, RandomGenerator *rng, std::function<double(Solution*)> objectiveGetter) {
+std::unique_ptr<Solution> ENSGA2::applyLocalSearch(Solution *s, Graph *g, RandomGenerator *rng, std::function<double(Solution*)> objectiveGetter) {
     // choose a random mutation operator
     int mutationType = rng->getInt(0, 2); // 0: swap, 1: insert, 2: reverse
     
     std::vector<int> mutatedSolutionGT;
-    Solution *bestCurrentSolution = s;
+    std::unique_ptr<Solution> bestMutant = nullptr;
     double bestCurrentObjValue = objectiveGetter(s);
     int numClients = s->getGiantTour().size();
 
@@ -188,34 +189,26 @@ Solution* ENSGA2::applyLocalSearch(Solution *s, Graph *g, RandomGenerator *rng, 
                     break;
             }
 
-            Solution *mutatedSolution = decodeLiterature(mutatedSolutionGT, g);
+            auto mutatedSolution = decodeLiterature(mutatedSolutionGT, g);
 
-            double mutatedObjValue = objectiveGetter(mutatedSolution);
+            double mutatedObjValue = objectiveGetter(mutatedSolution.get());
 
             if (mutatedObjValue < bestCurrentObjValue) {
                 std::cout << "Found a better solution with local search." << std::endl;
                 s->setLocalSearch(true);
-                bestCurrentSolution = mutatedSolution;
+                bestMutant = std::move(mutatedSolution);
                 bestCurrentObjValue = mutatedObjValue;
             }
         }
     }
 
     // if a better solution was found, return it
-    if (bestCurrentSolution != s) {
-        std::cout << "Returning best solution found with local search." << std::endl;
-        return bestCurrentSolution;
-    }
-    else {
-        std::cout << "No better solution found with local search." << std::endl;
-        return nullptr;
-    }
-
+    return bestMutant;
 }
 
-vector<Solution*> ENSGA2::massiveLocalSearch(Population *offspring, Graph *g, RandomGenerator *rng) {
+vector<std::unique_ptr<Solution>> ENSGA2::massiveLocalSearch(Population *offspring, Graph *g, RandomGenerator *rng) {
     
-    vector<Solution*> mutantSolutions;
+    vector<std::unique_ptr<Solution>> mutantSolutions;
 
     // selects two best solutions from offspring (for each objective function) and applies local search to them
     for (int func = 0; func < 3; func++) {
@@ -241,22 +234,24 @@ vector<Solution*> ENSGA2::massiveLocalSearch(Population *offspring, Graph *g, Ra
             break;
         }
 
-        for (auto s : offspring->getSolutions()) {
-            double currentValue = objectiveGetter(s);
-            bestSolutions.push(make_pair(s, currentValue));
+        for (const auto& s_ptr : offspring->getSolutions()) {
+            double currentValue = objectiveGetter(s_ptr.get());
+            bestSolutions.push(make_pair(s_ptr.get(), currentValue));
         }
 
         // get the two best solutions
         for (int i = 0; i < 2; i++) {
             Solution *best = bestSolutions.top().first;
             bestSolutions.pop();
+
             if (!best->wasLocalSearchUsed()) {
-                best = applyLocalSearch(best, g, rng, objectiveGetter);
-                if (best != nullptr) {
-                    if (isFeasibleLiterature(best->getGiantTour(), g)) {
+                auto newBestSolution = applyLocalSearch(best, g, rng, objectiveGetter);
+
+                if (newBestSolution != nullptr) {
+                    if (isFeasibleLiterature(newBestSolution->getGiantTour(), g)) {
                         std::cout << "Best solution found with local search is feasible. Including in mutant solutions." << std::endl;
                         best->setLocalSearch(true);
-                        mutantSolutions.push_back(best);
+                        mutantSolutions.push_back(std::move(newBestSolution));
                     } else {
                         std::cout << "Best solution found with local search is not feasible. Skipping." << std::endl;
                         i--;
@@ -273,7 +268,7 @@ vector<Solution*> ENSGA2::massiveLocalSearch(Population *offspring, Graph *g, Ra
     return mutantSolutions;
 }
 
-void ENSGA2::run(int popSize, int numNodes, Graph *g, double alpha, int itConstructor, int itGA, string instanceName, int tSize, RandomGenerator *rng) {
+void ENSGA2::run(int popSize, int numNodes, Graph *g, executionType typeExec, int itConstructor, int itGA, string instanceName, int tSize, RandomGenerator *rng) {
     
     std::cout << "Running ENSGA-II." << std::endl << std::endl;
     std::cout << "Using seed: " << rng->getSeed() << std::endl;
@@ -288,14 +283,17 @@ void ENSGA2::run(int popSize, int numNodes, Graph *g, double alpha, int itConstr
 
     Population p(popSize, numNodes-1, g, QT, rng);
     
-    // vector<Solution*> randomSolutions = RandomConstructor::run(g, QT, alpha, itConstructor, popSize);
-    // p.include(randomSolutions);
-
-    // vector<Solution*> adaptiveSolutions = AdaptiveConstructor::run(g, QT, itConstructor, popSize, rng);
-    // p.include(adaptiveSolutions);
-
-    vector<Solution*> literatureSolutions = LiteratureConstructor::run(g, QT, rng, popSize);
-    p.include(literatureSolutions);
+    if (typeExec == LIT || typeExec == LIT_LS) {
+        auto literatureSolutions = LiteratureConstructor::run(g, QT, rng, popSize);
+        for (auto& sol : literatureSolutions) {
+            p.include(std::move(sol));
+        }
+    } else if (typeExec == ADPT || typeExec == ADPT_LS) {
+        auto adaptiveSolutions = AdaptiveConstructor::run(g, QT, itConstructor, popSize, rng);
+        for (auto& sol : adaptiveSolutions) {
+            p.include(std::move(sol));
+        }
+    }
 
     p.FNDS();
     p.printFronts();
@@ -376,19 +374,22 @@ void ENSGA2::run(int popSize, int numNodes, Graph *g, double alpha, int itConstr
 
         // std::cout << "-----------------------" << std::endl;
         // std::cout << "Performing multi-dimensional search on first front." << std::endl;
-        // vector<Solution*> setG = multiDimensionalSearch(p.getFront(0));
+        // auto setG = multiDimensionalSearch(p.getFront(0));
 
-        // vector<Solution*> setM = massiveLocalSearch(&offspring, g, rng);
-        // std::cout << setM.size() << " solutions were improved with local search." << std::endl;
+        if (typeExec == LIT_LS || typeExec == ADPT_LS) {
+            auto setM = massiveLocalSearch(&offspring, g, rng);
+            std::cout << setM.size() << " solutions were improved with local search." << std::endl;
+            for (auto& sol : setM) {
+                offspring.include(std::move(sol));
+            }
+        } else {
+            std::cout << "No local search was performed." << std::endl;
+        }
 
         // combine population, offspring and setM
-        Population newPop(popSize*2, numNodes-1, g, QT, rng);
-        newPop.include(p.getSolutions());
-
-        //newPop.include(offspring.getSolutions());
-        int repeated = newPop.includeOffspring(offspring.getSolutions(), generation);
-        std::cout << repeated << " repeated solutions were not included in new population." << std::endl;
-        //newPop.include(setM);
+        Population newPop(popSize + offspring.getCurrentSize(), numNodes-1, g, QT, rng);
+        newPop.include(p.takeSolutions());
+        newPop.include(offspring.takeSolutions());
         newPop.FNDS();
         newPop.printFronts();
 
@@ -399,28 +400,45 @@ void ENSGA2::run(int popSize, int numNodes, Graph *g, double alpha, int itConstr
 
         p = Population(popSize, numNodes-1, g, QT, rng);
 
-        int i = 0;
-        double lastCR = INF;
+        auto& sourceSolutions = newPop.getSolutions();
+        
+        int front_idx = 0;
 
         while (p.getCurrentSize() < popSize) {
-            vector<Solution*> currentFront = newPop.getFront(i);
+            vector<Solution*> currentFront = newPop.getFront(front_idx);
 
-            // if the current front fits in the new population, include it
             if (currentFront.size() + p.getCurrentSize() <= popSize) {
-                p.include(newPop.getFront(i));
-                i++;
-                continue;
-            }
+                for (Solution* survivor_ptr : currentFront) {
 
-            // if not, sort the current front by crowding distance
-            newPop.crowdingDistance(currentFront);
-            while (p.getCurrentSize() < popSize) {
-                if (currentFront.back()->getCrDistance() != 0) {
-                    p.include(currentFront.back());
+                    auto it = std::find_if(sourceSolutions.begin(), sourceSolutions.end(),
+                        [&](const auto& u_ptr) { return u_ptr.get() == survivor_ptr; });
+
+                    if (it != sourceSolutions.end()) {
+                        p.include(std::move(*it)); 
+                    }
                 }
-                currentFront.pop_back();
+            } else {
+                newPop.crowdingDistance(currentFront); 
+                
+                for (Solution* survivor_ptr : currentFront) {
+                    if (p.getCurrentSize() >= popSize) break; 
+
+                    auto it = std::find_if(sourceSolutions.begin(), sourceSolutions.end(),
+                        [&](const auto& u_ptr) { return u_ptr.get() == survivor_ptr; });
+                    
+                    if (it != sourceSolutions.end()) {
+                        p.include(std::move(*it));
+                    }
+                }
             }
+            front_idx++;
         }
+
+        // Opcional mas recomendado: Invalide os ponteiros movidos em newPop para evitar uso duplo
+        sourceSolutions.erase(
+            std::remove(sourceSolutions.begin(), sourceSolutions.end(), nullptr),
+            sourceSolutions.end()
+        );
 
         p.FNDS();
         p.printFronts();

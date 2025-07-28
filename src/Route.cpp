@@ -263,19 +263,29 @@ void Route::insertDroneFlight(std::tuple<int,int,int> flight) {
     serviceType[get<1>(flight)] = 1;
 }
 
-void Route::removeClientsServedByDrone(Graph *g, int CT, int CD, int CB) {
+void Route::removeClientsServedByDrone(Graph *g) {
     unordered_set<int> droneClients;
-    // for (const auto& flight : this->droneRoute) {
-    //     droneClients.insert(get<1>(flight));
-    //     updateDeliveryCost(g, CT, CD, CB);
-    // }
+    for (const auto& flight : this->droneRoute) {
+        droneClients.insert(get<1>(flight));
+    }
 
-    this->truckRoute.erase(
-        remove_if(this->truckRoute.begin() + 1, this->truckRoute.end() - 1,
-                  [&droneClients](Node* node) {
-                      return droneClients.count(node->getID()) > 0;
-                  }),
-        this->truckRoute.end() - 1);
+    // Remove clients served by drone from truckRoute and truckRouteIDs (same positions)
+    auto truckIt = this->truckRoute.begin() + 1;
+    auto idIt = this->truckRouteIDs.begin();
+    // truckRouteIDs may not include depot (ID 0), so sync indices
+    while (truckIt != this->truckRoute.end() - 1) {
+        if (droneClients.count((*truckIt)->getID()) > 0) {
+            truckIt = this->truckRoute.erase(truckIt);
+            if (idIt != this->truckRouteIDs.end())
+                idIt = this->truckRouteIDs.erase(idIt);
+        } else {
+            ++truckIt;
+            if (idIt != this->truckRouteIDs.end())
+                ++idIt;
+        }
+    }
+
+    this->numClients = this->truckRoute.size() - 2; // -2 because of depot at the beginning and end
 }
 
 // void Route::registerPrevTruckRoute() {

@@ -9,7 +9,7 @@
 #include <algorithm>
 #include <cmath>
 #include <map>
-#include <unordered_set>
+#include <unordered_map>
 
 namespace Crossover {   
     std::vector<int> run(Solution *p1, Solution *p2, RandomGenerator *rng);              // run crossover (PMX or OX)

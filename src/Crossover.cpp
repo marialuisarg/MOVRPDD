@@ -77,9 +77,6 @@ std::vector<int> Crossover::run(Solution *p1, Solution *p2, RandomGenerator *rng
 }
 
 std::vector<int> Crossover::PMX(Solution *p1, Solution *p2, RandomGenerator *rng) {
-    // encode parents
-    // std::vector<int> parent1 = p1->encode();
-    // std::vector<int> parent2 = p2->encode();
 
     vector<int> parent1 = p1->getGiantTour();
     vector<int> parent2 = p2->getGiantTour();
@@ -95,26 +92,23 @@ std::vector<int> Crossover::PMX(Solution *p1, Solution *p2, RandomGenerator *rng
         std::swap(cp1, cp2);
 
     vector<int> child = parent2;
-    vector<bool> is_direct(cromossomeSize, false);
-
+    std::unordered_set<int> direct(cp2 - cp1);
     for (size_t i = cp1; i < cp2; i++) {
         child[i] = parent1[i];
-        is_direct[parent1[i]] = true;
-    }
-
-    vector<int> index_lookup(cromossomeSize, 0);
-
-    for (size_t i = 0; i < cromossomeSize; i++) {
-        index_lookup[parent2[i]] = i;
+        direct.insert(parent1[i]);
     }
 
     for (size_t i = cp1; i < cp2; i++) {
-        if (!is_direct[parent2[i]]) {
+        if (!contains(direct, parent2[i])) {
             size_t pos = i;
             while (cp1 <= pos && pos < cp2) {
-                pos = index_lookup[parent1[pos]];
+                auto it = std::find(parent2.begin(), parent2.end(), parent1[pos]);
+                if (it != parent2.end()) {
+                    pos = std::distance(parent2.begin(), it);
+                } else {
+                    break; // element not found, break to avoid infinite loop
+                }
             }
-            
             child[pos] = parent2[i];
         }
     }

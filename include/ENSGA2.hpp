@@ -7,6 +7,7 @@
 #include <queue>
 #include <random>
 #include <functional>
+#include <memory>
 
 #include "Population.hpp"
 #include "Crossover.hpp"
@@ -30,15 +31,15 @@ struct comp {
 
 namespace ENSGA2 {
 
-    void                run(int popSize, int numNodes, Graph *g, double alpha, int itConstructor, int itGA, string instanceName, int tSize, RandomGenerator *rng);
-    Solution*           getRandomSolution(Population *p, RandomGenerator *rng);
-    Solution*           tournamentSelection(Population *p, int tournamentSize, RandomGenerator *rng);
-    bool                isFeasible(vector<int> solution, Graph *g, int QT);
-    bool                isFeasibleLiterature(vector<int> solution, Graph *g);
-    vector<Solution*>   multiDimensionalSearch (vector<Solution*> firstFront);
-    vector<Solution*>   massiveLocalSearch(Population* offspring, Graph *g, RandomGenerator *rng);
-    Solution*           applyLocalSearch(Solution *s, Graph *g, RandomGenerator *rng, std::function<double(Solution*)> objectiveGetter);
-    Solution*           decodeLiterature(vector<int> sol, Graph *g);
+    void                                run(int popSize, int numNodes, Graph *g, executionType typeExec, int itConstructor, int itGA, string instanceName, int tSize, RandomGenerator *rng);
+    Solution*                           getRandomSolution(Population *p, RandomGenerator *rng);
+    Solution*                           tournamentSelection(Population *p, int tournamentSize, RandomGenerator *rng);
+    bool                                isFeasible(vector<int> solution, Graph *g, int QT);
+    bool                                isFeasibleLiterature(vector<int> solution, Graph *g);
+    vector<std::unique_ptr<Solution>>   multiDimensionalSearch (vector<Solution*> firstFront, Graph *g, RandomGenerator *rng);
+    vector<std::unique_ptr<Solution>>   massiveLocalSearch(Population* offspring, Graph *g, RandomGenerator *rng);
+    std::unique_ptr<Solution>           applyLocalSearch(Solution *s, Graph *g, RandomGenerator *rng, std::function<double(Solution*)> objectiveGetter);
+    std::unique_ptr<Solution>           decodeLiterature(vector<int> sol, Graph *g);
 }
 
 #endif /* ENSGA2_H_ */

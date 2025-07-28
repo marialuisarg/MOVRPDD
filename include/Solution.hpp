@@ -7,6 +7,7 @@ using namespace std;
 #include <vector>
 #include <tuple>
 #include <deque>
+#include <memory>
 
 #include "Route.hpp"
 #include "Node.hpp"
@@ -23,7 +24,7 @@ class Solution {
         bool decoded;                                               // true if solution has been decoded before
         bool localSearch;                                           // true if local search has been used
 
-        vector<Route*> routes;                                      // list of routes
+        vector<std::unique_ptr<Route>> routes;                                      // list of routes
         vector<pair<int, bool>> attendedClients;                    // (clientID, attended)
         vector<tuple<int, int, double, int, int>> candidatesCost;   // (clientID, routeIndex, cost, prevNode, nextNode)
         vector<vector<double>> truckEnergyCons;                     // matrix with truck (gross weight * distance traveled) on each segment of the trip
@@ -45,7 +46,12 @@ class Solution {
 
     public:
         Solution(Graph *g, int QT, RandomGenerator *randGen);
-        ~Solution();
+
+        Solution(const Solution&) = delete;
+        Solution& operator=(const Solution&) = delete;
+
+        Solution(Solution&&) = default;
+        Solution& operator=(Solution&&) = default;
 
         void setNumClients(int numClients) { this->numClients = numClients; };
         void setAttendedClient(int i, bool value) { this->attendedClients[i].second = value; };
@@ -70,8 +76,8 @@ class Solution {
         tuple<int, int, double, int, int>           getCandidateCost(int i) { return this->candidatesCost[i]; };
         double                                      getObjective(int i);
         double                                      getCrDistance() { return this->crDistance; };
-        vector<Route*>                              getRoutes();
-        Route*                                      getRoute(int i) { return (this->routes[i]); };
+        const vector<std::unique_ptr<Route>>        &getRoutes() const;
+        Route*                                      getRoute(int i) { return this->routes[i].get(); };
         int                                         getQT() { return this->QT; };
         int                                         getNumRoutes() { return this->numRoutes; };
         int                                         getNumClients() { return this->numClients; };
@@ -98,16 +104,15 @@ class Solution {
 
         void setNumRoutes(int numRoutes) { this->numRoutes = numRoutes; };
         void setDroneRouteCreated(bool droneRouteCreated) { this->drone = droneRouteCreated; };
-        void createRoute(Route *r) { this->routes.push_back(r); };
+        void createRoute(Route *r) { this->routes.push_back(std::unique_ptr<Route>(r)); };
 
         bool dominates(Solution *s);
         unsigned int random(int min, int max);
 
-        void includeRoute(Route* route);
+        void includeRoute(std::unique_ptr<Route> route);
 
-        void calculateObjectives(Graph *g);
-        void calculateTruckEnergyConsumption(Graph* g, Route* r);
-        void calculateEnergyConsumption(Graph* g, Route* r);
+        void calculateRouteObjectives(Graph* g, Route* r);
+        void calculateObjectiveFunctions(Graph* g);
         
         bool allClientsAttended(Graph *g);
 

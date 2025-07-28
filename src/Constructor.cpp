@@ -138,361 +138,148 @@ namespace Constructor {
     }
 }
 
-// namespace GreedyConstructor {
+namespace AdaptiveConstructor {   
 
-//     void createTruckRoutes(Graph *g, Solution *sol, int *numRoutes, bool *droneRouteCreated, RandomGenerator *rng) {
+    void createAdaptiveTruckRoutes(Graph *g, Solution* sol, int *numRoutes, bool *droneRouteCreated) {
+        // Define possíveis valores de alpha
+        vector<double> alphaValues = {0.25, 0.5, 0.75, 1.0};
 
-//         // creates list of candidates
-//         vector<Node*> candidates;
-//         vector<tuple<int, int, double, int, int>> candidatesCost;
+        // cria lista de candidatos
+        vector<Node*> candidates;
 
-//         // inserts unattended clients into the candidate list
-//         for (int i = 0; i <= sol->getNumClients(); i++) {
-//             if (!sol->getAttendedClient(i).second) {
-//                 candidates.push_back(g->getNode(i));
-//             }
-//         }
+        // insere clientes não atendidos na lista de candidatos
+        for (int i = 0; i <= sol->getNumClients(); i++) {
+            if (!sol->getAttendedClient(i).second) {
+                candidates.push_back(g->getNode(i));
+            }
+        }
 
-//         // calculates cost of each candidate
-//         for (int r = 0; r < sol->getNumRoutes(); r++) {
-//             for (int i = 0; i < candidates.size(); i++) {
-//                 double manhattanDistance = g->getManhattanDistance(0, candidates[i]->getID());
-//                 double cost = manhattanDistance * CT * 2;
-//                 candidatesCost.push_back(make_tuple(candidates[i]->getID(), r, cost, 0, 0));
-//             }
-//         }
+        vector<tuple<int, int, double, int, int>> candidatesCost;
 
-//         sol->setCandidatesCost(candidatesCost);
-//         //printCandidatesCost(sol);
+        // calcula o custo de cada candidato
+        for (int r = 0; r < sol->getNumRoutes(); r++) {
+            for (int i = 0; i < candidates.size(); i++) {
+                double manhattanDistance = candidates[i]->manhattanDistance(g->getNode(0));
+                double cost = manhattanDistance * CT * 2;
 
-//         // sorts candidates by cost
-//         sol->sortCandidatesByCost(g);
+                candidatesCost.push_back(make_tuple(candidates[i]->getID(), r, cost, 0, 0));
+            }
+        }
 
-//         //cout << endl;
-//         Constructor::insertRandomizedFirstClients(g, sol, numRoutes, droneRouteCreated, rng);
+        sol->setCandidatesCost(candidatesCost);
 
-//         //printRoutes();
-//         //printCandidatesCost(sol);
+        // ordena candidatos por custo
+        sol->sortCandidatesByCost(g);
 
-//         // while there are unattended clients
-//         while (!sol->allClientsAttended(g)) {
+        // enquanto houver clientes não atendidos
+        while (!sol->allClientsAttended(g)) {
+            // Seleciona um alpha aleatoriamente da lista de valores possíveis
+            double alpha = alphaValues[sol->random(0, alphaValues.size() - 1)];
 
-//             // gets cheapest insertion
-//             Node *cheapestInsertion = g->getNode(get<0>(sol->getCandidateCost(0)));
+            // Determina o índice k baseado no alpha selecionado
+            int k = sol->random(0, trunc(alpha * (float)sol->getCandidatesCost().size())-1);
 
-//             // gets route index
-//             int iRoute = get<1>(sol->getCandidateCost(0));
+            // Obtém o k-ésimo candidato
+            tuple<int, int, double, int, int> candidate = sol->getCandidateCost(k);
 
-//             // gets previous node index in route
-//             long int prevNode = get<3>(sol->getCandidateCost(0));
+            int clientID = get<0>(candidate);
+            int routeIndex = get<1>(candidate);
+            int prevNode = get<3>(candidate);
 
-    
-//             // inserts client in route ("if" logic here is just for debugging, but function must be called)
-//             bool clientIn = sol->includeClient(cheapestInsertion, g, prevNode, iRoute);
-//                 //cout << "Client " << cheapestInsertion->getID() << " inserted in route " << iRoute << endl;
+            Node *client = g->getNode(clientID);
+
+            // se o cliente ainda não foi inserido em uma rota
+            bool ins = sol->includeClient(client, g, prevNode, routeIndex);
+        }
+
+        // registra rotas finais de caminhão, giantTour e splitResults
+        vector<int> giantTour;
+        vector<int> predecessors;
+        int currentPredIndex = 0;
+        predecessors.push_back(currentPredIndex);
+
+        // percorre todas as rotas e registra o índice do antecessor do primeiro cliente de cada uma
+        // printa rotas 
+        for (const auto &route : sol->getRoutes()) {
+            cout << "Route: ";
+            for (int i = 1; i < route->getTruckRoute().size(); i++) {
+                cout << route->getTruckRoute()[i]->getID() << " ";
+                giantTour.push_back(route->getTruckRoute()[i]->getID());
+                if (i == 1) {
+                    currentPredIndex = giantTour.size() - 1;
+                }
+                predecessors.push_back(currentPredIndex);
+            }
+            cout << endl;
+        }
+
+        //sol->updateSolution(g);
+    }
+
+    vector<std::unique_ptr<Solution>> run(Graph *g, int QT, int numIterations, int setSize, RandomGenerator *rng) {
+        int numRoutes;
+        bool droneRouteCreated;
+
+        std::vector<std::unique_ptr<Solution>> popSolutions;
+
+        int n = 0;
+
+        // cria lista de clientes
+        vector<int> clients;
+        int numClients = g->getSize() - 1;
+
+        for (int i = 0; i <= numClients; i++)
+            clients.push_back(g->getNode(i)->getID());  
+
+        while (n < numIterations) {
+            auto currentSolution = std::make_unique<Solution>(g, QT, rng);
+            // calculates demand and divides by max load capacity of trucks to get num of routes
+            currentSolution->setNumRoutes(ceil(g->getTotalDemand() / QT));
+            currentSolution->setNumClients(numClients + 1);
+
+            // verifica se o conjunto de melhores soluções está cheio
+            if (popSolutions.size() == setSize) {
+                break;
+            }
+
+            vector<pair<int, bool>> attendedClients;
+
+            for (int i = 0; i <= numClients; i++) {
+                attendedClients.push_back({clients.at(i), false});  
+            }
+
+            // depósito visitado
+            attendedClients[0].second = true;
+
+            currentSolution->setAttendedClients(attendedClients);
+
+            // cria rotas
+            for (int i = 0; i < currentSolution->getNumRoutes(); i++) {
+                Route r(QT, QD, g->getNode(0));
+                r.insertClient(g->getNode(0), 0); // insere depósito no fim da rota
+                currentSolution->createRoute(&r);
+            }
+
+            // cria rotas de caminhão de forma adaptativa
+            createAdaptiveTruckRoutes(g, currentSolution.get(), &numRoutes, &droneRouteCreated);
+            cout << "Truck routes created adaptively." << endl;
             
-//             //printCandidatesCost();
-//             //cout << endl;
-//         }
-//         // register final truck routes (before drones)
-//         for (int i = 0; i < sol->getNumRoutes(); i++) 
-//             sol->getRoute(i)->registerPrevTruckRoute();
+            // cria rotas de drone
+            LiteratureConstructor::droneRouteConstructor(currentSolution.get(), g);
+            cout << "Drone routes created." << endl << endl;
 
-//         //printRoutes();
-//         sol->updateSolution(g);
-//     }
+            popSolutions.push_back(std::move(currentSolution));
 
-//     Solution* run(Graph *g, int QT, RandomGenerator *randGen) {
-//         int numRoutes;
-//         int numClients = g->getSize();
-//         bool droneRouteCreated;
+            n++;
+        }
 
-//         vector<pair<int, bool>> attendedClients;
-
-//         Solution *sol = new Solution(g, QT, randGen);     // creates solution
-//         sol->setNumClients(numClients);          // sets number of clients in solution
-
-//         for (int i = 0; i < numClients; i++) {
-//             attendedClients.push_back({g->getNode(i)->getID(), false});  
-//         }
-
-//         sol->setAttendedClients(attendedClients);
-
-//         // depot visited 
-//         sol->setAttendedClient(0, true);
-
-//         // creates routes
-//         for (int i = 0; i < sol->getNumRoutes(); i++) {
-//             Route r(QT, QD, g->getNode(0));
-//             sol->createRoute(&r);
-//         }
-
-//         createTruckRoutes(g, sol, &numRoutes, &droneRouteCreated, randGen);
-//         Constructor::createDroneRoutes(g, sol);
-//         return sol;
-//     }
-// }
-
-// namespace RandomConstructor {   
-
-//     void createRandomTruckRoutes(Graph *g, Solution *sol, int *numRoutes, bool *droneRouteCreated, double alpha, RandomGenerator *rng) {
-
-//         // creates list of candidates
-//         vector<Node*> candidates;
-
-//         // inserts unattended clients into the candidate list
-//         for (int i = 0; i <= sol->getNumClients(); i++) {
-//             if (!sol->getAttendedClient(i).second) {
-//                 candidates.push_back(g->getNode(i));
-//             }
-//         }
-
-//         vector<tuple<int, int, double, int, int>> candidatesCost;
-
-//         // calculates cost of each candidate
-//         for (int r = 0; r < sol->getNumRoutes(); r++) {
-//             for (int i = 0; i < candidates.size(); i++) {
-//                 double manhattanDistance = candidates[i]->manhattanDistance(g->getNode(0));
-//                 double cost = manhattanDistance * CT * 2;
-                
-//                 candidatesCost.push_back(make_tuple(candidates[i]->getID(), r, cost,0,0));
-//             }
-//         }
-
-//         sol->setCandidatesCost(candidatesCost);
-
-//         // sorts candidates by cost
-//         sol->sortCandidatesByCost(g);
-
-//         // while there are unattended clients
-//         while (!sol->allClientsAttended(g)) {
-            
-//             int k = sol->random(0, trunc(alpha * (float)sol->getCandidatesCost().size()));
-        
-//             // gets k candidate 
-//             tuple<int, int, double, int, int> candidate = sol->getCandidateCost(k);
-
-//             int clientID = get<0>(candidate);
-//             int routeIndex = get<1>(candidate);
-//             int prevNode = get<3>(candidate);
-
-//             Node *client = g->getNode(clientID);
-
-//             // if client is not already inserted in a route
-//             bool ins = sol->includeClient(client, g, prevNode, routeIndex);
-//         }
-
-//         // register final truck routes (before drones)
-//         for (int i = 0; i < sol->getNumRoutes(); i++) 
-//             sol->getRoute(i)->registerPrevTruckRoute();
-
-//         //printRoutes();
-//         sol->updateSolution(g);
-//         // print clients attended or not
-
-//     }
-
-//     vector<Solution*> run(Graph *g, int QT, double alpha, int numIterations, int setSize, RandomGenerator *rng) {
-
-//         int numRoutes;
-//         bool droneRouteCreated;
-
-//         vector<Solution*> popSolutions;
-
-//         int n = 0;
-
-//         // creates list of clients
-//         vector<int> clients;
-//         int numClients = g->getSize()-1;
-
-//         for (int i = 0; i <= numClients; i++)
-//             clients.push_back(g->getNode(i)->getID());  
-
-//         while (n < numIterations) {
-//             Solution *currentSolution = new Solution(g, QT, rng);
-//             currentSolution->setNumClients(numClients+1);
-
-//             // checks if best solutions set is full
-//             if (popSolutions.size() == setSize) {
-//                 break;
-//             }
-
-//             vector<pair<int,bool>> attendedClients;
-
-//             for (int i = 0; i <= numClients; i++) {
-//                 attendedClients.push_back({clients.at(i), false});  
-//             }
-
-//             // depot visited 
-//             attendedClients[0].second = true;
-
-//             currentSolution->setAttendedClients(attendedClients);
-
-//             // creates routes
-//             for (int i = 0; i < currentSolution->getNumRoutes(); i++) {
-//                 Route r(QT, QD, g->getNode(0));
-//                 currentSolution->createRoute(&r);
-//             }
-
-//             // creates truck routes
-//             createRandomTruckRoutes(g, currentSolution, &numRoutes, &droneRouteCreated, alpha, rng);
-//             cout << "Truck routes created." << endl;
-            
-//             // creates drone routes
-//             Constructor::createDroneRoutes(g, currentSolution);
-//             cout << "Drone routes created." << endl << endl;
-
-//             popSolutions.push_back(currentSolution);
-
-//             n++;
-//         }
-
-//         return popSolutions;
-//     }
-// }
-
-// namespace AdaptiveConstructor {   
-
-//     void createAdaptiveTruckRoutes(Graph *g, Solution *sol, int *numRoutes, bool *droneRouteCreated) {
-//         // Define possíveis valores de alpha
-//         vector<double> alphaValues = {0.25, 0.5, 0.75, 1.0};
-
-//         // cria lista de candidatos
-//         vector<Node*> candidates;
-
-//         // insere clientes não atendidos na lista de candidatos
-//         for (int i = 0; i <= sol->getNumClients(); i++) {
-//             if (!sol->getAttendedClient(i).second) {
-//                 candidates.push_back(g->getNode(i));
-//             }
-//         }
-
-//         vector<tuple<int, int, double, int, int>> candidatesCost;
-
-//         // calcula o custo de cada candidato
-//         for (int r = 0; r < sol->getNumRoutes(); r++) {
-//             for (int i = 0; i < candidates.size(); i++) {
-//                 double manhattanDistance = candidates[i]->manhattanDistance(g->getNode(0));
-//                 double cost = manhattanDistance * CT * 2;
-
-//                 candidatesCost.push_back(make_tuple(candidates[i]->getID(), r, cost, 0, 0));
-//             }
-//         }
-
-//         sol->setCandidatesCost(candidatesCost);
-
-//         // ordena candidatos por custo
-//         sol->sortCandidatesByCost(g);
-
-//         // enquanto houver clientes não atendidos
-//         while (!sol->allClientsAttended(g)) {
-//             // Seleciona um alpha aleatoriamente da lista de valores possíveis
-//             double alpha = alphaValues[sol->random(0, alphaValues.size() - 1)];
-
-//             // Determina o índice k baseado no alpha selecionado
-//             int k = sol->random(0, trunc(alpha * (float)sol->getCandidatesCost().size())-1);
-
-//             // Obtém o k-ésimo candidato
-//             tuple<int, int, double, int, int> candidate = sol->getCandidateCost(k);
-
-//             int clientID = get<0>(candidate);
-//             int routeIndex = get<1>(candidate);
-//             int prevNode = get<3>(candidate);
-
-//             Node *client = g->getNode(clientID);
-
-//             // se o cliente ainda não foi inserido em uma rota
-//             bool ins = sol->includeClient(client, g, prevNode, routeIndex);
-//         }
-
-//         // registra rotas finais de caminhão, giantTour e splitResults
-//         vector<int> giantTour;
-//         vector<int> predecessors;
-//         int currentPredIndex = 0;
-//         predecessors.push_back(currentPredIndex);
-
-//         // percorre todas as rotas e registra o índice do antecessor do primeiro cliente de cada uma
-//         // printa rotas 
-//         for (auto & route : sol->getRoutes()) {
-//             cout << "Route: ";
-//             for (int i = 1; i < route->getTruckRoute().size(); i++) {
-//                 cout << route->getTruckRoute()[i]->getID() << " ";
-//                 giantTour.push_back(route->getTruckRoute()[i]->getID());
-//                 if (i == 1) {
-//                     currentPredIndex = giantTour.size() - 1;
-//                 }
-//                 predecessors.push_back(currentPredIndex);
-//             }
-//             cout << endl;
-//         }
-
-//         sol->updateSolution(g);
-//     }
-
-//     vector<Solution*> run(Graph *g, int QT, int numIterations, int setSize, RandomGenerator *rng) {
-//         int numRoutes;
-//         bool droneRouteCreated;
-
-//         vector<Solution*> popSolutions;
-
-//         int n = 0;
-
-//         // cria lista de clientes
-//         vector<int> clients;
-//         int numClients = g->getSize() - 1;
-
-//         for (int i = 0; i <= numClients; i++)
-//             clients.push_back(g->getNode(i)->getID());  
-
-//         while (n < numIterations) {
-//             Solution *currentSolution = new Solution(g, QT, rng);
-//             // calculates demand and divides by max load capacity of trucks to get num of routes
-//             currentSolution->setNumRoutes(ceil(g->getTotalDemand() / QT));
-//             currentSolution->setNumClients(numClients + 1);
-
-//             // verifica se o conjunto de melhores soluções está cheio
-//             if (popSolutions.size() == setSize) {
-//                 break;
-//             }
-
-//             vector<pair<int, bool>> attendedClients;
-
-//             for (int i = 0; i <= numClients; i++) {
-//                 attendedClients.push_back({clients.at(i), false});  
-//             }
-
-//             // depósito visitado
-//             attendedClients[0].second = true;
-
-//             currentSolution->setAttendedClients(attendedClients);
-
-//             // cria rotas
-//             for (int i = 0; i < currentSolution->getNumRoutes(); i++) {
-//                 Route r(QT, QD, g->getNode(0));
-//                 r.insertClient(g->getNode(0), 0); // insere depósito no fim da rota
-//                 currentSolution->createRoute(&r);
-//             }
-
-//             // cria rotas de caminhão de forma adaptativa
-//             createAdaptiveTruckRoutes(g, currentSolution, &numRoutes, &droneRouteCreated);
-//             cout << "Truck routes created adaptively." << endl;
-            
-//             // cria rotas de drone
-//             Constructor::createDroneRoutes(g, currentSolution);
-//             cout << "Drone routes created." << endl << endl;
-
-//             popSolutions.push_back(currentSolution);
-
-//             n++;
-//         }
-
-//         return popSolutions;
-//     }
-// }
+        return popSolutions;
+    }
+}
 
 namespace LiteratureConstructor {
 
-    void split(Graph* g, Solution* sol, vector<int> clients) {
+    void split(Graph* g, Solution* sol, vector<int>& clients) {
         int n = sol->getNumClients();
 
         std::vector<double> costShortestPath(n+1);
@@ -516,7 +303,7 @@ namespace LiteratureConstructor {
                 if (i == j) {
                     cost = g->getManhattanDistance(0, clients[i]) + g->getManhattanDistance(clients[i], 0);
                 } else {
-                    cost = cost - (g->getManhattanDistance(clients[j-1], 0) + g->getManhattanDistance(clients[j-1], clients[j]) + g->getManhattanDistance(clients[j], 0));
+                    cost = cost - g->getManhattanDistance(clients[j-1], 0) + g->getManhattanDistance(clients[j-1], clients[j]) + g->getManhattanDistance(clients[j], 0);
                 }
 
                 // std::cout << "Testando inserir " << clients[j] << " na rota que termina com " << clients[j-1] << ": custo = " << cost << " | load = " << load << std::endl;
@@ -525,7 +312,7 @@ namespace LiteratureConstructor {
                 // std::cout << costShortestPath[i-1] + cost << std::endl;
 
                 //if (load > QT) std::cout << "ULTRAPASSOU CARGA MÁXIMA" << std::endl;
-                if (load <= QT && costShortestPath[i-1] + cost < costShortestPath[j]) {
+                if (load <= QT && costShortestPath[i-1] + cost + CB < costShortestPath[j]) {
                     // std::cout << "Rota atualizada. Primeiro da rota que contém o " << clients[j] << ": " << clients[i-1] << std::endl;
                     costShortestPath[j] = costShortestPath[i-1] + cost;
                     predecessorIndex[j] = i-1;
@@ -540,15 +327,15 @@ namespace LiteratureConstructor {
         //sol->setCosts(costShortestPath);
     }
 
-    std::deque<Route*> extract(const std::vector<int>& clients, const std::vector<int>& predecessorIndex, Graph* g) {
+    std::deque<std::unique_ptr<Route>> extract(const std::vector<int>& clients, const std::vector<int>& predecessorIndex, Graph* g) {
         // std::cout << "\n--- Iniciando Algoritmo 2: Reconstruindo as rotas ---" << std::endl;
 
-        std::deque<Route*> routesList;
+        std::deque<std::unique_ptr<Route>> routesList;
         int n = clients.size() - 2;
         int i, j = n;
 
         do {
-            Route* currentTrip = new Route(QT, QD, g->getNode(0));
+            auto currentTrip = make_unique<Route>(QT, QD, g->getNode(0));
             i = predecessorIndex[j];
             currentTrip->insertClient(g->getNode(0),0); // insere depósito no início da rota
 
@@ -557,7 +344,7 @@ namespace LiteratureConstructor {
                 currentTrip->insertClient(g->getNode(clients[k]), clients[k]);
             }
             
-            routesList.push_front(currentTrip);
+            routesList.push_front(std::move(currentTrip));
             j = i;
 
         } while (i != 0);
@@ -565,9 +352,9 @@ namespace LiteratureConstructor {
         return routesList;
     }
 
-    Solution* truckRouteSplit(std::vector<int> clients, Graph* g) {
+    std::unique_ptr<Solution> truckRouteSplit(std::vector<int> clients, Graph* g) {
 
-        Solution* solution = new Solution(g, QT, nullptr);
+        auto solution = std::make_unique<Solution>(g, QT, nullptr);
         solution->setNumClients(clients.size());
         solution->setGiantTour(clients);
 
@@ -582,17 +369,13 @@ namespace LiteratureConstructor {
         // }
         // std::cout << std::endl;
 
-        split(g, solution, giantTour);
+        split(g, solution.get(), giantTour);
 
-        std::deque<Route*> extractedRoutes = extract(giantTour, solution->getPredecessors(), g);
+        std::deque<std::unique_ptr<Route>> extractedRoutes = extract(giantTour, solution->getPredecessors(), g);
         
-        for (Route* route : extractedRoutes) {
-            solution->includeRoute(route);
-            solution->calculateTruckEnergyConsumption(g, route);
+        for (auto& route : extractedRoutes) {
+            solution->includeRoute(std::move(route));
         }
-
-        solution->updateDecoded(true);
-        //solution->calculateObjectives(g);
 
         std::cout << "Truck routes created. Number of routes: " << solution->getNumRoutes() << std::endl;
         return solution;
@@ -605,7 +388,7 @@ namespace LiteratureConstructor {
         std::vector<int>* currentTruckRoute;
         std::vector<int> currentSearchRange;
 
-        for (Route* route : sol->getRoutes()) {
+        for (const auto& route : sol->getRoutes()) {
 
             //std::cout << "Searching for feasible flights in current route..." << std::endl;
 
@@ -647,7 +430,6 @@ namespace LiteratureConstructor {
                         auto it_end = currentSearchRange.end();
                         std::vector<int> retrievalList(it_begin, it_end);
 
-
                         //std::cout << "-- searching for best retrieval node " << std::endl;
 
                         for (int j = 0; j < retrievalList.size(); j++) {
@@ -662,28 +444,26 @@ namespace LiteratureConstructor {
                                 auto retPosition = std::find(currentSearchRange.begin(), currentSearchRange.end(), cRetrieval);
                                 currentSearchRange.erase(currentSearchRange.begin(), retPosition);
 
-                                // std::cout << "current search range updated: ";
-                                // for (int k = 0; k < currentSearchRange.size(); k++)
-                                //     std::cout << currentSearchRange[k] << " ";
-
-                                // std::cout << std::endl;
                                 break;
                             }
                         }
                     }
                 }
             }
+
+            // remove clients that were already attended by drone from the truck route
+            route->removeClientsServedByDrone(g);
         }
 
         cout << "Drone routes created." << endl;
     }
 
-    vector<Solution*> run(Graph *g, int QT, RandomGenerator *randGen, int setSize) {
+    vector<std::unique_ptr<Solution>> run(Graph *g, int QT, RandomGenerator *randGen, int setSize) {
 
         std::cout << "Running Literature Constructor..." << std::endl << std::endl;
         std::cout << "---------------------------------------------------------------------------------------------------------------------------" << std::endl << std::endl;
 
-        vector<Solution*> solutions;
+        std::vector<std::unique_ptr<Solution>> solutions;
 
         for (int p = 0; p < setSize; p++) {
 
@@ -698,16 +478,14 @@ namespace LiteratureConstructor {
             std::shuffle(clients.begin(), clients.end(), randGen->getEngine());
 
             // creates solution with truck route split algorithm
-            Solution* solution = truckRouteSplit(clients, g);
+            std::unique_ptr<Solution> solution = LiteratureConstructor::truckRouteSplit(clients, g);
 
-            // solution->printRoutes();
+            // creates drone routes for the solution
+            LiteratureConstructor::droneRouteConstructor(solution.get(), g);
 
-            // cria rotas de drone
-            LiteratureConstructor::droneRouteConstructor(solution, g);
+            solution->calculateObjectiveFunctions(g);
 
-            solution->printRoutes(); // prints routes for debugging
-
-            solutions.push_back(solution);
+            solutions.push_back(std::move(solution));
         }
 
         return solutions;

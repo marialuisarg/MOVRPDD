@@ -9,6 +9,7 @@
 #include <deque>
 #include <unordered_map>
 #include <iterator>
+#include <memory>
 
 #include "Graph.hpp"
 #include "Solution.hpp"
@@ -36,16 +37,16 @@ namespace RandomConstructor {
 }
 
 namespace AdaptiveConstructor {
-    void createAdaptiveTruckRoutes(Graph *g, Solution *sol, int *numRoutes, bool *droneRouteCreated);
-    vector<Solution*> run(Graph *g, int QT, int numIterations, int setSize, RandomGenerator *rng);
+    void createAdaptiveTruckRoutes(Graph *g, Solution* sol, int *numRoutes, bool *droneRouteCreated);
+    vector<std::unique_ptr<Solution>> run(Graph *g, int QT, int numIterations, int setSize, RandomGenerator *rng);
 }
 
 namespace LiteratureConstructor {
-    vector<Solution*> run(Graph *g, int QT, RandomGenerator *randGen, int setSize);
-    Solution* truckRouteSplit(std::vector<int> clients, Graph* g);
-    void split(Graph* g, Solution* sol, std::vector<int> clients);
-    std::deque<Route*> extract(const std::vector<int>& clients, const std::vector<int>& predecessorIndex, Graph* g);
-    void droneRouteConstructor(Solution* sol, Graph* g);
+    vector<std::unique_ptr<Solution>>   run(Graph *g, int QT, RandomGenerator *randGen, int setSize);
+    std::unique_ptr<Solution>           truckRouteSplit(std::vector<int> clients, Graph* g);
+    void                                split(Graph* g, Solution* sol, std::vector<int>& clients);
+    std::deque<std::unique_ptr<Route>>  extract(const std::vector<int>& clients, const std::vector<int>& predecessorIndex, Graph* g);
+    void                                droneRouteConstructor(Solution* sol, Graph* g);
 }
 
 #endif // CONSTRUCTOR_HPP_

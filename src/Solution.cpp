@@ -10,6 +10,7 @@
 #include <tuple>
 #include <random>
 #include <algorithm>
+#include <unordered_set>
 
 Solution::Solution(Graph *g, int QT, RandomGenerator *randGen) {
     this->QT = QT;                           // maximum load capacity of trucks
@@ -25,21 +26,6 @@ Solution::Solution(Graph *g, int QT, RandomGenerator *randGen) {
     this->truckEnergyCons = vector<vector<double>>(g->getSize(), std::vector<double>(g->getSize(), 0.0));
 
     setNumRoutes(0);
-}
-
-void Solution::calculateObjectives(Graph *g) {
-    double f1 = 0.0, f2 = 0.0, f3 = 0.0;
-
-    for (int i = 0; i < getNumRoutes(); i++) {
-        f1 += routes[i]->getEnergyConsumption();
-        // f2 += routes[i]->getDeliveryCost();
-        // if (routes[i]->getDeliveryTime() > f3)
-        //     f3 = routes[i]->getDeliveryTime();
-    }
-
-    setTotalEnergyConsumption(f1);
-    setTotalDeliveryCost(f2);
-    setTotalDeliveryTime(f3);
 }
 
 void Solution::printRoutes() {
@@ -158,13 +144,13 @@ void Solution::sortCandidatesByCost(Graph* g) {
         });
 }
 
-void Solution::includeRoute(Route* route) {
-    this->routes.push_back(route);
+void Solution::includeRoute(std::unique_ptr<Route> route) {
+    this->routes.push_back(std::move(route));
     this->setNumRoutes(this->getNumRoutes() + 1);
 }
 
 bool Solution::includeClient(Node* client, Graph* g, int prevNode, int routeIndex) {
-    Route* r = this->routes[routeIndex];
+    Route* r = this->routes[routeIndex].get();
 
     // verifies if client is already attended
     if (this->getAttendedClient(client->getID()).second) {
@@ -319,7 +305,7 @@ bool Solution::dominates(Solution *s) {
     return false;
 }
 
-vector<Route*> Solution::getRoutes() {
+const vector<std::unique_ptr<Route>>& Solution::getRoutes() const {
     return routes;
 }
 
@@ -410,40 +396,109 @@ void Solution::printSolution() {
     cout << "-------------------" << endl;
 };
 
-void Solution::calculateTruckEnergyConsumption(Graph* g, Route* r) {
+void Solution::calculateRouteObjectives(Graph* g, Route* r) {
+    double segEnergyCons, flightDeliveryCost, totalEnergyCons = 0.0, totalDeliveryCost = 0.0, totalDeliveryTime = 0.0;
+    std::unordered_set<int> launchNodes;
+    std::unordered_set<int> retrievalNodes;
+    bool droneIsFlighing = false;
+
     vector<int>* truckIDs = r->getTruckRouteIDs();
     int numNodes = r->getNumClients();
-    double segEnergyCons, totalEnergyCons = 0.0;
+    std::cout << "Calculating route objectives for route with " << numNodes << " nodes." << std::endl;
+
+    for (std::tuple<int, int, int> flight : r->getDroneRoute()) {
+        int launchNode = std::get<0>(flight);
+        int client = std::get<1>(flight);
+        int retrievalNode = std::get<2>(flight);
+        launchNodes.insert(launchNode);
+        retrievalNodes.insert(retrievalNode);
+
+        double dist_ij = g->getEuclideanDistance(launchNode, client);
+        double dist_jk = g->getEuclideanDistance(client, retrievalNode);
+
+        // cost associated to drone usage
+        totalDeliveryCost += ((dist_ij + dist_jk) * CD); 
+        totalDeliveryTime += g->getDroneFlightTime(launchNode, client) + g->getDroneFlightTime(client, retrievalNode); // time to fly from launch node to client and from client to retrieval node
+    }
 
     for (int i = 0; i < numNodes; i++) {
 
         int client = truckIDs->at(i);
         int nextClient;
         int lastClient;
+        double dist_ij, dist_jk;
 
         if (i == 0) {
             lastClient = 0;
-            nextClient = truckIDs->at(i+1);
+            if (numNodes == 1)
+                nextClient = truckIDs->at(0);
+            else
+                nextClient = truckIDs->at(i+1);
 
-            segEnergyCons = (WT + QT - r->getCurrentCapacity()) * g->getManhattanDistance(lastClient, client);
+            dist_ij = g->getManhattanDistance(lastClient, client); 
+            segEnergyCons = (WT + QT - r->getCurrentCapacity()) * dist_ij;
             this->truckEnergyCons[lastClient][client] = segEnergyCons;
+            
             totalEnergyCons += segEnergyCons;
+            totalDeliveryCost += dist_ij;
+            totalDeliveryTime += g->getTruckTravelTime(lastClient, client); // time to travel from depot to first client
         } else if (i == numNodes-1) {
             nextClient = 0;
-            lastClient = truckIDs->at(i-1);
+            if (numNodes == 1) {
+                lastClient = truckIDs->at(0);
+            } else {
+                lastClient = truckIDs->at(i-1);
+            }
         } else {
             nextClient = truckIDs->at(i+1);
             lastClient = truckIDs->at(i-1);
         }
 
-        segEnergyCons = ((this->truckEnergyCons[lastClient][client] / g->getManhattanDistance(lastClient, client)) - g->getNode(client)->getDemand()) * g->getManhattanDistance(client, nextClient);
+        // if drone starts or ends flight at client, flight time will be added to the delivery time instead of truck travel time
+        if (launchNodes.find(client) != launchNodes.end() || retrievalNodes.find(client) != retrievalNodes.end()) {
+            droneIsFlighing = !droneIsFlighing; // toggles droneIsFlighing state
+        }  
+
+        dist_ij = g->getManhattanDistance(lastClient, client);
+        dist_jk = g->getManhattanDistance(client, nextClient);
+        
+        if (!droneIsFlighing) {
+            // if drone is not flying, we consider the truck travel time
+            totalDeliveryTime += g->getTruckTravelTime(client, nextClient);
+        }
+
+        segEnergyCons = ((this->truckEnergyCons[lastClient][client] / dist_ij) - g->getNode(client)->getDemand()) * dist_jk;
         this->truckEnergyCons[client][nextClient] = segEnergyCons;
+
         totalEnergyCons += segEnergyCons;
+        totalDeliveryCost += dist_jk;
     }
 
+    totalDeliveryCost = totalDeliveryCost * CT;  // costs associated to truck usage
+
+    totalDeliveryCost += CB; // base cost associated to the use of pair truck-drone
+
     r->setEnergyConsumption(totalEnergyCons);
+    r->setDeliveryCost(totalDeliveryCost);
+    r->setDeliveryTime(totalDeliveryTime);
 }
 
-Solution::~Solution() {
-    routes.clear();
-};
+void Solution::calculateObjectiveFunctions(Graph* g) {
+    double ec = 0.0, 
+           dc = 0.0, 
+           dt = 0.0;
+
+    for (auto& route : this->routes) {
+        this->calculateRouteObjectives(g, route.get());
+
+        ec += route->getEnergyConsumption();
+        dc += route->getDeliveryCost();
+        if (route->getDeliveryTime() > dt) {
+            dt = route->getDeliveryTime();
+        }
+    }
+
+    this->setTotalEnergyConsumption(ec);
+    this->setTotalDeliveryCost(dc);
+    this->setTotalDeliveryTime(dt);
+}
