@@ -144,6 +144,15 @@ void Solution::sortCandidatesByCost(Graph* g) {
         });
 }
 
+void Solution::removeRoute(Route* route) {
+    auto it = std::remove_if(routes.begin(), routes.end(),
+                             [route](const std::unique_ptr<Route>& r) { return r.get() == route; });
+    if (it != routes.end()) {
+        routes.erase(it, routes.end());
+        setNumRoutes(getNumRoutes() - 1);
+    }
+}
+
 void Solution::includeRoute(std::unique_ptr<Route> route) {
     this->routes.push_back(std::move(route));
     this->setNumRoutes(this->getNumRoutes() + 1);
@@ -157,7 +166,9 @@ bool Solution::includeClient(Node* client, Graph* g, int prevNode, int routeInde
         return false;
     }
     
+    // std::cout << "Inserting client " << client->getID() << " in route " << routeIndex << " after node " << prevNode << std::endl;
     // inserts client in route
+
     if (!r->insertClientPrev(client, prevNode)) {
         for (int i = 0; i < this->getCandidatesCost().size(); i++) {
             if (get<0>(this->getCandidateCost(i)) == client->getID() && get<1>(this->getCandidateCost(i)) == routeIndex) {
@@ -165,7 +176,6 @@ bool Solution::includeClient(Node* client, Graph* g, int prevNode, int routeInde
                 break;
             }
         }
-
         return false;
     }
 
@@ -199,17 +209,21 @@ void Solution::updateCandidatesList(Node *client, Graph *g, int iRoute) {
    int clientPrevNode = 0, clientNextNode = 0;
 
    // remove client from candidates list
-    for (int i = 0; i < this->getCandidatesCost().size(); i++) {
-        if (get<0>(this->getCandidateCost(i)) == client->getID()) {
-            if (get<1>(this->getCandidateCost(i)) == iRoute) {
-                clientPrevNode = get<3>(this->getCandidateCost(i));
-                clientNextNode = get<4>(this->getCandidateCost(i));
-            }
-
-            this->eraseCandidateCostAt(i);
-            i--;
+   for (const auto& candidate : candidatesCost) {
+        if (get<0>(candidate) == client->getID() && get<1>(candidate) == iRoute) {
+            clientPrevNode = get<3>(candidate);
+            clientNextNode = get<4>(candidate);
+            break;
         }
     }
+
+    candidatesCost.erase(
+        std::remove_if(candidatesCost.begin(), candidatesCost.end(),
+            [&](const auto& candidate_tuple) {
+                return get<0>(candidate_tuple) == client->getID();
+            }),
+        candidatesCost.end()
+    );
 
     // goes through all candidates and updates costs for the route that was modified
     for (int i = 0; i < this->getCandidatesCost().size(); i++) {
@@ -278,7 +292,6 @@ void Solution::updateCandidatesList(Node *client, Graph *g, int iRoute) {
 }
 
 void Solution::eraseCandidateCostAt(int i) { 
-    //cout << "erasing candidate " << get<0>(this->getCandidateCost(i)) << " from route " << get<1>(this->getCandidateCost(i)) << endl << endl;
     this->candidatesCost.erase(this->candidatesCost.begin() + i); 
 };
 
@@ -404,7 +417,7 @@ void Solution::calculateRouteObjectives(Graph* g, Route* r) {
 
     vector<int>* truckIDs = r->getTruckRouteIDs();
     int numNodes = r->getNumClients();
-    std::cout << "Calculating route objectives for route with " << numNodes << " nodes." << std::endl;
+    // std::cout << "Calculating route objectives for route with " << numNodes << " nodes." << std::endl;
 
     for (std::tuple<int, int, int> flight : r->getDroneRoute()) {
         int launchNode = std::get<0>(flight);

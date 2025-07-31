@@ -6,21 +6,15 @@ namespace Mutation {
         int mutationType = getRandomPosition(0, 2, rng);
 
         if (mutationType == 0) {
-            std::cout << "SWAP" << std::endl;
+            //std::cout << "SWAP" << std::endl;
             return swap(s, rng);
         } else if (mutationType == 1) {
-            std::cout << "INSERT" << std::endl;
+            // std::cout << "INSERT" << std::endl;
             return insert(s, rng);
         } else {
-            std::cout << "REVERSE" << std::endl;
+            // std::cout << "REVERSE" << std::endl;
             return reverse(s, rng);
         }
-    }
-
-    std::vector<int> runLocalSearch(vector<int> s, RandomGenerator *rng) {
-        // testing swap mutation for each pair of clients in the giant tour
-        std::cout << "RUNNING LOCAL SEARCH - SWAP MUTATION" << std::endl;
-
     }
 
     int getRandomPosition(int begin, int end, RandomGenerator *rng) {
@@ -53,13 +47,13 @@ namespace Mutation {
 
         std::swap(solution[pos1], solution[pos2]);
         
-        printSolution(solution);
+        //printSolution(solution);
         return solution;
     }
 
     std::vector<int> swap(vector<int> solution, int pos1, int pos2) {
         std::swap(solution[pos1], solution[pos2]);
-        printSolution(solution);
+        //printSolution(solution);
         return solution;
     }
 
@@ -86,7 +80,7 @@ namespace Mutation {
         solution.erase(solution.begin() + pos1);
         solution.insert(solution.begin() + pos2, client);
 
-        printSolution(solution);
+        //printSolution(solution);
         return solution;
     }
 
@@ -97,7 +91,7 @@ namespace Mutation {
         solution.erase(solution.begin() + pos1);
         solution.insert(solution.begin() + pos2, client);
 
-        printSolution(solution);
+        //printSolution(solution);
         return solution;
     }
 
@@ -123,13 +117,13 @@ namespace Mutation {
 
         std::reverse(solution.begin() + pos1, solution.begin() + pos2 + 1);
 
-        printSolution(solution);
+        //printSolution(solution);
         return solution;
     }
 
     std::vector<int> reverse(vector<int> solution, int pos1, int pos2) {
         std::reverse(solution.begin() + pos1, solution.begin() + pos2 + 1);
-        printSolution(solution);
+        //printSolution(solution);
         return solution;
     }
 }

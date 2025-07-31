@@ -20,7 +20,7 @@ Solution* ENSGA2::tournamentSelection(Population *p, int tournamentSize, RandomG
         double s_f2 = s->getTotalDeliveryCost();
         double s_f3 = s->getTotalDeliveryTime();
 
-        std::cout << "Competitor S" << i+1 << " - Rank: " << s->getRank() << " | f1: " << s_f1 << " | f2: " << s_f2 << " | f3: " << s_f3 << std::endl;
+        // std::cout<< "Competitor S" << i+1 << " - Rank: " << s->getRank() << " | f1: " << s_f1 << " | f2: " << s_f2 << " | f3: " << s_f3 << std::endl;
 
         // if the competitor is already in competitors vector, select another random one
         
@@ -63,7 +63,7 @@ bool ENSGA2::isFeasible(vector<int> solution, Graph *g, int QT) {
         }
 
         currentTruckLoad += g->getNode(solution[i])->getDemand();
-        std::cout << "Current truck load: " << currentTruckLoad << " | Client: " << solution[i] << std::endl;
+        // std::cout<< "Current truck load: " << currentTruckLoad << " | Client: " << solution[i] << std::endl;
 
         if (currentTruckLoad > QT) {
             return false;
@@ -103,7 +103,7 @@ bool checkChildrenSimilarity(int chromossomeSize, vector<int> child, vector<int>
         if (child[i] == p1[i] && child[i+1] == p1[i+1]) sameAsParent1++;
     }
 
-    std::cout << (100 * sameAsParent1) / (chromossomeSize-1) << "% similar to parent " << numPai <<std::endl;
+    //std::cout << (100 * sameAsParent1) / (chromossomeSize-1) << "% similar to parent " << numPai <<std::endl;
 
     return ((100 * sameAsParent1) / (chromossomeSize-1)==100);
 }
@@ -194,7 +194,7 @@ std::unique_ptr<Solution> ENSGA2::applyLocalSearch(Solution *s, Graph *g, Random
             double mutatedObjValue = objectiveGetter(mutatedSolution.get());
 
             if (mutatedObjValue < bestCurrentObjValue) {
-                std::cout << "Found a better solution with local search." << std::endl;
+                //std::cout << "Found a better solution with local search: " << mutatedObjValue << " < " << bestCurrentObjValue << std::endl;
                 s->setLocalSearch(true);
                 bestMutant = std::move(mutatedSolution);
                 bestCurrentObjValue = mutatedObjValue;
@@ -249,23 +249,49 @@ vector<std::unique_ptr<Solution>> ENSGA2::massiveLocalSearch(Population *offspri
 
                 if (newBestSolution != nullptr) {
                     if (isFeasibleLiterature(newBestSolution->getGiantTour(), g)) {
-                        std::cout << "Best solution found with local search is feasible. Including in mutant solutions." << std::endl;
+                        //std::cout << "Best solution found with local search is feasible. Including in mutant solutions." << std::endl;
                         best->setLocalSearch(true);
                         mutantSolutions.push_back(std::move(newBestSolution));
                     } else {
-                        std::cout << "Best solution found with local search is not feasible. Skipping." << std::endl;
+                        //std::cout << "Best solution found with local search is not feasible. Skipping." << std::endl;
                         i--;
                         continue;
                     }
                 }
             } else {
-                std::cout << "Solution already used local search. Skipping." << std::endl;
+                //std::cout << "Solution already used local search. Skipping." << std::endl;
                 i--; // decrement i to try again with another solution
             }
         }
     }
 
     return mutantSolutions;
+}
+
+bool areSolutionsEqual(Solution* s1, Solution* s2) {
+    if (s1 == s2) return true;
+    
+    return s1->getTotalDeliveryCost() == s2->getTotalDeliveryCost() &&
+           s1->getTotalDeliveryTime() == s2->getTotalDeliveryTime() &&
+           s1->getTotalEnergyConsumption() == s2->getTotalEnergyConsumption();
+}
+
+bool isPopulationHomogeneous(Population& p) {
+    if (p.getCurrentSize() <= 1) {
+        return true; // População trivialmente homogênea
+    }
+
+    Solution* firstSolution = p.getSolutions()[0].get();
+
+    // Compara a primeira solução com todas as outras
+    for (int i = 1; i < p.getCurrentSize(); ++i) {
+        if (!areSolutionsEqual(firstSolution, p.getSolutions()[i].get())) {
+            return false; // Encontrou uma solução diferente, não é homogênea
+        }
+    }
+
+    // Se o loop terminar, todas as soluções são idênticas
+    return true;
 }
 
 void ENSGA2::run(int popSize, int numNodes, Graph *g, executionType typeExec, int itConstructor, int itGA, string instanceName, int tSize, RandomGenerator *rng) {
@@ -300,77 +326,84 @@ void ENSGA2::run(int popSize, int numNodes, Graph *g, executionType typeExec, in
 
     while (generation <= itGA) {
         
-        std::cout << "Generating offspring." << std::endl << std::endl;
+        // std::cout<< "Generating offspring." << std::endl << std::endl;
 
         // generate set of offspring solutions with crossover and mutation
         Population offspring(popSize, numNodes-1, g, QT, rng);
 
+        bool populationIsHomogeneous = isPopulationHomogeneous(p);
+
+        if (populationIsHomogeneous) {
+            std::cout << "Population converged, depending on mutation for diversity." << std::endl;
+        }
+
         while (offspring.getCurrentSize() < popSize) {
 
-            // cada torneio retorna um pai. verifica se são iguais depois da chamada das funções
-            // não precisa verificar se são iguais dentro da função
-            std::cout << "Selecionando pai 1" << std::endl;
             Solution* prnt1 = tournamentSelection(&p, tSize, rng);
-
             Solution* prnt2;
-            do {
-                std::cout << "Selecionando pai 2" << std::endl;
-                prnt2 = tournamentSelection(&p, tSize, rng);
 
-            } while (prnt1->getTotalDeliveryCost() == prnt2->getTotalDeliveryCost() &&
-                     prnt1->getTotalDeliveryTime() == prnt2->getTotalDeliveryTime() &&
-                     prnt1->getTotalEnergyConsumption() == prnt2->getTotalEnergyConsumption());
-            
+            if (populationIsHomogeneous) {
+                // a população é homogênea (não há como encontrar um pai diferente)
+                prnt2 = prnt1;
+            } else {
+                // a população tem diversidade (procuramos por um pai diferente)
+                int tryCount = 0;
+                do {
+                    prnt2 = tournamentSelection(&p, tSize, rng);
+                } while (areSolutionsEqual(prnt1, prnt2)); // Usando a nova função auxiliar
+            }
+
             vector<int> child1, child2;
 
             // faz cruzamento em 80% das vezes, depois faz mutação em 20% das vezes
-
+ 
             if (rng->getDouble(0,100) < 80) {
-                std::cout << std::endl << "USING CROSSOVER OPERATOR - ";
+                //std::cout<< std::endl << "USING CROSSOVER OPERATOR - ";
                 child1 = Crossover::run(prnt1, prnt2, rng);
-                std::cout << std::endl << "USING CROSSOVER OPERATOR - ";
+                //std::cout<< std::endl << "USING CROSSOVER OPERATOR - ";
                 child2 = Crossover::run(prnt2, prnt1, rng);
 
+                //std::cout << rng->getDouble(0,100) << "% chance of mutation." << std::endl;
                 if (rng->getDouble(0,100) < 20) {
-                    std::cout << std::endl << "USING MUTATION OPERATOR - ";
+                    //std::cout<< std::endl << "USING MUTATION OPERATOR - ";
                     child1 = Mutation::run(child1, rng);
                 }
 
                 if(!checkChildrenSimilarity(child1.size(), child1, prnt1->getGiantTour(), 1)) {
                     if(!checkChildrenSimilarity(child1.size(), child1, prnt2->getGiantTour(), 2)) {
-                        std::cout << "Including child 1 in offspring" << std::endl;
+                        // std::cout<< "Including child 1 in offspring" << std::endl;
                         offspring.include(decodeLiterature(child1, g));
                     } else {
-                        std::cout << "New solution will not be included in offspring because it is 100% equal to parent 2." << std::endl;
+                        // std::cout<< "New solution will not be included in offspring because it is 100% equal to parent 2." << std::endl;
                     }
                 } else {
-                    std::cout << "New solution will not be included in offspring because it is 100% equal to parent 1." << std::endl;
+                    // std::cout<< "New solution will not be included in offspring because it is 100% equal to parent 1." << std::endl;
                 }
 
                 if (rng->getDouble(0,100) < 20) {
-                    std::cout << std::endl << "USING MUTATION OPERATOR - ";
+                    // std::cout<< std::endl << "USING MUTATION OPERATOR - ";
                     child2 = Mutation::run(child2, rng);
                 }
 
                 if(!checkChildrenSimilarity(child2.size(), child2, prnt1->getGiantTour(), 1)) {
                     if(!checkChildrenSimilarity(child2.size(), child2, prnt2->getGiantTour(), 2)) {
-                        std::cout << "Including child 2 in offspring" << std::endl;
+                        // std::cout<< "Including child 2 in offspring" << std::endl;
                         offspring.include(decodeLiterature(child2, g));
                     } else {
-                        std::cout << "New solution will not be included in offspring because it is 100% equal to parent 2." << std::endl;
+                        // std::cout<< "New solution will not be included in offspring because it is 100% equal to parent 2." << std::endl;
                     } 
                 } else {
-                    std::cout << "New solution will not be included in offspring because it is 100% equal to parent 1." << std::endl;
+                    // std::cout<< "New solution will not be included in offspring because it is 100% equal to parent 1." << std::endl;
                 }
 
             } else {
-                std::cout << "No crossover or mutation were performed." << std::endl;
+                // std::cout<< "No crossover or mutation were performed." << std::endl;
             }
 
-            std::cout << std::endl;            
+            // std::cout<< std::endl;            
         }
 
-        std::cout << offspring.getCurrentSize() << " offspring solutions generated." << std::endl;
+        //std::cout<< offspring.getCurrentSize() << " offspring solutions generated." << std::endl;
 
         // std::cout << "-----------------------" << std::endl;
         // std::cout << "Performing multi-dimensional search on first front." << std::endl;
@@ -378,12 +411,12 @@ void ENSGA2::run(int popSize, int numNodes, Graph *g, executionType typeExec, in
 
         if (typeExec == LIT_LS || typeExec == ADPT_LS) {
             auto setM = massiveLocalSearch(&offspring, g, rng);
-            std::cout << setM.size() << " solutions were improved with local search." << std::endl;
+            // std::cout<< setM.size() << " solutions were improved with local search." << std::endl;
             for (auto& sol : setM) {
                 offspring.include(std::move(sol));
             }
         } else {
-            std::cout << "No local search was performed." << std::endl;
+            // std::cout<< "No local search was performed." << std::endl;
         }
 
         // combine population, offspring and setM
@@ -391,12 +424,12 @@ void ENSGA2::run(int popSize, int numNodes, Graph *g, executionType typeExec, in
         newPop.include(p.takeSolutions());
         newPop.include(offspring.takeSolutions());
         newPop.FNDS();
-        newPop.printFronts();
+        //newPop.printFronts();
 
         // select new population
-        std::cout << "-----------------------" << std::endl;
-        std::cout << "SELECTING NEW POPULATION" << std::endl;
-        std::cout << "-----------------------" << std::endl;
+        // std::cout<< "-----------------------" << std::endl;
+        // std::cout<< "SELECTING NEW POPULATION" << std::endl;
+        // std::cout<< "-----------------------" << std::endl;
 
         p = Population(popSize, numNodes-1, g, QT, rng);
 
@@ -434,23 +467,22 @@ void ENSGA2::run(int popSize, int numNodes, Graph *g, executionType typeExec, in
             front_idx++;
         }
 
-        // Opcional mas recomendado: Invalide os ponteiros movidos em newPop para evitar uso duplo
         sourceSolutions.erase(
             std::remove(sourceSolutions.begin(), sourceSolutions.end(), nullptr),
             sourceSolutions.end()
         );
 
         p.FNDS();
-        p.printFronts();
+        //p.printFronts();
 
         p.saveGeneration(generation, instanceName);
         generation++;
 
         if (generation > itGA) break;
 
-        std::cout << "****************************" << std::endl;
-        std::cout << "GENERATION " << generation << std::endl;
-        std::cout << "****************************" << std::endl;
+        // std::cout<< "****************************" << std::endl;
+        // std::cout<< "GENERATION " << generation << std::endl;
+        // std::cout<< "****************************" << std::endl;
     }
 
         // char control;

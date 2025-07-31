@@ -54,7 +54,7 @@ int main(int argc, char const *argv[]) {
         
         // set seed
         unsigned int seed = (argc == 7) ? std::stoul(argv[6]) : std::random_device{}();
-        RandomGenerator rng(seed);
+        auto rng = std::make_unique<RandomGenerator>(seed);
 
         // arguments for random truck route constructor
         executionType typeExec = INVALID;
@@ -81,7 +81,7 @@ int main(int argc, char const *argv[]) {
         int tournament = atoi(argv[5]);                 // tournament size
 
         // ENSGA2
-        ENSGA2::run(population, numNodes, &graph, typeExec, it_constructor, it_GA, fileName, tournament, &rng);
+        ENSGA2::run(population, numNodes, &graph, typeExec, it_constructor, it_GA, fileName, tournament, rng.get());
     }
     
     clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &end_ts);

@@ -22,7 +22,6 @@ namespace Mutation
     std::vector<int> reverse(vector<int>, int pos1, int pos2);            // reverse mutation (for local search)
 
     std::vector<int> run(vector<int>, RandomGenerator *rng);              // run mutation (random swap, insert or reverse)
-    std::vector<int> runLocalSearch(vector<int> s, RandomGenerator *rng); // run mutation for local search
     
     void             printSolution(std::vector<int> solution);
     

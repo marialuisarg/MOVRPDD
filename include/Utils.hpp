@@ -190,8 +190,14 @@ namespace Util{
     }
 
     static void printGenerationToFile(vector<vector<Solution*>> s, string instanceName, string setName, bool normalized) {
-        string filename = "./solutions/generations/by_routes/routes_" + setName + "_" + instanceName.erase(0,12);
-        std::cout << filename << std::endl;
+        size_t pos_barra = instanceName.find_last_of("/\\");
+        std::string nome_do_arquivo = (pos_barra == std::string::npos) ? instanceName : instanceName.substr(pos_barra + 1);
+
+        size_t pos_ext = nome_do_arquivo.rfind(".txt");
+        std::string nome_base = (pos_ext == std::string::npos) ? nome_do_arquivo : nome_do_arquivo.substr(0, pos_ext);
+
+        string filename = "./solutions/generations/by_routes/routes_" + setName + "_" + nome_base + ".txt";
+
         ofstream output_file(filename);
 
         if (!output_file.is_open()) {
@@ -240,7 +246,14 @@ namespace Util{
     }; 
 
     static void printFirstFrontsToFile(vector<vector<Solution*>> s, string instanceName, string setName) {
-        string filename = "./solutions/generations/firstFront_" + instanceName.erase(0,12);
+        size_t pos_barra = instanceName.find_last_of("/\\");
+        std::string nome_do_arquivo = (pos_barra == std::string::npos) ? instanceName : instanceName.substr(pos_barra + 1);
+
+        size_t pos_ext = nome_do_arquivo.rfind(".txt");
+        std::string nome_base = (pos_ext == std::string::npos) ? nome_do_arquivo : nome_do_arquivo.substr(0, pos_ext);
+    
+        string filename = "./solutions/generations/firstFront_" + nome_base + ".txt";
+
         std::ofstream output_file;
 
         output_file.open(filename, std::ios::app);

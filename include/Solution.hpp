@@ -77,6 +77,7 @@ class Solution {
         double                                      getObjective(int i);
         double                                      getCrDistance() { return this->crDistance; };
         const vector<std::unique_ptr<Route>>        &getRoutes() const;
+        std::vector<std::unique_ptr<Route>>&        getRoutes() { return routes; };
         Route*                                      getRoute(int i) { return this->routes[i].get(); };
         int                                         getQT() { return this->QT; };
         int                                         getNumRoutes() { return this->numRoutes; };
@@ -104,12 +105,13 @@ class Solution {
 
         void setNumRoutes(int numRoutes) { this->numRoutes = numRoutes; };
         void setDroneRouteCreated(bool droneRouteCreated) { this->drone = droneRouteCreated; };
-        void createRoute(Route *r) { this->routes.push_back(std::unique_ptr<Route>(r)); };
+        void createRoute(std::unique_ptr<Route> route) { this->routes.push_back(std::move(route)); };
 
         bool dominates(Solution *s);
         unsigned int random(int min, int max);
 
         void includeRoute(std::unique_ptr<Route> route);
+        void removeRoute(Route* route);
 
         void calculateRouteObjectives(Graph* g, Route* r);
         void calculateObjectiveFunctions(Graph* g);

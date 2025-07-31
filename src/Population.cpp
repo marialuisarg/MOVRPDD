@@ -223,7 +223,7 @@ void Population::cdPopulation() {
 
 void Population::saveGeneration(int generation, string instanceName) {
     string genName = "gen" + to_string(generation);
-    Util::printGenerationToFile(fronts, instanceName, genName, false);
+    //Util::printGenerationToFile(fronts, instanceName, genName, false);
     //Util::printFunctionsByGenerationToFile(fronts, instanceName, genName, false);
     Util::printFirstFrontsToFile(fronts, instanceName, genName);
 }

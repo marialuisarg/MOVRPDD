@@ -39,15 +39,15 @@ void checkMissingOrDuplicatedClients(int chromossomeSize, vector<int> child) {
         }
     }
 
-    if (clients.size() == chromossomeSize) {
-        std::cout << std::endl <<  "No client is missing or duplicated!" << std::endl;
-    }
+    // if (clients.size() == chromossomeSize) {
+    //     // std::cout<< std::endl <<  "No client is missing or duplicated!" << std::endl;
+    // }
 
-    for (const auto& client : clients) {
-        if (client.second > 1) {
-            std::cout << "Client " << client.first << " appears " << client.second << " times" << std::endl;
-        }
-    }
+    // for (const auto& client : clients) {
+    //     if (client.second > 1) {
+    //         // std::cout<< "Client " << client.first << " appears " << client.second << " times" << std::endl;
+    //     }
+    // }
 }
 
 bool checkChildrenSimilarity(int chromossomeSize, vector<int> child, vector<int> p1) {
@@ -57,7 +57,7 @@ bool checkChildrenSimilarity(int chromossomeSize, vector<int> child, vector<int>
         if (child[i] == p1[i] && child[i+1] == p1[i+1]) sameAsParent1++;
     }
 
-    std::cout << (100 * sameAsParent1) / (chromossomeSize-1) << "% igual ao pai" << std::endl;
+    // std::cout << (100 * sameAsParent1) / (chromossomeSize-1) << "% igual ao pai" << std::endl;
 
     return ((100 * sameAsParent1) / (chromossomeSize-1)==100);
 }
@@ -68,10 +68,10 @@ std::vector<int> Crossover::run(Solution *p1, Solution *p2, RandomGenerator *rng
     
     // choose crossover operator
     if (crossoverOp < 50) {
-        std::cout << "PMX" << std::endl;
+        // std::cout<< "PMX" << std::endl;
         return Crossover::PMX(p1, p2, rng);
     } else {
-        std::cout << "OX" << std::endl;
+        // std::cout<< "OX" << std::endl;
         return Crossover::OX(p1, p2, rng);
     }
 }
@@ -82,7 +82,7 @@ std::vector<int> Crossover::PMX(Solution *p1, Solution *p2, RandomGenerator *rng
     vector<int> parent2 = p2->getGiantTour();
 
     int cromossomeSize = parent1.size();
-
+    
     int cp2 = 0, cp1 = rng->getInt(0, cromossomeSize-1);
     
     while (cp2 == cp1 || cp2 == 0)
@@ -113,10 +113,10 @@ std::vector<int> Crossover::PMX(Solution *p1, Solution *p2, RandomGenerator *rng
         }
     }
 
-    printCrossover(parent1, parent2, child);
+    // printCrossover(parent1, parent2, child);
     checkMissingOrDuplicatedClients(cromossomeSize, child);
 
-    std::cout << "Distance between chosen CP1 and CP2: " << abs(cp1-cp2) << " | parent1[" << cp1 << "] = " << parent1[cp1] << " | parent1[" << cp2 << "] = " << parent1[cp2] << std::endl; 
+    // std::cout<< "Distance between chosen CP1 and CP2: " << abs(cp1-cp2) << " | parent1[" << cp1 << "] = " << parent1[cp1] << " | parent1[" << cp2 << "] = " << parent1[cp2] << std::endl; 
     
     return child;
 }
@@ -127,7 +127,7 @@ std::vector<int> Crossover::OX(Solution *p1, Solution *p2, RandomGenerator *rng)
     // vector<int> parent2 = p2->encode();
 
     vector<int> parent1 = p1->getGiantTour();
-    vector<int> parent2 = p2->getGiantTour();
+    vector<int> parent2 = p2->getGiantTour();   
 
     int chromossomeSize = parent1.size();
 
@@ -165,10 +165,10 @@ std::vector<int> Crossover::OX(Solution *p1, Solution *p2, RandomGenerator *rng)
     }
 
     //std::cout << "After crossover:" << std::endl;
-    printCrossover(parent1, parent2, child);
+    //printCrossover(parent1, parent2, child);
     checkMissingOrDuplicatedClients(chromossomeSize, child);
 
-    std::cout << "Distance between chosen CP1 and CP2: " << abs(cp1-cp2) << " | parent1[" << cp1 << "] = " << parent1[cp1] << " | parent1[" << cp2 << "] = " << parent1[cp2] << std::endl; 
+    // std::cout<< "Distance between chosen CP1 and CP2: " << abs(cp1-cp2) << " | parent1[" << cp1 << "] = " << parent1[cp1] << " | parent1[" << cp2 << "] = " << parent1[cp2] << std::endl; 
     
     //check % of child edges similar to parent
     // if (!checkChildrenSimilarity(chromossomeSize, child, parent1)) {
