@@ -12,6 +12,9 @@ class Graph {
         vector<Node>            Nodes;                  // vector of client nodes
         vector<vector<double>>  euclideanDistances;     // euclidean distance matrix
         vector<vector<double>>  manhattanDistances;     // manhattan distance matrix
+        vector<vector<double>>  truckTravelTimes;       // truck travel time matrix
+        vector<vector<double>>  droneFlightEndurance;   // drone loading rate matrix adjusted to consider flight endurance
+        vector<vector<double>>  droneFlightTimes;       // drone flight time matrix
         int                     size;                   // number of nodes in the graph
 
     public:
@@ -19,6 +22,9 @@ class Graph {
             this->size = graphSize;
             euclideanDistances.resize(graphSize, vector<double>(graphSize));
             manhattanDistances.resize(graphSize, vector<double>(graphSize));
+            truckTravelTimes.resize(graphSize, vector<double>(graphSize));
+            droneFlightEndurance.resize(graphSize, vector<double>(graphSize));
+            droneFlightTimes.resize(graphSize, vector<double>(graphSize));
         };
 
         ~Graph(){};
@@ -28,11 +34,26 @@ class Graph {
         void addEdge(int from, int to) {
             euclideanDistances[from][to] = Nodes[from].euclideanDistance(&Nodes[to]);
             manhattanDistances[from][to] = Nodes[from].manhattanDistance(&Nodes[to]);
+            truckTravelTimes[from][to] = manhattanDistances[from][to] / ST;
+            
+            if (Nodes[from].getType() == DEPOT || Nodes[to].getType() == DEPOT || Nodes[to].getType() == TRUCK) {
+                droneFlightEndurance[from][to] = 0; // no drone loading rate between depot and clients and no drone loading rate when client is only served by truck
+                droneFlightTimes[from][to] = INF;
+            } else {
+                droneFlightEndurance[from][to] = 1 - (0.2 * (Nodes[from].getDemand() / QD)); //  dynamic scaling factor for the maximum flight endurance of the loaded drones
+                droneFlightTimes[from][to] = (euclideanDistances[from][to] / SD);            // time to fly from one client to another
+            }
         };
         
         double getEuclideanDistance(int from,  int to) {    return this->euclideanDistances[from][to];  };
 
         double getManhattanDistance(int from,  int to) {    return this->manhattanDistances[from][to];  };
+
+        double getDroneFlightEndurance(int from, int to) {    return this->droneFlightEndurance[from][to];  };
+
+        double getDroneFlightTime(int from, int to) {    return this->droneFlightTimes[from][to];  };
+
+        double getTruckTravelTime(int from, int to) {   return this->truckTravelTimes[from][to];    };
 
         int getSize() { return this->size;  };
 

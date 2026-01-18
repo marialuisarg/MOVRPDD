@@ -6,13 +6,17 @@
 #include <map>
 #include <queue>
 #include <random>
+#include <functional>
+#include <memory>
 
 #include "Population.hpp"
 #include "Crossover.hpp"
 #include "Mutation.hpp"
 #include "RandomGenerator.hpp"
+#include "Constructor.hpp"
 
 typedef pair<Solution*, int> competitor;
+typedef pair<Solution*, double> competitorDouble;
 typedef pair<Solution*, Solution*> parents;
 
 struct comp {
@@ -27,11 +31,15 @@ struct comp {
 
 namespace ENSGA2 {
 
-    void                run(int popSize, int numNodes, Graph *g, double alpha, int itConstructor, int itGA, string instanceName, int tSize, RandomGenerator *rng);
-    Solution*           getRandomSolution(Population *p, RandomGenerator *rng);
-    Solution*           tournamentSelection(Population *p, int tournamentSize, RandomGenerator *rng);
-    bool                isFeasible(vector<int> solution, Graph *g, int QT);
-    vector<Solution*>   multiDimensionalSearch (vector<Solution*> firstFront);
+    void                                run(int popSize, int numNodes, Graph *g, executionType typeExec, int itConstructor, int itGA, string instanceName, int tSize, RandomGenerator *rng);
+    Solution*                           getRandomSolution(Population *p, RandomGenerator *rng);
+    Solution*                           tournamentSelection(Population *p, int tournamentSize, RandomGenerator *rng);
+    bool                                isFeasible(vector<int> solution, Graph *g, int QT);
+    bool                                isFeasibleLiterature(vector<int> solution, Graph *g);
+    vector<std::unique_ptr<Solution>>   multiDimensionalSearch (vector<Solution*> firstFront, Graph *g, RandomGenerator *rng);
+    vector<std::unique_ptr<Solution>>   massiveLocalSearch(Population* offspring, Graph *g, RandomGenerator *rng);
+    std::unique_ptr<Solution>           applyLocalSearch(Solution *s, Graph *g, RandomGenerator *rng, std::function<double(Solution*)> objectiveGetter);
+    std::unique_ptr<Solution>           decodeLiterature(vector<int> sol, Graph *g);
 }
 
 #endif /* ENSGA2_H_ */

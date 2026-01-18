@@ -27,21 +27,33 @@ Population::Population(int size, int numClients, Graph *g, int q, double alpha, 
     this->g = g;
     this->rng = rng;
 
-    vector<Solution*> sol = RandomConstructor::run(g, q, alpha, numIterations, size, rng);
-    include(sol);
+    // vector<Solution*> sol = RandomConstructor::run(g, q, alpha, numIterations, size, rng);
+    // include(sol);
 };
 
 Population::~Population() {};
 
-void Population::include(vector<Solution*> sol) {
-    for (auto it = sol.begin(); it != sol.end(); it++) {
-        solutions.push_back((*it));
-        currentSize++;
-    }
-};
+void Population::include(std::vector<std::unique_ptr<Solution>>&& solutionsToMove) {
 
-int Population::includeOffspring(vector<Solution*> sol, int gen) {
-    vector<Solution*> pastGenSol = this->getSolutions();
+    solutions.reserve(solutions.size() + solutionsToMove.size());
+
+    solutions.insert(
+        solutions.end(),
+        std::make_move_iterator(solutionsToMove.begin()),
+        std::make_move_iterator(solutionsToMove.end())
+    );
+
+    solutionsToMove.clear();
+    currentSize = solutions.size();
+}
+
+int Population::includeOffspring(std::vector<unique_ptr<Solution>> sol, int gen) {
+    std::vector<Solution*> pastGenSol;
+    pastGenSol.reserve(this->getSolutions().size());
+
+    for (const auto& sol_ptr : this->getSolutions())
+        pastGenSol.push_back(sol_ptr.get());
+
     bool isUniqueSolution = true;
     int repeatedSolutions = 0;
 
@@ -61,120 +73,64 @@ int Population::includeOffspring(vector<Solution*> sol, int gen) {
                                         sol[it]->getTotalDeliveryCost() << " | " <<
                                         sol[it]->getTotalDeliveryTime() << " | " <<
                                         sol[it]->getTotalEnergyConsumption() << std::endl;
-                    repeatedSolFile.close(); // Fechar o arquivo
+                    repeatedSolFile.close(); 
                 }
                 break;
             }
         }
 
-        if (isUniqueSolution) this->include(sol[it]);
+        if (isUniqueSolution) this->include(std::move(sol[it]));
     }
 
     return repeatedSolutions;
 };
 
-void Population::include(Solution* sol) {
-    solutions.push_back(sol);
+void Population::include(std::unique_ptr<Solution> sol) {
+    solutions.push_back(std::move(sol));
     currentSize++;
 };
 
-vector<Solution*> Population::getSolutions() {
+const std::vector<std::unique_ptr<Solution>>& Population::getSolutions() const {
     return solutions;
 };
 
-Solution* Population::decode(vector<int> sol, int q) {
+std::vector<std::unique_ptr<Solution>>& Population::getSolutions() {
+    return solutions;
+}
 
-    Solution *decodedSol = new Solution(g, QT, rng);
-    int numRoutes = decodedSol->getNumRoutes();
-    decodedSol->setNumClients(numClients+1);
+std::vector<std::unique_ptr<Solution>> Population::takeSolutions() {
 
-    // SPLITTING ENCODED SOLUTION INTO ROUTES
-    vector<int> currentRoute;
-    vector<vector<int>> routes;
+    fronts.clear();
+    currentSize = 0;
     
-    for (int num : sol) {
-        if (num == 0 || num > numClients) {
-            if (!currentRoute.empty()) {
-                routes.push_back(currentRoute);
-                currentRoute.clear();
-            }
-        } else {
-            currentRoute.push_back(num);
-        }
-    }
-
-    if (!currentRoute.empty()) {
-        routes.push_back(currentRoute);
-    }
-
-    // PASSING ROUTES TO SOLUTION
-    double f1 = 0.0, f2 = 0.0, f3 = 0.0;
-
-    // creates routes
-    for (int i = 0; i < routes.size(); i++) {
-        Route r(QT, QD, g->getNode(0));
-        decodedSol->createRoute(r);
-    }
-
-    int index = 0;
-
-    for (const auto& route : routes) {
-        Node *currentNode;
-        Route *r = decodedSol->getRoute(index);
-
-        for (int num : route) {
-            currentNode = g->getNode(num);
-            r->insertClient(currentNode);
-        }
-
-        r->updateEnergyConsumption(g, QT);
-        r->updateDeliveryTime(g, ST, SD);
-        r->updateDeliveryCost(g, QT, QD, CB);
-
-        f1 += r->getEnergyConsumption();
-        f2 += r->getDeliveryCost();
-        if (r->getDeliveryTime() > f3)
-            f3 = r->getDeliveryTime();
-
-        r->registerPrevTruckRoute();
-        index++;
-    }
-
-    decodedSol->setTotalEnergyConsumption(f1);
-    decodedSol->setTotalDeliveryCost(f2);
-    decodedSol->setTotalDeliveryTime(f3);
-
-    // CREATE DRONE ROUTES
-    Constructor::createDroneRoutes(g, decodedSol);
-
-    return decodedSol;
-};
+    return std::move(solutions);
+}
 
 // fast non-dominated sort (Deb, 2002)
 void Population::FNDS() {
     vector<Solution*> Fi; 
 
-    for (const auto& solution : solutions) {        // for each solution p in population
+    for (const auto& solution_ptr : solutions) {        // for each solution p in population
         vector<int> sp;                             // index of solutions that p dominates
         int index = 0;
         int np = 0;                                 // number of solutions that dominate p
 
-        for (const auto& solution2 : solutions) {   // for each solution q in population
-            if (solution->dominates(solution2))     
+        for (const auto& solution2_ptr : solutions) {   // for each solution q in population
+            if (solution_ptr->dominates(solution2_ptr.get()))     
                 sp.push_back(index);                
-            else if (solution2->dominates(solution))
+            else if (solution2_ptr->dominates(solution_ptr.get()))
                 np++;
             
             index++;
         }
 
         if (np == 0) {
-            solution->setRank(1);
-            Fi.push_back(solution);
+            solution_ptr->setRank(1);
+            Fi.push_back(solution_ptr.get());
         }
 
-        solution->setDominatedSolutions(sp);
-        solution->setDominatedBy(np);
+        solution_ptr->setDominatedSolutions(sp);
+        solution_ptr->setDominatedBy(np);
     }
 
     int i = 1;                  // front counter
@@ -187,9 +143,9 @@ void Population::FNDS() {
         for (const auto& p : Fi) {   
             vector<int> sp = p->getDominatedSolutions();
 
-            for (const auto& q : sp) {  
-                Solution *sol = solutions[q];
-                sol->setDominatedBy(sol->getDominatedBy()-1);
+            for (int q_idx : sp) {  
+                Solution *sol = solutions[q_idx].get();
+                sol->setDominatedBy(sol->getDominatedBy() - 1);
 
                 // if solution is not dominated by any other solution, it belongs to the next front
                 if (sol->getDominatedBy() == 0) {
@@ -267,7 +223,7 @@ void Population::cdPopulation() {
 
 void Population::saveGeneration(int generation, string instanceName) {
     string genName = "gen" + to_string(generation);
-    Util::printGenerationToFile(fronts, instanceName, genName, false);
+    //Util::printGenerationToFile(fronts, instanceName, genName, false);
     //Util::printFunctionsByGenerationToFile(fronts, instanceName, genName, false);
     Util::printFirstFrontsToFile(fronts, instanceName, genName);
 }
@@ -283,9 +239,9 @@ void Population::printFronts() {
     for (const auto& front : fronts) {
         cout << "Front " << i << endl;
         for (const auto& solution : front) {
-            cout << "f1: " << solution->getTotalDeliveryCost();
-            cout << " | f2: " << solution->getTotalDeliveryTime();
-            cout << " | f3: " << solution->getTotalEnergyConsumption();
+            cout << "f1: " << solution->getTotalEnergyConsumption();
+            cout << " | f2: " << solution->getTotalDeliveryCost();
+            cout << " | f3: " << solution->getTotalDeliveryTime();
             cout << " [C.D. = " << solution->getCrDistance() << "]" << endl;
         }
 

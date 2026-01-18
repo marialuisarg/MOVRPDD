@@ -16,27 +16,38 @@ using namespace std;
 
 class Population {
     private:
-        int                         size;
-        int                         currentSize;
-        int                         numClients;
-        vector<Solution*>           solutions;
-        vector<vector<Solution*>>   fronts;
-        Graph*                      g;
-        RandomGenerator*            rng;
+        int                   size;
+        int                   currentSize;
+        int                   numClients;
+        Graph*                g;
+        RandomGenerator*      rng;
+
+        std::vector<std::unique_ptr<Solution>>      solutions;
+        std::vector<std::vector<Solution*>>         fronts;
 
     public:
         Population(int size, int numClients, Graph *g, int QT, RandomGenerator *rng);
         Population(int size, int numClients, Graph *g, int QT, double alpha, int numIterations, int constructorType, RandomGenerator *rng);
         ~Population();
-        
-        void                include(vector<Solution*> sol);
-        void                include(Solution* sol);
-        int                 includeOffspring(vector<Solution*> sol, int gen);
-        Solution*           decode(vector<int> sol, int QT);
 
-        vector<Solution*>           getSolutions();
-        vector<Solution*>           getFront(int i) { return this->fronts[i]; };
-        vector<vector<Solution*>>   getFronts() { return this->fronts; };
+        Population(const Population&) = delete;
+        Population& operator=(const Population&) = delete;
+
+        Population(Population&&) = default;
+        Population& operator=(Population&&) = default;
+        
+        void                include(std::unique_ptr<Solution> sol);
+        void                include(std::vector<std::unique_ptr<Solution>>&& solutionsToMove);
+        int                 includeOffspring(vector<unique_ptr<Solution>> sol, int gen);
+        Solution*           decodeLiterature(vector<int> sol, Graph *g);
+
+        const std::vector<std::unique_ptr<Solution>>&     getSolutions() const;
+        std::vector<std::unique_ptr<Solution>>&           getSolutions();
+        std::vector<std::unique_ptr<Solution>>            takeSolutions();
+
+        std::vector<Solution*>                      getFront(int i) { return this->fronts[i]; };
+        vector<vector<Solution*>>                   getFronts() { return this->fronts; };
+
         int                         getSize() { return this->size; };
         int                         getCurrentSize() { return this->currentSize; };
 

@@ -17,6 +17,14 @@ enum nodeType {
     DRONE = 3
 };
 
+enum executionType {
+    LIT,
+    LIT_LS,
+    ADPT,
+    ADPT_LS,
+    INVALID
+};
+
 // parameter settings of MOVRPDD Model //
 
 const int   WT = 1500,      // tare weight of trucks
@@ -32,5 +40,10 @@ const int   WT = 1500,      // tare weight of trucks
 const float E = 0.5;        // maximum endurance of empty drones
 
 static const int INF = 99999;
+
+struct SplitResult {
+    std::vector<float> costs;
+    std::vector<int> predecessors;
+};
 
 #endif // TYPES_H_

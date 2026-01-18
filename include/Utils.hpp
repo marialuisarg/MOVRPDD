@@ -5,6 +5,7 @@
 #include<iostream>
 #include<sstream>
 #include<filesystem>
+#include <iomanip>
 
 #include<vector>
 #include<tuple>
@@ -189,8 +190,14 @@ namespace Util{
     }
 
     static void printGenerationToFile(vector<vector<Solution*>> s, string instanceName, string setName, bool normalized) {
-        string filename = "./solutions/generations/by_routes/routes_" + setName + "_" + instanceName.erase(0,12);
-        std::cout << filename << std::endl;
+        size_t pos_barra = instanceName.find_last_of("/\\");
+        std::string nome_do_arquivo = (pos_barra == std::string::npos) ? instanceName : instanceName.substr(pos_barra + 1);
+
+        size_t pos_ext = nome_do_arquivo.rfind(".txt");
+        std::string nome_base = (pos_ext == std::string::npos) ? nome_do_arquivo : nome_do_arquivo.substr(0, pos_ext);
+
+        string filename = "./solutions/generations/by_routes/routes_" + setName + "_" + nome_base + ".txt";
+
         ofstream output_file(filename);
 
         if (!output_file.is_open()) {
@@ -201,7 +208,6 @@ namespace Util{
         int nFronts = s.size();
         
         double f1 = 0.0, f2 = 0.0, f3 = 0.0;
-        double max_f1 = 0.0, max_f2 = 0.0, max_f3 = 0.0;
 
         output_file << nFronts << std::endl << std::endl;
 
@@ -210,9 +216,9 @@ namespace Util{
             output_file << s.at(i).size() << std::endl;
             for (int j = 0; j < s.at(i).size(); j++) {
 
-                f1 = s.at(i).at(j)->getTotalDeliveryCost();
-                f2 = s.at(i).at(j)->getTotalDeliveryTime();
-                f3 = s.at(i).at(j)->getTotalEnergyConsumption();
+                f2 = s.at(i).at(j)->getTotalDeliveryCost();
+                f3 = s.at(i).at(j)->getTotalDeliveryTime();
+                f1 = s.at(i).at(j)->getTotalEnergyConsumption();
 
                 output_file << s.at(i).at(j)->getNumRoutes();
                 output_file << std::endl << f1 << " " << f2 << " " << f3 << std::endl;
@@ -229,8 +235,8 @@ namespace Util{
         std::cout << "File " << filename << " created." << std::endl;
         output_file.close();
         
-        string command = "python include/scripts/plotNetworkGraph.py instances/" + instanceName + " " + filename;
-        int aux = system(command.c_str());
+        // string command = "python include/scripts/plotNetworkGraph.py instances/" + instanceName + " " + filename;
+        // int aux = system(command.c_str());
     };
 
     static void plotParetoFrontiers() {
@@ -240,7 +246,14 @@ namespace Util{
     }; 
 
     static void printFirstFrontsToFile(vector<vector<Solution*>> s, string instanceName, string setName) {
-        string filename = "./solutions/generations/firstFront_" + instanceName.erase(0,12);
+        size_t pos_barra = instanceName.find_last_of("/\\");
+        std::string nome_do_arquivo = (pos_barra == std::string::npos) ? instanceName : instanceName.substr(pos_barra + 1);
+
+        size_t pos_ext = nome_do_arquivo.rfind(".txt");
+        std::string nome_base = (pos_ext == std::string::npos) ? nome_do_arquivo : nome_do_arquivo.substr(0, pos_ext);
+    
+        string filename = "./solutions/generations/firstFront_" + nome_base + ".txt";
+
         std::ofstream output_file;
 
         output_file.open(filename, std::ios::app);
@@ -250,11 +263,11 @@ namespace Util{
         if (output_file.is_open()) {
             for (int j = 0; j < s.at(0).size(); j++) {
 
-                f1 = s.at(0).at(j)->getTotalDeliveryCost();
-                f2 = s.at(0).at(j)->getTotalDeliveryTime();
-                f3 = s.at(0).at(j)->getTotalEnergyConsumption();
+                f2 = s.at(0).at(j)->getTotalDeliveryCost();
+                f3 = s.at(0).at(j)->getTotalDeliveryTime();
+                f1 = s.at(0).at(j)->getTotalEnergyConsumption();
                 
-                output_file << std::endl << f1 << " " << f2 << " " << f3;
+                output_file << std::endl << std::fixed << std::setprecision(2) << f1 << " " << f2 << " " << f3;
             }
             output_file << std::endl;
             output_file.close();

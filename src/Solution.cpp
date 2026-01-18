@@ -10,6 +10,7 @@
 #include <tuple>
 #include <random>
 #include <algorithm>
+#include <unordered_set>
 
 Solution::Solution(Graph *g, int QT, RandomGenerator *randGen) {
     this->QT = QT;                           // maximum load capacity of trucks
@@ -19,35 +20,22 @@ Solution::Solution(Graph *g, int QT, RandomGenerator *randGen) {
     this->drone = false;
     this->dominatedBy = 0;
     this->randGen = randGen;
+    this->localSearch = false;
+    this->decoded = false;
 
-    // calculates demand and divides by max load capacity of trucks to get num of routes
-    setNumRoutes(ceil(g->getTotalDemand() / QT));
-}
+    this->truckEnergyCons = vector<vector<double>>(g->getSize(), std::vector<double>(g->getSize(), 0.0));
 
-void Solution::updateSolution(Graph *g) {
-    double f1 = 0.0, f2 = 0.0, f3 = 0.0;
-
-    for (int i = 0; i < getNumRoutes(); i++) {
-        routes[i].updateEnergyConsumption(g, QT);
-        routes[i].updateDeliveryTime(g, ST, SD);
-
-        f1 += routes[i].getEnergyConsumption();
-        f2 += routes[i].getDeliveryCost();
-        if (routes[i].getDeliveryTime() > f3)
-            f3 = routes[i].getDeliveryTime();
-    }
-
-    setTotalEnergyConsumption(f1);
-    setTotalDeliveryCost(f2);
-    setTotalDeliveryTime(f3);
+    setNumRoutes(0);
 }
 
 void Solution::printRoutes() {
     cout << endl;
     for (int i = 0; i < getNumRoutes(); i++) {
         cout << "Route " << i << ": ";
-        routes[i].printRoute();
+        routes[i]->printRoute();
     }
+
+    cout << "---------------------------------------------------------------------------------------------------------------------------" << endl << endl;
 }
 
 void Solution::plotSolution(string instance, int i, string filename) {
@@ -74,8 +62,8 @@ void Solution::plotSolution(string instance, int i, string filename) {
     for (int i=0; i < nRoutes; i++) {
         string truckRoute = "";
 
-        for (int j=0; j < this->routes[i].getTruckRoute().size(); j++){
-            truckRoute = truckRoute + "-" + to_string(this->routes[i].getTruckRoute()[j]->getID());
+        for (int j=0; j < this->routes[i]->getTruckRoute().size(); j++){
+            truckRoute = truckRoute + "-" + to_string(this->routes[i]->getTruckRoute()[j]->getID());
         }
 
         if(!truckRoute.empty())
@@ -84,10 +72,10 @@ void Solution::plotSolution(string instance, int i, string filename) {
 
         string droneRoute = " ";
 
-        for (int j=0; j < this->routes[i].getDroneRoute().size(); j++){
-            droneRoute = droneRoute + "/" + to_string(get<0>(this->routes[i].getDroneRoute()[j]))
-                                    + "-" + to_string(get<1>(this->routes[i].getDroneRoute()[j]))
-                                    + "-" + to_string(get<2>(this->routes[i].getDroneRoute()[j]));
+        for (int j=0; j < this->routes[i]->getDroneRoute().size(); j++){
+            droneRoute = droneRoute + "/" + to_string(get<0>(this->routes[i]->getDroneRoute()[j]))
+                                    + "-" + to_string(get<1>(this->routes[i]->getDroneRoute()[j]))
+                                    + "-" + to_string(get<2>(this->routes[i]->getDroneRoute()[j]));
         }
 
         if(!droneRoute.empty())
@@ -111,8 +99,8 @@ void Solution::saveRouteToPlot(std::ofstream &output_file) {
     for (int i=0; i < nRoutes; i++) {
         string truckRoute = "";
 
-        for (int j=0; j < this->routes[i].getTruckRoute().size(); j++){
-            truckRoute = truckRoute + "-" + to_string(this->routes[i].getTruckRoute()[j]->getID());
+        for (int j=0; j < this->routes[i]->getTruckRoute().size(); j++){
+            truckRoute = truckRoute + "-" + to_string(this->routes[i]->getTruckRoute()[j]->getID());
         }
 
         if(!truckRoute.empty())
@@ -121,10 +109,10 @@ void Solution::saveRouteToPlot(std::ofstream &output_file) {
 
         string droneRoute = " ";
 
-        for (int j=0; j < this->routes[i].getDroneRoute().size(); j++){
-            droneRoute = droneRoute + "/" + to_string(get<0>(this->routes[i].getDroneRoute()[j]))
-                                    + "-" + to_string(get<1>(this->routes[i].getDroneRoute()[j]))
-                                    + "-" + to_string(get<2>(this->routes[i].getDroneRoute()[j]));
+        for (int j=0; j < this->routes[i]->getDroneRoute().size(); j++){
+            droneRoute = droneRoute + "/" + to_string(get<0>(this->routes[i]->getDroneRoute()[j]))
+                                    + "-" + to_string(get<1>(this->routes[i]->getDroneRoute()[j]))
+                                    + "-" + to_string(get<2>(this->routes[i]->getDroneRoute()[j]));
         }
 
         if(!droneRoute.empty())
@@ -156,29 +144,44 @@ void Solution::sortCandidatesByCost(Graph* g) {
         });
 }
 
-bool Solution::includeClient(Node* client, Graph *g, int prevNode, int routeIndex) {
-    Route * r = &(this->routes[routeIndex]);
+void Solution::removeRoute(Route* route) {
+    auto it = std::remove_if(routes.begin(), routes.end(),
+                             [route](const std::unique_ptr<Route>& r) { return r.get() == route; });
+    if (it != routes.end()) {
+        routes.erase(it, routes.end());
+        setNumRoutes(getNumRoutes() - 1);
+    }
+}
+
+void Solution::includeRoute(std::unique_ptr<Route> route) {
+    this->routes.push_back(std::move(route));
+    this->setNumRoutes(this->getNumRoutes() + 1);
+}
+
+bool Solution::includeClient(Node* client, Graph* g, int prevNode, int routeIndex) {
+    Route* r = this->routes[routeIndex].get();
 
     // verifies if client is already attended
     if (this->getAttendedClient(client->getID()).second) {
         return false;
     }
     
+    // std::cout << "Inserting client " << client->getID() << " in route " << routeIndex << " after node " << prevNode << std::endl;
     // inserts client in route
-    if (!r->insertClient(client, prevNode)) {
+
+    if (!r->insertClientPrev(client, prevNode)) {
         for (int i = 0; i < this->getCandidatesCost().size(); i++) {
             if (get<0>(this->getCandidateCost(i)) == client->getID() && get<1>(this->getCandidateCost(i)) == routeIndex) {
                 this->eraseCandidateCostAt(i);
                 break;
             }
         }
-
         return false;
     }
 
     // updates attended clients
     this->updateAttendedClients(client->getID());
-    r->updateDeliveryCost(g, CT, CD, CB);
+    //r->updateDeliveryCost(g, CT, CD, CB);
     
     // updates cheapest insertion candidates list
     this->updateCandidatesList(client, g, routeIndex);
@@ -206,17 +209,21 @@ void Solution::updateCandidatesList(Node *client, Graph *g, int iRoute) {
    int clientPrevNode = 0, clientNextNode = 0;
 
    // remove client from candidates list
-    for (int i = 0; i < this->getCandidatesCost().size(); i++) {
-        if (get<0>(this->getCandidateCost(i)) == client->getID()) {
-            if (get<1>(this->getCandidateCost(i)) == iRoute) {
-                clientPrevNode = get<3>(this->getCandidateCost(i));
-                clientNextNode = get<4>(this->getCandidateCost(i));
-            }
-
-            this->eraseCandidateCostAt(i);
-            i--;
+   for (const auto& candidate : candidatesCost) {
+        if (get<0>(candidate) == client->getID() && get<1>(candidate) == iRoute) {
+            clientPrevNode = get<3>(candidate);
+            clientNextNode = get<4>(candidate);
+            break;
         }
     }
+
+    candidatesCost.erase(
+        std::remove_if(candidatesCost.begin(), candidatesCost.end(),
+            [&](const auto& candidate_tuple) {
+                return get<0>(candidate_tuple) == client->getID();
+            }),
+        candidatesCost.end()
+    );
 
     // goes through all candidates and updates costs for the route that was modified
     for (int i = 0; i < this->getCandidatesCost().size(); i++) {
@@ -285,7 +292,6 @@ void Solution::updateCandidatesList(Node *client, Graph *g, int iRoute) {
 }
 
 void Solution::eraseCandidateCostAt(int i) { 
-    //cout << "erasing candidate " << get<0>(this->getCandidateCost(i)) << " from route " << get<1>(this->getCandidateCost(i)) << endl << endl;
     this->candidatesCost.erase(this->candidatesCost.begin() + i); 
 };
 
@@ -312,7 +318,7 @@ bool Solution::dominates(Solution *s) {
     return false;
 }
 
-vector<Route> Solution::getRoutes() {
+const vector<std::unique_ptr<Route>>& Solution::getRoutes() const {
     return routes;
 }
 
@@ -342,9 +348,9 @@ vector<int> Solution::encode() {
     for (int i = 0; i < numRoutes; i++) {
         Route *route = getRoute(i);
         
-        for (int j = 1; j < route->getPrevTruckRoute().size()-1; j++) {
-            encodedSol.push_back(route->getPrevTruckRoute()[j]);
-        }
+        // for (int j = 1; j < route->getPrevTruckRoute().size()-1; j++) {
+        //     encodedSol.push_back(route->getPrevTruckRoute()[j]);
+        // }
 
         if (i == numRoutes-1) break;
 
@@ -403,6 +409,109 @@ void Solution::printSolution() {
     cout << "-------------------" << endl;
 };
 
-Solution::~Solution() {
-    routes.clear();
-};
+void Solution::calculateRouteObjectives(Graph* g, Route* r) {
+    double segEnergyCons, flightDeliveryCost, totalEnergyCons = 0.0, totalDeliveryCost = 0.0, totalDeliveryTime = 0.0;
+    std::unordered_set<int> launchNodes;
+    std::unordered_set<int> retrievalNodes;
+    bool droneIsFlighing = false;
+
+    vector<int>* truckIDs = r->getTruckRouteIDs();
+    int numNodes = r->getNumClients();
+    // std::cout << "Calculating route objectives for route with " << numNodes << " nodes." << std::endl;
+
+    for (std::tuple<int, int, int> flight : r->getDroneRoute()) {
+        int launchNode = std::get<0>(flight);
+        int client = std::get<1>(flight);
+        int retrievalNode = std::get<2>(flight);
+        launchNodes.insert(launchNode);
+        retrievalNodes.insert(retrievalNode);
+
+        double dist_ij = g->getEuclideanDistance(launchNode, client);
+        double dist_jk = g->getEuclideanDistance(client, retrievalNode);
+
+        // cost associated to drone usage
+        totalDeliveryCost += ((dist_ij + dist_jk) * CD); 
+        totalDeliveryTime += g->getDroneFlightTime(launchNode, client) + g->getDroneFlightTime(client, retrievalNode); // time to fly from launch node to client and from client to retrieval node
+    }
+
+    for (int i = 0; i < numNodes; i++) {
+
+        int client = truckIDs->at(i);
+        int nextClient;
+        int lastClient;
+        double dist_ij, dist_jk;
+
+        if (i == 0) {
+            lastClient = 0;
+            if (numNodes == 1)
+                nextClient = truckIDs->at(0);
+            else
+                nextClient = truckIDs->at(i+1);
+
+            dist_ij = g->getManhattanDistance(lastClient, client); 
+            segEnergyCons = (WT + QT - r->getCurrentCapacity()) * dist_ij;
+            this->truckEnergyCons[lastClient][client] = segEnergyCons;
+            
+            totalEnergyCons += segEnergyCons;
+            totalDeliveryCost += dist_ij;
+            totalDeliveryTime += g->getTruckTravelTime(lastClient, client); // time to travel from depot to first client
+        } else if (i == numNodes-1) {
+            nextClient = 0;
+            if (numNodes == 1) {
+                lastClient = truckIDs->at(0);
+            } else {
+                lastClient = truckIDs->at(i-1);
+            }
+        } else {
+            nextClient = truckIDs->at(i+1);
+            lastClient = truckIDs->at(i-1);
+        }
+
+        // if drone starts or ends flight at client, flight time will be added to the delivery time instead of truck travel time
+        if (launchNodes.find(client) != launchNodes.end() || retrievalNodes.find(client) != retrievalNodes.end()) {
+            droneIsFlighing = !droneIsFlighing; // toggles droneIsFlighing state
+        }  
+
+        dist_ij = g->getManhattanDistance(lastClient, client);
+        dist_jk = g->getManhattanDistance(client, nextClient);
+        
+        if (!droneIsFlighing) {
+            // if drone is not flying, we consider the truck travel time
+            totalDeliveryTime += g->getTruckTravelTime(client, nextClient);
+        }
+
+        segEnergyCons = ((this->truckEnergyCons[lastClient][client] / dist_ij) - g->getNode(client)->getDemand()) * dist_jk;
+        this->truckEnergyCons[client][nextClient] = segEnergyCons;
+
+        totalEnergyCons += segEnergyCons;
+        totalDeliveryCost += dist_jk;
+    }
+
+    totalDeliveryCost = totalDeliveryCost * CT;  // costs associated to truck usage
+
+    totalDeliveryCost += CB; // base cost associated to the use of pair truck-drone
+
+    r->setEnergyConsumption(totalEnergyCons);
+    r->setDeliveryCost(totalDeliveryCost);
+    r->setDeliveryTime(totalDeliveryTime);
+}
+
+void Solution::calculateObjectiveFunctions(Graph* g) {
+    double ec = 0.0, 
+           dc = 0.0, 
+           dt = 0.0;
+
+    for (auto& route : this->routes) {
+        this->calculateRouteObjectives(g, route.get());
+
+        ec += route->getEnergyConsumption();
+        dc += route->getDeliveryCost();
+        if (route->getDeliveryTime() > dt) {
+            dt = route->getDeliveryTime();
+        }
+    }
+
+    this->setTotalEnergyConsumption(ec);
+    this->setTotalDeliveryCost(dc);
+    this->setTotalDeliveryTime(dt);
+}

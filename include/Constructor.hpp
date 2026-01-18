@@ -8,6 +8,8 @@
 #include <cmath>
 #include <deque>
 #include <unordered_map>
+#include <iterator>
+#include <memory>
 
 #include "Graph.hpp"
 #include "Solution.hpp"
@@ -16,7 +18,6 @@
 
 namespace Constructor {
     void insertRandomizedFirstClients(Graph *g, Solution *sol, int *numRoutes, bool *droneRouteCreated, RandomGenerator *rng);
-    bool isInSearchRange(vector<int> searchRange, int clientID);
     void sortListByEuclideanDistance(Graph *g, vector<int> *nodeIdList, int clientNode);
     void sortListByGain(vector<tuple<int, int, int, double, bool>> *list);
     bool isReachableByDrone(Graph *g, Solution *sol, tuple<int, int, int> flight, int routeIndex);
@@ -36,8 +37,16 @@ namespace RandomConstructor {
 }
 
 namespace AdaptiveConstructor {
-    void createAdaptiveTruckRoutes(Graph *g, Solution *sol, int *numRoutes, bool *droneRouteCreated);
-    vector<Solution*> run(Graph *g, int QT, int numIterations, int setSize, RandomGenerator *rng);
+    void createAdaptiveTruckRoutes(Graph *g, Solution* sol, int *numRoutes, bool *droneRouteCreated);
+    vector<std::unique_ptr<Solution>> run(Graph *g, int QT, int numIterations, int setSize, RandomGenerator *rng);
+}
+
+namespace LiteratureConstructor {
+    vector<std::unique_ptr<Solution>>   run(Graph *g, int QT, RandomGenerator *randGen, int setSize);
+    std::unique_ptr<Solution>           truckRouteSplit(std::vector<int> clients, Graph* g);
+    void                                split(Graph* g, Solution* sol, std::vector<int>& clients);
+    std::deque<std::unique_ptr<Route>>  extract(const std::vector<int>& clients, const std::vector<int>& predecessorIndex, Graph* g);
+    void                                droneRouteConstructor(Solution* sol, Graph* g);
 }
 
 #endif // CONSTRUCTOR_HPP_
